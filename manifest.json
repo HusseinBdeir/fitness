@@ -1,0 +1,19 @@
+{
+  "name": "Upper Body & Athletic Programme",
+  "short_name": "Fitness",
+  "description": "Personal Upper Body, Calisthenics & Athletic Training Programme with Live Gym HUD, Muscle Recovery Map & Cloud Sync.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0F17",
+  "theme_color": "#1D55A3",
+  "icons": [
+    {
+      "src": "icon.svg?v=10.1",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
