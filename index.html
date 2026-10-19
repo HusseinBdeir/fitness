@@ -293,6 +293,13 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 @media (max-width:560px){.macro-grid{grid-template-columns:repeat(2,1fr)}}
 .health-strip{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.hmodal-back{position:fixed;inset:0;z-index:90;background:rgba(9,13,22,.72);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;padding:10px}
+@media (min-width:600px){.hmodal-back{align-items:center}}
+.hmodal{background:var(--surface);border:1px solid var(--line);border-radius:16px;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:11px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+.hnotice{background:var(--sunk);border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:8px;padding:10px 12px;font-size:12.5px;line-height:1.45;display:flex;flex-direction:column;gap:5px}
+.hnotice.bad{border-left-color:var(--bad);background:rgba(239,68,68,.08)}
+.hnotice.good{border-left-color:var(--good)}
+.step-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;flex-wrap:wrap}
 
 </style>
 </head>
@@ -422,7 +429,7 @@ const DEFAULT_SESSIONS = {
   }
 };
 const DEFAULT_NOTIF = {enabled:false,rest:true,morning:true,morningHour:9,evening:true,eveningHour:20};
-const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:""};
+const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:"",shortcutReady:false};
 const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF,health:{},bio:DEFAULT_BIO};
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -439,7 +446,7 @@ const repLabel = u => u==="s"?"sec":"reps";
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
 const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv"};
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -1356,6 +1363,7 @@ function ingestHealthPayload(payload, sourceLabel, silentToast){
     if(mergeHealthDay(dateKey, normalizeHealthDayObj(obj), sourceLabel)) count++;
   }
   if(count>0){
+    state.healthSyncModal=null; state.healthScWarn=null;
     savePlan();
     if(formOpen()) refreshAllRec();
     render();
@@ -1384,7 +1392,7 @@ function parseHealthCsv(csvText, sourceLabel){
     const d=String(row.date||row.Date||row.day||isoToday()).slice(0,10);
     if(mergeHealthDay(d, normalizeHealthDayObj(row), sourceLabel||"Apple Health CSV")) count++;
   }
-  if(count>0){ savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Health CSV"); }
+  if(count>0){ state.healthSyncModal=null; state.healthScWarn=null; savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Health CSV"); }
   return count;
 }
 function parseAppleHealthXml(xmlText, sourceLabel){
@@ -1446,23 +1454,99 @@ function parseAppleHealthXml(xmlText, sourceLabel){
     });
     if(mergeHealthDay(d, norm, sourceLabel||"Apple Health XML")) count++;
   });
-  if(count>0){ savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Apple Health XML!"); }
+  if(count>0){ state.healthSyncModal=null; state.healthScWarn=null; savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Apple Health XML!"); }
   return count;
+}
+async function extractXmlFromZipBuffer(arrayBuffer){
+  const u8=new Uint8Array(arrayBuffer), dv=new DataView(arrayBuffer), dec=new TextDecoder("utf-8");
+  let targetMethod=-1, targetOffset=-1, targetCompSize=0;
+  const maxScan=Math.min(u8.length,65558);
+  let eocd=-1;
+  for(let i=u8.length-22;i>=u8.length-maxScan&&i>=0;i--){
+    if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; }
+  }
+  if(eocd>=0){
+    const cdSize=dv.getUint32(eocd+12,true), cdOffset=dv.getUint32(eocd+16,true);
+    let p=cdOffset;
+    while(p+46<=u8.length&&p<cdOffset+cdSize){
+      if(dv.getUint32(p,true)!==0x02014b50) break;
+      const method=dv.getUint16(p+10,true), compSize=dv.getUint32(p+20,true);
+      const nameLen=dv.getUint16(p+28,true), extraLen=dv.getUint16(p+30,true), commentLen=dv.getUint16(p+32,true);
+      const localOff=dv.getUint32(p+42,true);
+      const name=dec.decode(u8.subarray(p+46,p+46+nameLen));
+      if(/(?:^|\/)export\.xml$/i.test(name)||(/\.xml$/i.test(name)&&!/cda/i.test(name)&&targetOffset<0)){
+        if(localOff+30<=u8.length&&dv.getUint32(localOff,true)===0x04034b50){
+          const lNameLen=dv.getUint16(localOff+26,true), lExtraLen=dv.getUint16(localOff+28,true);
+          targetMethod=method; targetOffset=localOff+30+lNameLen+lExtraLen; targetCompSize=compSize;
+          if(/(?:^|\/)export\.xml$/i.test(name)) break;
+        }
+      }
+      p+=46+nameLen+extraLen+commentLen;
+    }
+  }
+  if(targetOffset<0){
+    let p=0;
+    while(p+30<=u8.length){
+      if(dv.getUint32(p,true)!==0x04034b50) break;
+      const method=dv.getUint16(p+8,true), compSize=dv.getUint32(p+18,true);
+      const nameLen=dv.getUint16(p+26,true), extraLen=dv.getUint16(p+28,true);
+      const name=dec.decode(u8.subarray(p+30,p+30+nameLen)), dataStart=p+30+nameLen+extraLen;
+      if(/\.xml$/i.test(name)&&!/cda/i.test(name)){
+        targetMethod=method; targetOffset=dataStart; targetCompSize=compSize||(u8.length-dataStart); break;
+      }
+      if(!compSize) break;
+      p=dataStart+compSize;
+    }
+  }
+  if(targetOffset<0) throw new Error("No Apple Health export.xml found inside ZIP");
+  const compSlice=u8.subarray(targetOffset,targetOffset+targetCompSize);
+  if(targetMethod===0) return dec.decode(compSlice);
+  if(targetMethod===8&&typeof DecompressionStream!=="undefined"){
+    const ds=new DecompressionStream("deflate-raw");
+    const writer=ds.writable.getWriter();
+    writer.write(compSlice); writer.close();
+    return await new Response(ds.readable).text();
+  }
+  throw new Error("Unsupported ZIP compression method ("+targetMethod+")");
+}
+async function handleHealthFile(file){
+  if(!file) return 0;
+  const name=String(file.name||"Health file");
+  if(/\.zip$/i.test(name)){
+    toast("Unpacking Apple Health "+name+"...");
+    const buf=await file.arrayBuffer();
+    const xml=await extractXmlFromZipBuffer(buf);
+    return ingestHealthPayload(xml, name);
+  }
+  const txt=await file.text();
+  return ingestHealthPayload(txt, name);
 }
 function checkUrlHealthSync(){
   try{
     if(typeof window==="undefined"||!window.location) return;
     const u=new URL(window.location.href);
     const hsync=u.searchParams.get("hsync")||u.searchParams.get("health");
-    if(hsync){
-      lsSet("ubp.pending_hsync", hsync);
+    const qObj={}; let hasQ=false;
+    HEALTH_FIELDS.concat(["date"]).forEach(k=>{
+      const v=u.searchParams.get(k);
+      if(v!==null&&v!==""){ qObj[k]=v; hasQ=true; }
+      u.searchParams.delete(k);
+    });
+    if(hasQ){
+      lsSet("ubp.pending_hsync", JSON.stringify(qObj));
+      u.searchParams.delete("hsync"); u.searchParams.delete("health");
+      if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
+    } else if(hsync){
+      if(hsync==="1"||hsync==="open"){ state.healthSyncModal="read"; state.healthSyncTab="quick"; }
+      else lsSet("ubp.pending_hsync", hsync);
       u.searchParams.delete("hsync"); u.searchParams.delete("health");
       if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
     }
     const pending=lsGet("ubp.pending_hsync");
     if(pending && state.profile){
       lsSet("ubp.pending_hsync", null);
-      ingestHealthPayload(pending, "iOS Shortcut");
+      const n=ingestHealthPayload(pending, "iOS Shortcut");
+      if(n>0 && state.plan){ state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:true}); savePlan(); }
     }
   }catch(e){}
 }
@@ -2071,7 +2155,7 @@ function bestMetric(e,bw){ let m=0; for(const s of e.sets||[]){ if(!(s.r>0)) con
 /* ---------- Rendering ---------- */
 const view=document.getElementById("view");
 const formOpen = () => !!state.form && state.tab==="log";
-function render(){ setStatus(); persistDraft(); renderHeader(); document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===state.tab)); if(!state.profile){ view.innerHTML=renderLogin(); return; } if(formOpen()){ view.innerHTML=renderForm(); return; } const r={today:renderToday,health:renderHealth,log:renderLog,plan:renderPlan,library:renderLibrary,guide:renderGuide}[state.tab]||renderToday; view.innerHTML=r(); if(state.tab==="log"||state.tab==="health") bindSparks(); }
+function render(){ setStatus(); persistDraft(); renderHeader(); document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===state.tab)); if(!state.profile){ view.innerHTML=renderLogin(); return; } if(formOpen()){ view.innerHTML=renderForm(); return; } const r={today:renderToday,health:renderHealth,log:renderLog,plan:renderPlan,library:renderLibrary,guide:renderGuide}[state.tab]||renderToday; view.innerHTML=r()+(state.healthSyncModal?renderHealthSyncModal():""); if(state.tab==="log"||state.tab==="health") bindSparks(); }
 
 function renderHeader(){ const p=curProfile(), who=document.getElementById("who"), bl=document.getElementById("brandline"), nav=document.querySelector("nav.tabs");
   if(nav) nav.hidden=!state.profile; if(who){ who.hidden=!state.profile; who.textContent=p?p.name:"Switch"; }
@@ -2327,22 +2411,94 @@ function renderHealth(){
     '<div class="filters">'+Object.keys(tLabels).map(k=>'<button data-act="htrend" data-m="'+k+'" class="'+(tMetric===k?"on":"")+'">'+esc(tLabels[k].n)+'</button>').join("")+'</div></div>'+
     (pts.length>=2 ? '<div class="spark">'+sparkSvg(pts)+'</div>' : '<p class="small muted">Log or sync at least 2 days of '+esc(tLabels[tMetric].n)+' to view your rolling trend line.</p>')+'</div>';
 
-  const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px"><span class="eyebrow">Automatic iPhone Health Sync (30-Second iOS Shortcut Setup)</span>'+
+  const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px"><span class="eyebrow">Automatic iPhone Health Sync (One-Time iOS Shortcut Setup)</span>'+
+    '<div class="hnotice"><b>&#9888;&#65039; Important Before Opening Apple Shortcuts:</b>'+
+      '<span><b>1. App Store Prompt:</b> If you do not have Apple&#39;s <b>Shortcuts</b> app installed on your iPhone, iOS will prompt you to download <b>Shortcuts</b> from the App Store first.</span>'+
+      '<span><b>2. Why Shortcuts says &ldquo;Could not find the shortcut Fitness Health Sync&rdquo;:</b> Apple blocks web apps from silently adding Health shortcuts. You must create a shortcut named <b>Fitness Health Sync</b> inside your Shortcuts app once using the 3 steps below, OR sync without Shortcuts using <b>Import export.zip</b> / <b>Edit Vitals</b>.</span>'+
+    '</div>'+
     '<ol style="margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:5px">'+
-      '<li>Open the built-in <b>Shortcuts</b> app on your iPhone and create a shortcut named <b>Fitness Health Sync</b>.</li>'+
-      '<li>Add <b>Find Health Samples</b> for Sleep, Resting Heart Rate, HRV, Steps, Active Energy, VO2 Max, and Weight (last 1 day).</li>'+
-      '<li>Add <b>Get Contents of URL</b> (Method: <b>POST</b>) using your pre-authenticated Cloud Sync JSON below, OR open <code>https://husseinbdeir.github.io/fitness/?hsync=...</code>.</li>'+
-      '<li>In Shortcuts &rarr; <b>Automation</b>, set <b>When Wake-Up Alarm is Stopped</b> (or <b>When Fitness is Opened</b>) &rarr; Run <b>Fitness Health Sync</b> (Run Immediately). Your vitals will be waiting inside Fitness every morning!</li>'+
+      '<li>Tap <b>Copy Name (&ldquo;Fitness Health Sync&rdquo;)</b> below, then open the <b>Shortcuts</b> app and tap <b>+</b> (top right) to create a new shortcut with that exact name.</li>'+
+      '<li>Add <b>Find Health Samples</b> (Sleep, Resting Heart Rate, HRV, Steps, Active Energy, VO2 Max, Weight &mdash; last 1 day).</li>'+
+      '<li>Add <b>Open URLs</b> and paste the <b>Sync Return URL</b> below (or use <b>Get Contents of URL &rarr; POST</b> with the Cloud Webhook JSON).</li>'+
+      '<li>Optional: In Shortcuts &rarr; <b>Automation</b>, set <b>When Wake-Up Alarm is Stopped</b> &rarr; Run <b>Fitness Health Sync</b> (Run Immediately).</li>'+
     '</ol>'+
-    '<div class="row"><button class="btn sm sec" data-act="hcopycfg">Copy Cloud Webhook JSON for iOS Shortcut</button><button class="btn sm ghost" data-act="hcopysample">Copy Sample JSON Payload</button></div></div>' : '';
+    '<div class="row"><button class="btn sm sec" data-act="hcopyname">1. Copy Name (&ldquo;Fitness Health Sync&rdquo;)</button><button class="btn sm sec" data-act="hcopyurl">2. Copy Sync Return URL</button><button class="btn sm sec" data-act="hcopycfg">Copy Cloud Webhook JSON</button><button class="btn sm ghost" data-act="hcopysample">Copy Sample JSON</button></div></div>' : '';
 
   const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Two-Way Apple Health Bridge</span><h3>Sync, Import &amp; iOS Automation</h3></div>'+
-    '<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide iOS Shortcut Guide":"iOS Shortcut Auto-Sync Guide")+'</button></div>'+
-    '<p class="small muted">Sync directly with Apple Health via iOS Shortcuts, paste a Shortcut clipboard payload, or import an Apple Health <code>export.xml</code> / CSV / JSON file.</p>'+
-    '<div class="row"><button class="btn sm" data-act="hsyncnow">&#9829; Run iOS Health Sync</button><button class="btn sm sec" data-act="hwritetoday">&#8599; Write Workout &amp; Fuel to Health</button><button class="btn sm sec" data-act="hpaste">Paste from Clipboard</button><button class="btn sm ghost" data-act="hfileopen">Import export.xml / JSON / CSV</button><input type="file" id="hfile" accept=".xml,.json,.csv" hidden></div>'+
+    '<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide iOS Shortcut Guide":"iOS Shortcut Setup Guide")+'</button></div>'+
+    '<p class="small muted">Sync today&#39;s vitals directly in the app, import an Apple Health <code>export.zip</code> / <code>export.xml</code> file (<i>Health app &rarr; Profile &rarr; Export All Health Data</i>, no Shortcuts app needed), or connect the iOS <b>Shortcuts</b> app.</p>'+
+    '<div class="row"><button class="btn sm" data-act="hsyncnow">&#9829; Sync Apple Health</button><button class="btn sm sec" data-act="hwritetoday">&#8599; Write Workout &amp; Fuel to Health</button><button class="btn sm sec" data-act="hfileopen">Import export.zip / XML / CSV</button><button class="btn sm ghost" data-act="hpaste">Paste Clipboard</button><input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden></div>'+
     setupHtml+'</div>';
 
   return hero + vitalsCard + insightsCard + strainCard + metabolicCard + trendCard + bridgeCard;
+}
+
+function renderHealthSyncModal(){
+  if(!state.healthSyncModal) return "";
+  const today=isoToday(), th=todayHealth(today), d=todayDaily(), mf=computeMetabolicFuel(today);
+  const bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{});
+  const slpVal=th.sleep!==""?th.sleep:(d.sleep!==""?d.sleep:"");
+  const tab=state.healthSyncTab||"quick";
+  const doneToday=state.sessions.filter(s=>s.date===today);
+  const kcal=doneToday.length?doneToday.reduce((acc,s)=>acc+estimateSessionKcal(s),0):0;
+
+  let bodyHtml="";
+  if(tab==="quick"){
+    bodyHtml = '<div class="hnotice good"><b>Instant Sync &mdash; No Shortcuts App Needed</b><span>Open the Apple <b>Health</b> app (Summary tab) on your iPhone and enter today&#39;s vitals below, or tap <b>Fill Sample Vitals</b> to test the Wellness Engine right now.</span></div>'+
+      '<div class="grid2">'+
+        '<label class="f">Sleep (hours)<input type="number" step="0.1" inputmode="decimal" data-hf="sleep" value="'+esc(slpVal)+'" placeholder="e.g. 7.8"></label>'+
+        '<label class="f">Deep + REM (hours)<input type="number" step="0.1" inputmode="decimal" data-hf="deepRem" value="'+esc(th.deepRem)+'" placeholder="e.g. 3.1"></label>'+
+        '<label class="f">Resting HR (bpm)<input type="number" step="1" inputmode="numeric" data-hf="rhr" value="'+esc(th.rhr)+'" placeholder="e.g. 54"></label>'+
+        '<label class="f">HRV SDNN (ms)<input type="number" step="1" inputmode="numeric" data-hf="hrv" value="'+esc(th.hrv)+'" placeholder="e.g. 68"></label>'+
+        '<label class="f">Steps today<input type="number" step="100" inputmode="numeric" data-hf="steps" value="'+esc(th.steps)+'" placeholder="e.g. 9200"></label>'+
+        '<label class="f">Active Energy (kcal)<input type="number" step="10" inputmode="numeric" data-hf="activeKcal" value="'+esc(th.activeKcal)+'" placeholder="e.g. 640"></label>'+
+        '<label class="f">VO2 Max (mL/kg/min)<input type="number" step="0.5" inputmode="decimal" data-hf="vo2max" value="'+esc(th.vo2max)+'" placeholder="e.g. 48.5"></label>'+
+        '<label class="f">Blood Oxygen SpO2 (%)<input type="number" step="0.5" inputmode="decimal" data-hf="spo2" value="'+esc(th.spo2)+'" placeholder="e.g. 98"></label>'+
+      '</div>'+
+      '<div class="row"><button class="btn" data-act="hmodalsave">&#9829; Save &amp; Sync Vitals Now</button><button class="btn sm sec" data-act="hpreset">Fill Sample Vitals</button><button class="btn sm ghost" data-act="hpaste">Paste Clipboard</button></div>';
+  } else if(tab==="file"){
+    bodyHtml = '<div class="hnotice good"><b>Direct Import from the iPhone &ldquo;Health&rdquo; App (No Shortcuts App Required)</b>'+
+      '<span>Import your Apple Health history directly from the built-in iPhone Health app without installing Shortcuts:</span>'+
+      '<ol style="margin:4px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:4px">'+
+        '<li>Open the Apple <b>Health</b> app on your iPhone and tap your <b>Profile picture</b> (top right).</li>'+
+        '<li>Scroll to the bottom and tap <b>Export All Health Data</b> &rarr; <b>Save to Files</b> (saves <code>export.zip</code>).</li>'+
+        '<li>Tap <b>Select export.zip / export.xml</b> below &mdash; Fitness unpacks the ZIP right on your phone and imports your Sleep, Resting HR, HRV, Steps, Active Energy, VO2 Max &amp; Weight!</li>'+
+      '</ol></div>'+
+      '<div class="row"><button class="btn" data-act="hfileopen">&#128194; Select Apple Health export.zip / export.xml</button><button class="btn sm sec" data-act="hpaste">&#128203; Paste JSON / CSV from Clipboard</button></div>';
+  } else {
+    const warnBox = state.healthScWarn ? '<div class="hnotice bad" id="hscwarn">'+
+      '<b>&#128721; Please Read Before Leaving Fitness for Apple Shortcuts:</b>'+
+      '<span>&bull; <b>Don&#39;t have the Shortcuts app?</b> If Apple&#39;s <b>Shortcuts</b> app is not installed on your iPhone, iOS will redirect you to the <b>App Store</b> to download it.</span>'+
+      '<span>&bull; <b>Haven&#39;t created &ldquo;Fitness Health Sync&rdquo; yet?</b> If you haven&#39;t added a shortcut named <b>Fitness Health Sync</b> inside your Shortcuts app (Steps 1&ndash;3 below), the Shortcuts app will show <b>&ldquo;The file doesn&#39;t exist&rdquo;</b>.</span>'+
+      '<div class="row" style="margin-top:4px"><button class="btn sm" data-act="hrun_sc_go" data-m="'+esc(state.healthScWarn)+'">I Understand &mdash; Open Shortcuts App</button><button class="btn sm sec" data-act="hsynctab" data-t="quick">Sync Here Without Shortcuts Instead</button></div>'+
+    '</div>' : '';
+
+    bodyHtml = warnBox + '<div class="hnotice" id="hscnotice">'+
+      '<b>&#9888;&#65039; Why did iOS open the App Store or say &ldquo;The file doesn&#39;t exist&rdquo;?</b>'+
+      '<span><b>1. App Store Prompt:</b> iOS requires Apple&#39;s <b>Shortcuts</b> app for 1-tap automation. If you don&#39;t have <b>Shortcuts</b> installed, iOS takes you to the App Store to download it. (If you don&#39;t want to use Shortcuts, use <b>Quick Sync</b> or <b>Health App .zip</b> above!)</span>'+
+      '<span><b>2. &ldquo;Could not find the shortcut Fitness Health Sync&rdquo;:</b> Apple blocks web apps from silently installing Health shortcuts. You must create a shortcut named <b>Fitness Health Sync</b> in your Shortcuts app once (30 seconds below) before tapping Run.</span>'+
+    '</div>'+
+    '<div class="stack" style="gap:6px">'+
+      '<div class="step-row"><span><b>Step 1:</b> Copy the exact shortcut name</span><button class="btn sm sec" data-act="hcopyname">Copy &ldquo;Fitness Health Sync&rdquo;</button></div>'+
+      '<div class="step-row"><span><b>Step 2:</b> Copy the return URL for your shortcut</span><button class="btn sm sec" data-act="hcopyurl">Copy Sync URL</button></div>'+
+      '<div class="step-row"><span><b>Step 3:</b> Open <b>Shortcuts</b>, tap <b>+</b>, rename to <b>Fitness Health Sync</b>, add <b>Find Health Samples</b> + <b>Open URLs</b></span><button class="btn sm sec" data-act="hcreate_sc">Open Shortcuts (+)</button></div>'+
+    '</div>'+
+    '<label class="row" style="gap:8px;cursor:pointer;font-size:12.5px;padding:2px 0"><input type="checkbox" style="width:18px;height:18px" data-act="hscready" '+(bio.shortcutReady?"checked":"")+'> <span>I have installed Apple <b>Shortcuts</b> and created the <b>&ldquo;Fitness Health Sync&rdquo;</b> shortcut</span></label>'+
+    '<div class="row"><button class="btn" data-act="hrun_sc" data-m="'+(state.healthSyncModal==="write"?"write":"read")+'">&#9654; '+(state.healthSyncModal==="write"?"Export Today ("+kcal+" kcal, "+(+d.protein||0)+"g P) via Shortcuts":"Run \u201cFitness Health Sync\u201d in Shortcuts")+'</button>'+
+    '<button class="btn sm sec" data-act="hcopycfg">Copy Cloud Webhook JSON</button>'+
+    '<button class="btn sm ghost" data-act="hwritetoday_copy">Copy Today&#39;s Summary</button></div>';
+  }
+
+  return '<div class="hmodal-back" id="hsyncmodal"><div class="hmodal">'+
+    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health Bridge</span><h3 style="font-size:18px">Connect &amp; Sync Apple Health</h3></div><button class="btn sm ghost" data-act="hsyncclose">&#10005; Close</button></div>'+
+    '<div class="filters">'+
+      '<button data-act="hsynctab" data-t="quick" class="'+(tab==="quick"?"on":"")+'">1. Quick Sync (No App)</button>'+
+      '<button data-act="hsynctab" data-t="file" class="'+(tab==="file"?"on":"")+'">2. Health App (.zip / .xml)</button>'+
+      '<button data-act="hsynctab" data-t="shortcut" class="'+(tab==="shortcut"?"on":"")+'">3. iOS Shortcuts App</button>'+
+    '</div>'+
+    bodyHtml+
+    '<input type="file" id="hfile_modal" accept=".zip,.xml,.json,.csv" hidden>'+
+  '</div></div>';
 }
 
 /* --- Log tab --- */
@@ -2693,27 +2849,98 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="hsetuptog"){ state.healthSetupOpen=!state.healthSetupOpen; render(); }
   else if(a==="htrend"){ state.healthTrendMetric=b.dataset.m||"hrv"; render(); bindSparks(); }
   else if(a==="hsyncnow"){
-    const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
-    if(/iPhone|iPad|iPod/.test(ua)){
-      toast("Opening Fitness Health Sync in iOS Shortcuts...");
-      window.location.href=buildShortcutSyncUrl("read");
-    } else {
-      state.tab="health"; state.healthEdit=true; render();
-      toast("Log vitals below, paste from clipboard, or import Apple Health XML/JSON.");
-    }
+    state.healthSyncModal="read";
+    state.healthSyncTab=state.healthSyncTab||"quick";
+    state.healthScWarn=null;
+    render();
   }
   else if(a==="hwritetoday"){
-    const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+    state.healthSyncModal="write";
+    state.healthSyncTab="shortcut";
+    state.healthScWarn=null;
+    render();
+  }
+  else if(a==="hsyncclose"){
+    state.healthSyncModal=null;
+    state.healthScWarn=null;
+    render();
+  }
+  else if(a==="hsynctab"){
+    state.healthSyncTab=b.dataset.t||"quick";
+    state.healthScWarn=null;
+    render();
+  }
+  else if(a==="hmodalsave"){
+    const today=isoToday(), h=todayHealth(today);
+    let any=false;
+    document.querySelectorAll("#hsyncmodal [data-hf]").forEach(inp=>{
+      const k=inp.dataset.hf, v=numOrEmpty(inp.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1);
+      if(v!==""){ h[k]=v; any=true; if(k==="sleep") todayDaily().sleep=v; }
+    });
+    if(any || hasHealthData(today)){
+      h.syncedAt=new Date().toISOString(); h.source="Apple Health";
+      state.healthSyncModal=null; state.healthScWarn=null;
+      savePlan(); if(formOpen()) refreshAllRec(); render();
+      toast("Apple Health vitals synced — Wellness Score & Workout Engine updated!");
+    } else {
+      toast("Enter at least one Apple Health metric above (or tap Fill Sample Vitals).");
+    }
+  }
+  else if(a==="hscready"){
+    const chk=!!b.checked;
+    state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:chk});
+    if(chk) state.healthScWarn=null;
+    savePlan(); render();
+  }
+  else if(a==="hcopyname"){
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText("Fitness Health Sync"); }catch(e){}
+    toast("Copied exact shortcut name: \"Fitness Health Sync\"");
+  }
+  else if(a==="hcopyurl"){
+    const u="https://husseinbdeir.github.io/fitness/?hsync=1&sleep=7.8&deepRem=3.1&rhr=54&hrv=68&steps=9200&activeKcal=640&vo2max=48";
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(u); }catch(e){}
+    toast("Sync Return URL copied! Paste it into an 'Open URLs' action in Shortcuts.");
+  }
+  else if(a==="hcreate_sc"){
+    const bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{});
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText("Fitness Health Sync"); }catch(e){}
+    if(!bio.shortcutReady && state.healthScWarn!=="create"){
+      state.healthScWarn="create"; render();
+      toast("Note: If Apple Shortcuts is not installed, iOS will open the App Store first.");
+      return;
+    }
+    toast("Opening Apple Shortcuts (if not installed on this iPhone, iOS will open the App Store)...");
+    window.location.href="shortcuts://create-shortcut";
+  }
+  else if(a==="hrun_sc"){
+    const mode=b.dataset.m||"read";
+    const bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{});
+    if(!bio.shortcutReady){
+      state.healthScWarn=mode; render();
+      toast("Hold on: confirm that Apple Shortcuts is installed and 'Fitness Health Sync' is created first.");
+      return;
+    }
+    toast("Opening 'Fitness Health Sync' in Apple Shortcuts (if not installed, iOS opens the App Store)...");
+    window.location.href=buildShortcutSyncUrl(mode);
+  }
+  else if(a==="hrun_sc_go"){
+    const mode=b.dataset.m||"read";
+    state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:true});
+    state.healthScWarn=null; savePlan();
+    if(mode==="create"){
+      toast("Opening Apple Shortcuts (if not installed, iOS will open the App Store)...");
+      window.location.href="shortcuts://create-shortcut";
+    } else {
+      toast("Opening 'Fitness Health Sync' in Apple Shortcuts...");
+      window.location.href=buildShortcutSyncUrl(mode);
+    }
+  }
+  else if(a==="hwritetoday_copy"){
     const today=isoToday(), d=todayDaily(), doneToday=state.sessions.filter(s=>s.date===today);
     const kcal=doneToday.length?doneToday.reduce((acc,s)=>acc+estimateSessionKcal(s),0):0;
-    if(/iPhone|iPad|iPod/.test(ua)){
-      toast("Sending workout ("+kcal+" kcal), protein ("+(+d.protein||0)+"g) & water to Apple Health...");
-      window.location.href=buildShortcutSyncUrl("write");
-    } else {
-      const summary={date:today,workout:doneToday.length?sessionTitle(doneToday[0].session):"Rest",activeKcal:kcal,proteinG:+d.protein||0,waterMl:(+d.water||0)*250,weightKg:+state.plan.bodyweight||85};
-      try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(JSON.stringify(summary,null,2)); }catch(e){}
-      toast("Apple Health export payload copied ("+kcal+" kcal · "+(+d.protein||0)+"g protein · "+((+d.water||0)*250)+" ml water)");
-    }
+    const summary={date:today,workout:doneToday.length?sessionTitle(doneToday[0].session):"Rest",activeKcal:kcal,proteinG:+d.protein||0,waterMl:(+d.water||0)*250,weightKg:+state.plan.bodyweight||85};
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(JSON.stringify(summary,null,2)); }catch(e){}
+    toast("Apple Health export payload copied ("+kcal+" kcal · "+(+d.protein||0)+"g protein · "+((+d.water||0)*250)+" ml water)");
   }
   else if(a==="hpaste"){
     try{
@@ -2721,11 +2948,11 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
         const txt=await navigator.clipboard.readText();
         const n=ingestHealthPayload(txt,"Clipboard");
         if(!n) toast("Clipboard did not contain valid Apple Health JSON or CSV.");
-      } else { toast("Clipboard read not available here — use Import File or Edit Vitals."); }
+      } else { toast("Clipboard read not available here — use Select File or Quick Sync."); }
     }catch(e){ toast("Could not read clipboard: "+(e&&e.message||e)); }
   }
   else if(a==="hfileopen"){
-    const inp=document.getElementById("hfile"); if(inp) inp.click();
+    const inp=document.getElementById("hfile_modal")||document.getElementById("hfile"); if(inp) inp.click();
   }
   else if(a==="hpreset"){
     const today=isoToday(), yest=addDays(today,-1), d2=addDays(today,-2), d3=addDays(today,-3);
@@ -2769,28 +2996,25 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
 });
 function setOverride(ws,day,val){ state.plan.overrides=state.plan.overrides||{}; const o=state.plan.overrides[ws]=state.plan.overrides[ws]||{}; if(val===state.plan.week[day]) delete o[day]; else o[day]=val; if(!Object.keys(o).length) delete state.plan.overrides[ws]; savePlan(); render(); }
 view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return; } if(state.tab==="today"&&e.target.dataset.wday){ const t=e.target, d=t.dataset.wday, ws=viewedWeekStart(); setOverride(ws,d,applyPart(weekPlan(ws)[d],t.dataset.part||"lift",t.type==="checkbox"?t.checked:t.value)); return; } if(state.tab==="plan") onPlanInput(e);
-  if(state.tab==="health"){
-    const t=e.target;
-    if(t.id==="hfile"&&t.files&&t.files[0]){
-      const reader=new FileReader();
-      reader.onload=ev=>{ ingestHealthPayload(String(ev.target.result||""), t.files[0].name); };
-      reader.readAsText(t.files[0]);
-      return;
-    }
-    if(t.dataset&&t.dataset.hf){
-      const k=t.dataset.hf, v=numOrEmpty(t.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1);
-      const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health";
-      if(k==="sleep") todayDaily().sleep=v;
-      if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v});
-      savePlan(); render(); return;
-    }
-    if(t.dataset&&t.dataset.bio){
-      state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{[t.dataset.bio]:+t.value||DEFAULT_BIO[t.dataset.bio]});
-      savePlan(); render(); return;
-    }
+  const ht=e.target;
+  if(ht&&(ht.id==="hfile"||ht.id==="hfile_modal")&&ht.files&&ht.files[0]){
+    handleHealthFile(ht.files[0]).catch(err=>toast("Import error: "+(err&&err.message||err)));
+    return;
+  }
+  if(ht&&ht.dataset&&ht.dataset.hf){
+    const k=ht.dataset.hf, v=numOrEmpty(ht.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1);
+    const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health";
+    if(k==="sleep") todayDaily().sleep=v;
+    if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v});
+    savePlan(); if(!state.healthSyncModal) render(); return;
+  }
+  if(ht&&ht.dataset&&ht.dataset.bio){
+    state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{[ht.dataset.bio]:+ht.value||DEFAULT_BIO[ht.dataset.bio]});
+    savePlan(); if(!state.healthSyncModal) render(); return;
   } if(formOpen()) onFormInput(e); if(formOpen()&&e.target.id==="addex"&&e.target.value){ const k=e.target.value; const last=lastLogOf(k); const ne={ex:k,name:EX[k].n,unit:EX[k].eq==="body"?"reps":"kg",side:false,feel:"",sets:[],next:"",target:"8-12",sug:null}; const rec=recommend(ne,planItemFor(ne,state.form.track,state.form.session),state.form); ne.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); state.form.exercises.push(ne); render(); } });
 function onLoginInput(e){ const t=e.target, l=t.dataset&&t.dataset.l; if(!l) return; if(t.dataset.day){ const a=(state.login[l]||[]).filter(d=>d!==t.dataset.day); if(t.checked) a.push(t.dataset.day); state.login[l]=DAYS.filter(d=>a.includes(d)); const lab=t.closest("label"); if(lab) lab.classList.toggle("on",t.checked); } else state.login[l]=t.type==="checkbox"?t.checked:t.value; }
 view.addEventListener("input",e=>{ if(!state.profile){ onLoginInput(e); return; } if(formOpen()){ onFormInput(e); return; } if(state.tab==="log"&&(e.target.id==="rmw"||e.target.id==="rmr")){ state.rmCalc=state.rmCalc||{w:60,r:8}; state.rmCalc[e.target.id==="rmw"?"w":"r"]=+e.target.value||0; const g=document.getElementById("rmgrid"); if(g) g.innerHTML=rmGridHtml(); return; }
+  if(e.target&&e.target.dataset&&e.target.dataset.hf){ const k=e.target.dataset.hf, v=numOrEmpty(e.target.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1); const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health"; if(k==="sleep") todayDaily().sleep=v; if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v}); savePlan(); return; }
   if(state.tab==="library"&&e.target.id==="libq"){ state.lib.q=e.target.value; const r=document.getElementById("libres"); if(r) r.innerHTML=libResults(); else render(); } });
 /* history cards remember whether they are open across re-renders (toggle does not bubble: capture) */
 view.addEventListener("toggle",e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.hid){ if(d.open) state.openHist[d.dataset.hid]=true; else delete state.openHist[d.dataset.hid]; } },true);
