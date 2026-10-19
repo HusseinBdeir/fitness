@@ -69,7 +69,8 @@ header.top .in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;alig
 .status i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
 .status.cloud i{background:var(--good)} .status.local i{background:var(--warn)}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
+@media (max-width:420px){nav.tabs button{font-size:11px;padding:8px 2px 6px;letter-spacing:.02em}nav.tabs button svg{width:19px;height:19px}}
 nav.tabs button{background:none;border:0;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-top:2px solid transparent}
 nav.tabs button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 nav.tabs button.on{color:var(--accent);border-top-color:var(--accent)}
@@ -270,6 +271,28 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .badge-item b{font-family:var(--display);font-size:16px}
 .rm-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;text-align:center}
 @media (max-width:480px){.rm-grid{grid-template-columns:repeat(3,1fr)}}
+/* ---------- v13 Apple Health & Wellness Intelligence Styles ---------- */
+.health-hero{border-color:#E11D48;background:linear-gradient(135deg,rgba(225,29,72,.10),var(--surface) 72%)}
+.apple-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:999px;background:rgba(225,29,72,.12);color:#E11D48}
+:root[data-theme="dark"] .apple-pill{background:rgba(244,63,94,.18);color:#FB7185}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .apple-pill{background:rgba(244,63,94,.18);color:#FB7185}}
+.vitals-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:620px){.vitals-grid{grid-template-columns:repeat(2,1fr)}}
+.vital-card{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 11px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.vital-card .v-top{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.vital-card .v-val{font-family:var(--display);font-size:24px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums}
+.vital-card .v-unit{font-size:13px;font-weight:600;color:var(--muted)}
+.vital-card .v-sub{font-size:11px;color:var(--muted);line-height:1.3}
+.pillar-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+@media (max-width:620px){.pillar-grid{grid-template-columns:1fr 1fr}}
+.pillar-box{background:var(--sunk);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.insight-item{background:var(--sunk);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.insight-item.good{border-left-color:var(--good)}
+.insight-item.warn{border-left-color:var(--warn)}
+.insight-item.bad{border-left-color:var(--bad)}
+.macro-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+@media (max-width:560px){.macro-grid{grid-template-columns:repeat(2,1fr)}}
+.health-strip{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 
 </style>
 </head>
@@ -281,6 +304,7 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 
 <nav class="tabs"><div class="in">
   <button data-tab="today" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Today</button>
+  <button data-tab="health"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9.2-8.5C1.1 9.4 2.8 5.5 6.4 5.1c2-.2 3.9.8 5.6 2.7 1.7-1.9 3.6-2.9 5.6-2.7 3.6.4 5.3 4.3 3.6 7.4C19 16.6 12 21 12 21z"/><path d="M7 12h2.5l1.5-3 2 6 1.5-3H17"/></svg>Health</button>
   <button data-tab="log"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/></svg>Log</button>
   <button data-tab="plan"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h10M4 17h7"/><circle cx="18" cy="16" r="3"/></svg>Plan</button>
   <button data-tab="library"><svg viewBox="0 0 24 24"><path d="M4 5h5v14H4zM10 5h4v14h-4zM15 6l4-1 3 13-4 1z"/></svg>Library</button>
@@ -398,7 +422,8 @@ const DEFAULT_SESSIONS = {
   }
 };
 const DEFAULT_NOTIF = {enabled:false,rest:true,morning:true,morningHour:9,evening:true,eveningHour:20};
-const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF};
+const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:""};
+const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF,health:{},bio:DEFAULT_BIO};
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -414,7 +439,7 @@ const repLabel = u => u==="s"?"sec":"reps";
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
 const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false};
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv"};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -462,6 +487,8 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   out.daily=(p.daily&&typeof p.daily==="object")?clone(p.daily):{};
   out.weightLog=Array.isArray(p.weightLog)?clone(p.weightLog):[];
   out.notif=Object.assign(clone(DEFAULT_NOTIF),(p.notif&&typeof p.notif==="object")?p.notif:{});
+  out.health=(p.health&&typeof p.health==="object")?clone(p.health):{};
+  out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
   return out; }
 function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",pending:{plan:false,sessions:{}}}); }
 
@@ -905,6 +932,7 @@ async function initStore(){
 async function enterProfile(pid){ await detachProfile(); resetProfileState(); state.profile=pid; lsSet(LS.profile,pid); ssSet(SS.open,pid); loadLocal(); render(); window.scrollTo(0,0);
   if(state.draftRestored){ state.draftRestored=false; toast("Your unfinished session is back. Save it, or press Cancel to drop it."); }
   checkExistingPushSub();
+  checkUrlHealthSync();
   if(state.db) await attachCloud(); }
 async function attachCloud(){ const db=state.db, pid=state.profile; await replayPending(db); if(state.profile!==pid||!state.db) return;
   state.unsub.push(sessCol().onSnapshot(s=>{ const cloud=s.docs.map(d=>Object.assign({id:d.id},d.data())); const pend=state.pending.sessions||{}; const ids=new Set(cloud.map(x=>x.id));
@@ -914,7 +942,8 @@ async function attachCloud(){ const db=state.db, pid=state.profile; await replay
   state.unsub.push(planDoc().onSnapshot(s=>{ if(!s.exists) return; const d=s.data();
     /* never let a cloud echo overwrite an edit that is still being written, or an older copy overwrite a newer one */
     if(state.planDirty||state.planInflight||state.pending.plan) return; if((d.rev||0)<(state.plan.rev||0)) return;
-    state.plan=migratePlan(d); persistLocal(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{})); }
+    state.plan=migratePlan(d); persistLocal(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{}));
+  if(db._http){ state.unsub.push(db.doc("profiles/"+pid+"/health/latest").onSnapshot(s=>{ if(!s.exists) return; const hd=s.data(); if(hd&&typeof hd==="object"&&hd.ts&&hd.ts!==(state.plan._lastCloudHealthTs||0)){ state.plan._lastCloudHealthTs=hd.ts; ingestHealthPayload(hd,"Apple Health Cloud Shortcut",true); } }, ()=>{})); } }
 async function detachProfile(){ if(!state.profile) return; flushAll(); await drainWrites(); state.unsub.forEach(u=>{ try{ u(); }catch(e){} }); state.unsub=[]; state.profile=null; }
 async function leaveProfile(){ await detachProfile(); resetProfileState(); lsSet(LS.profile,null); ssSet(SS.open,null); state.login=LOGIN0(); render(); window.scrollTo(0,0); }
 function drainWrites(){ return new Promise(res=>{ const chk=()=>{ if(!writeBusy&&!writeQ.length) res(); else setTimeout(chk,40); }; chk(); }); }
@@ -1199,6 +1228,306 @@ function renderBodyMapCard(){
     '<div class="row" style="gap:6px">'+pills+'</div></div>';
 }
 
+/* ---------- v13 Apple Health Integration & Wellness Intelligence Engine ---------- */
+const HEALTH_FIELDS = ["sleep","deepRem","rhr","hrv","steps","activeKcal","basalKcal","distanceKm","vo2max","spo2","respRate","weight","bodyFat"];
+function emptyHealthDay(){
+  return {sleep:"",deepRem:"",rhr:"",hrv:"",steps:"",activeKcal:"",basalKcal:"",distanceKm:"",vo2max:"",spo2:"",respRate:"",weight:"",bodyFat:"",source:"",syncedAt:""};
+}
+function todayHealth(iso){
+  const d=iso||isoToday();
+  state.plan.health=state.plan.health||{};
+  if(!state.plan.health[d]) state.plan.health[d]=emptyHealthDay();
+  return state.plan.health[d];
+}
+function hasHealthData(iso){
+  const h=(state.plan.health&&state.plan.health[iso||isoToday()])||{};
+  return HEALTH_FIELDS.some(k=>h[k]!==undefined&&h[k]!==null&&h[k]!=="");
+}
+function anyHealthDays(){
+  const h=state.plan.health||{};
+  return Object.keys(h).filter(d=>hasHealthData(d)).sort();
+}
+function numOrEmpty(v,dec){
+  if(v===undefined||v===null||v==="") return "";
+  const n=+String(v).replace(/[^0-9.-]/g,"");
+  if(!Number.isFinite(n)||n<0) return "";
+  return dec!=null ? Math.round(n*Math.pow(10,dec))/Math.pow(10,dec) : Math.round(n);
+}
+function normalizeHealthDayObj(raw){
+  if(!raw||typeof raw!=="object") return null;
+  const out=emptyHealthDay();
+  const pick=(keys,dec)=>{
+    for(const k of keys){
+      if(raw[k]!==undefined&&raw[k]!==null&&raw[k]!==""){
+        const v=numOrEmpty(raw[k],dec);
+        if(v!=="") return v;
+      }
+    }
+    return "";
+  };
+  out.sleep = pick(["sleep","sleepHours","sleep_hours","asleep"],1);
+  if(out.sleep!=="" && out.sleep>24) out.sleep = Math.round((out.sleep/60)*10)/10; /* minutes -> hours */
+  out.deepRem = pick(["deepRem","deep_rem","restorativeSleep","deepSleep"],1);
+  if(out.deepRem!=="" && out.deepRem>24) out.deepRem = Math.round((out.deepRem/60)*10)/10;
+  out.rhr = pick(["rhr","restingHeartRate","resting_hr","restingHR"],0);
+  out.hrv = pick(["hrv","heartRateVariability","sdnn","hrv_ms"],0);
+  out.steps = pick(["steps","stepCount","step_count"],0);
+  out.activeKcal = pick(["activeKcal","activeEnergy","active_kcal","activeCalories","moveKcal"],0);
+  out.basalKcal = pick(["basalKcal","restingEnergy","basal_kcal","restingCalories","bmr"],0);
+  out.distanceKm = pick(["distanceKm","distance","walkingRunningDistance","distance_km"],2);
+  out.vo2max = pick(["vo2max","vo2Max","cardioFitness","vo2"],1);
+  out.spo2 = pick(["spo2","bloodOxygen","oxygenSaturation","spo2_pct"],1);
+  if(out.spo2!=="" && out.spo2<=1 && out.spo2>0.5) out.spo2 = Math.round(out.spo2*1000)/10;
+  out.respRate = pick(["respRate","respiratoryRate","breathingRate","resp_rate"],1);
+  out.weight = pick(["weight","bodyweight","weightKg","bodyMass"],1);
+  out.bodyFat = pick(["bodyFat","bodyFatPct","body_fat"],1);
+  if(out.bodyFat!=="" && out.bodyFat<=1 && out.bodyFat>0.02) out.bodyFat = Math.round(out.bodyFat*1000)/10;
+  out.source = String(raw.source||"Apple Health");
+  out.syncedAt = raw.syncedAt||new Date().toISOString();
+  return out;
+}
+function mergeHealthDay(iso, norm, sourceLabel){
+  if(!iso||!/^\d{4}-\d{2}-\d{2}$/.test(iso)||!norm) return false;
+  const cur=todayHealth(iso);
+  let changed=false;
+  HEALTH_FIELDS.forEach(k=>{
+    if(norm[k]!==undefined&&norm[k]!==null&&norm[k]!==""){
+      cur[k]=norm[k];
+      changed=true;
+    }
+  });
+  if(!changed) return false;
+  cur.source = sourceLabel || norm.source || "Apple Health";
+  cur.syncedAt = new Date().toISOString();
+  /* Couple Apple Health sleep, weight & bodyFat into the core Fitness plan & daily hub */
+  state.plan.daily=state.plan.daily||{};
+  if(!state.plan.daily[iso]) state.plan.daily[iso]={protein:0,water:0,sleep:"",feel:"good"};
+  if(cur.sleep!==""){
+    state.plan.daily[iso].sleep=cur.sleep;
+    if(state.form && state.form.date===iso && (state.form.sleep===""||state.form.sleep==null)){
+      state.form.sleep=String(cur.sleep);
+    }
+  }
+  if(cur.weight!=="" && iso===isoToday()){
+    state.plan.bodyweight=+cur.weight;
+  }
+  if(cur.weight!==""){
+    state.plan.weightLog=state.plan.weightLog||[];
+    const idx=state.plan.weightLog.findIndex(x=>x.d===iso);
+    if(idx>=0) state.plan.weightLog[idx].w=+cur.weight;
+    else state.plan.weightLog.push({d:iso,w:+cur.weight});
+  }
+  if(cur.bodyFat!=="" && iso===isoToday()){
+    state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:+cur.bodyFat});
+  }
+  return true;
+}
+function ingestHealthPayload(payload, sourceLabel, silentToast){
+  if(!payload) return 0;
+  let obj=payload;
+  if(typeof payload==="string"){
+    const s=payload.trim();
+    if(!s) return 0;
+    if(s.startsWith("<") && /HealthData|Record/i.test(s)){
+      return parseAppleHealthXml(s, sourceLabel||"Apple Health XML");
+    }
+    try{ obj=JSON.parse(s); }
+    catch(e){
+      try{ obj=JSON.parse(atob(s.replace(/-/g,"+").replace(/_/g,"/"))); }
+      catch(e2){ return parseHealthCsv(s, sourceLabel||"Health CSV"); }
+    }
+  }
+  if(!obj||typeof obj!=="object") return 0;
+  let count=0;
+  if(Array.isArray(obj.days || obj.history || obj.samples)){
+    const arr=obj.days||obj.history||obj.samples;
+    arr.forEach(item=>{
+      const d=(item&&(item.date||item.d||item.iso))||isoToday();
+      if(mergeHealthDay(String(d).slice(0,10), normalizeHealthDayObj(item), sourceLabel)) count++;
+    });
+  } else if(obj.health && typeof obj.health==="object" && !Array.isArray(obj.health)){
+    Object.keys(obj.health).forEach(d=>{
+      if(/^\d{4}-\d{2}-\d{2}$/.test(d)){
+        if(mergeHealthDay(d, normalizeHealthDayObj(obj.health[d]), sourceLabel)) count++;
+      }
+    });
+  } else {
+    const dateKey = String(obj.date||obj.d||obj.iso||isoToday()).slice(0,10);
+    if(mergeHealthDay(dateKey, normalizeHealthDayObj(obj), sourceLabel)) count++;
+  }
+  if(count>0){
+    savePlan();
+    if(formOpen()) refreshAllRec();
+    render();
+    if(!silentToast){
+      const th=todayHealth(isoToday());
+      const bits=[];
+      if(th.sleep!=="") bits.push(th.sleep+"h sleep");
+      if(th.rhr!=="") bits.push(th.rhr+" bpm RHR");
+      if(th.hrv!=="") bits.push(th.hrv+" ms HRV");
+      if(th.steps!=="") bits.push((+th.steps).toLocaleString()+" steps");
+      if(th.activeKcal!=="") bits.push(th.activeKcal+" kcal");
+      toast("Apple Health synced"+(bits.length?": "+bits.join(" · "):" ("+count+" day"+(count>1?"s":"")+")"));
+    }
+  }
+  return count;
+}
+function parseHealthCsv(csvText, sourceLabel){
+  const lines=String(csvText||"").trim().split(/\r?\n/).filter(Boolean);
+  if(lines.length<2) return 0;
+  const hdr=lines[0].split(",").map(x=>x.trim().replace(/^"|"$/g,""));
+  let count=0;
+  for(let i=1;i<lines.length;i++){
+    const cols=lines[i].split(",").map(x=>x.trim().replace(/^"|"$/g,""));
+    const row={};
+    hdr.forEach((h,idx)=>{ row[h]=cols[idx]; });
+    const d=String(row.date||row.Date||row.day||isoToday()).slice(0,10);
+    if(mergeHealthDay(d, normalizeHealthDayObj(row), sourceLabel||"Apple Health CSV")) count++;
+  }
+  if(count>0){ savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Health CSV"); }
+  return count;
+}
+function parseAppleHealthXml(xmlText, sourceLabel){
+  /* Stream-friendly regex parser for Apple Health export.xml <Record .../> nodes (last 90 days) */
+  const cutoff=addDays(isoToday(),-90);
+  const byDay={};
+  const ensure=d=>(byDay[d]=byDay[d]||{steps:0,activeKcal:0,basalKcal:0,distanceKm:0,sleepMin:0,deepRemMin:0,rhr:[],hrv:[],vo2max:[],spo2:[],respRate:[],weight:[],bodyFat:[]});
+  const recRe=/<Record\b([^>]+?)\/?>/g;
+  let m;
+  while((m=recRe.exec(xmlText))!==null){
+    const a=m[1];
+    const tpM=/type="([^"]+)"/.exec(a); if(!tpM) continue;
+    const tp=tpM[1];
+    const dtM=/startDate="(\d{4}-\d{2}-\d{2})/.exec(a); if(!dtM) continue;
+    const d=dtM[1]; if(d<cutoff) continue;
+    const valM=/value="([^"]+)"/.exec(a);
+    const val=valM?valM[1]:"";
+    const day=ensure(d);
+    if(tp==="HKQuantityTypeIdentifierStepCount") day.steps += (+val||0);
+    else if(tp==="HKQuantityTypeIdentifierActiveEnergyBurned") day.activeKcal += (+val||0);
+    else if(tp==="HKQuantityTypeIdentifierBasalEnergyBurned") day.basalKcal += (+val||0);
+    else if(tp==="HKQuantityTypeIdentifierDistanceWalkingRunning") day.distanceKm += (+val||0);
+    else if(tp==="HKQuantityTypeIdentifierRestingHeartRate" && +val>0) day.rhr.push(+val);
+    else if(tp==="HKQuantityTypeIdentifierHeartRateVariabilitySDNN" && +val>0) day.hrv.push(+val);
+    else if(tp==="HKQuantityTypeIdentifierVO2Max" && +val>0) day.vo2max.push(+val);
+    else if(tp==="HKQuantityTypeIdentifierOxygenSaturation" && +val>0) day.spo2.push(+val<=1?(+val*100):+val);
+    else if(tp==="HKQuantityTypeIdentifierRespiratoryRate" && +val>0) day.respRate.push(+val);
+    else if(tp==="HKQuantityTypeIdentifierBodyMass" && +val>0) day.weight.push(+val);
+    else if(tp==="HKQuantityTypeIdentifierBodyFatPercentage" && +val>0) day.bodyFat.push(+val<=1?(+val*100):+val);
+    else if(tp==="HKCategoryTypeIdentifierSleepAnalysis" && /Asleep/i.test(val)){
+      const sFull=/startDate="([^"]+)"/.exec(a), eFull=/endDate="([^"]+)"/.exec(a);
+      if(sFull&&eFull){
+        const mins=Math.max(0,(Date.parse(eFull[1])-Date.parse(sFull[1]))/60000);
+        if(mins>0 && mins<960){
+          day.sleepMin += mins;
+          if(/Deep|REM/i.test(val)) day.deepRemMin += mins;
+        }
+      }
+    }
+  }
+  const avg=arr=>arr.length?(arr.reduce((a,b)=>a+b,0)/arr.length):"";
+  let count=0;
+  Object.keys(byDay).sort().forEach(d=>{
+    const x=byDay[d];
+    const norm=normalizeHealthDayObj({
+      sleep: x.sleepMin>0 ? Math.round((x.sleepMin/60)*10)/10 : "",
+      deepRem: x.deepRemMin>0 ? Math.round((x.deepRemMin/60)*10)/10 : "",
+      rhr: avg(x.rhr),
+      hrv: avg(x.hrv),
+      steps: x.steps>0 ? Math.round(x.steps) : "",
+      activeKcal: x.activeKcal>0 ? Math.round(x.activeKcal) : "",
+      basalKcal: x.basalKcal>0 ? Math.round(x.basalKcal) : "",
+      distanceKm: x.distanceKm>0 ? Math.round(x.distanceKm*100)/100 : "",
+      vo2max: avg(x.vo2max),
+      spo2: avg(x.spo2),
+      respRate: avg(x.respRate),
+      weight: x.weight.length ? x.weight[x.weight.length-1] : "",
+      bodyFat: x.bodyFat.length ? x.bodyFat[x.bodyFat.length-1] : ""
+    });
+    if(mergeHealthDay(d, norm, sourceLabel||"Apple Health XML")) count++;
+  });
+  if(count>0){ savePlan(); render(); toast("Imported "+count+" day"+(count>1?"s":"")+" from Apple Health XML!"); }
+  return count;
+}
+function checkUrlHealthSync(){
+  try{
+    if(typeof window==="undefined"||!window.location) return;
+    const u=new URL(window.location.href);
+    const hsync=u.searchParams.get("hsync")||u.searchParams.get("health");
+    if(hsync){
+      lsSet("ubp.pending_hsync", hsync);
+      u.searchParams.delete("hsync"); u.searchParams.delete("health");
+      if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
+    }
+    const pending=lsGet("ubp.pending_hsync");
+    if(pending && state.profile){
+      lsSet("ubp.pending_hsync", null);
+      ingestHealthPayload(pending, "iOS Shortcut");
+    }
+  }catch(e){}
+}
+
+/* Rolling 7-day / 14-day Personal Baselines for Apple Health Metrics */
+const HEALTH_NORMS = {rhr:58, hrv:62, sleep:7.5, deepRem:2.8, steps:8500, activeKcal:550, vo2max:46, spo2:98, respRate:14.5};
+function healthBaseline(metricKey, daysCount, beforeIso){
+  daysCount=daysCount||7;
+  const end=beforeIso||isoToday();
+  const h=state.plan.health||{};
+  const vals=[];
+  for(let i=1;i<=daysCount*2 && vals.length<daysCount;i++){
+    const d=addDays(end,-i);
+    const v=h[d]&&h[d][metricKey];
+    if(v!==undefined&&v!==null&&v!==""&&Number.isFinite(+v)) vals.push(+v);
+  }
+  if(vals.length>=2){
+    const mean=vals.reduce((a,b)=>a+b,0)/vals.length;
+    return {mean:Math.round(mean*10)/10, count:vals.length, personal:true, min:Math.min(...vals), max:Math.max(...vals)};
+  }
+  return {mean:HEALTH_NORMS[metricKey]||0, count:vals.length, personal:false, min:HEALTH_NORMS[metricKey]||0, max:HEALTH_NORMS[metricKey]||0};
+}
+
+/* Autonomic Nervous System (ANS) & CNS Recovery Assessment from Apple Health */
+function computeAutonomicState(iso){
+  const target=iso||isoToday();
+  const h=(state.plan.health&&state.plan.health[target])||{};
+  const rhrBase=healthBaseline("rhr",7,target);
+  const hrvBase=healthBaseline("hrv",7,target);
+  const respBase=healthBaseline("respRate",7,target);
+  let deltaScore=0, cnsHold=false;
+  const reasons=[], badges=[];
+  if(h.hrv!==""&&h.hrv!=null){
+    const hrv=+h.hrv, pct=hrvBase.mean>0?Math.round((hrv-hrvBase.mean)/hrvBase.mean*100):0;
+    if(pct>=8){ deltaScore+=7; reasons.push("HRV "+hrv+" ms (+"+pct+"% vs baseline)"); badges.push({t:"HRV Peak",c:"good"}); }
+    else if(pct<=-18){ deltaScore-=14; cnsHold=true; reasons.push("HRV suppressed "+hrv+" ms ("+pct+"%)"); badges.push({t:"CNS Fatigue",c:"bad"}); }
+    else if(pct<=-10){ deltaScore-=7; reasons.push("HRV "+hrv+" ms ("+pct+"% vs baseline)"); badges.push({t:"HRV Dip",c:"warn"}); }
+    else { reasons.push("HRV "+hrv+" ms (on baseline)"); }
+  }
+  if(h.rhr!==""&&h.rhr!=null){
+    const rhr=+h.rhr, diff=Math.round((rhr-rhrBase.mean)*10)/10;
+    if(diff<=-2){ deltaScore+=5; reasons.push("RHR "+rhr+" bpm ("+diff+" vs baseline)"); badges.push({t:"RHR Optimal",c:"good"}); }
+    else if(diff>=6){ deltaScore-=14; cnsHold=true; reasons.push("RHR elevated "+rhr+" bpm (+"+diff+" bpm)"); badges.push({t:"Elevated RHR",c:"bad"}); }
+    else if(diff>=3){ deltaScore-=6; reasons.push("RHR "+rhr+" bpm (+"+diff+" bpm)"); }
+    else { reasons.push("RHR "+rhr+" bpm"); }
+  }
+  if(h.deepRem!==""&&h.deepRem!=null){
+    const dr=+h.deepRem;
+    if(dr>=3.0){ deltaScore+=4; reasons.push(dr+"h Deep+REM sleep"); }
+    else if(dr>0 && dr<1.6){ deltaScore-=6; reasons.push("Low Deep+REM ("+dr+"h)"); }
+  }
+  if(h.spo2!==""&&h.spo2!=null && +h.spo2<95){
+    deltaScore-=10; cnsHold=true; reasons.push("SpO2 "+h.spo2+"% (below 95%)");
+  }
+  if(h.respRate!==""&&h.respRate!=null && (+h.respRate - respBase.mean)>=2.5){
+    deltaScore-=8; cnsHold=true; reasons.push("Resp rate "+h.respRate+"/min (elevated)");
+  }
+  const yest=addDays(target,-1), yh=(state.plan.health&&state.plan.health[yest])||{};
+  if(yh.steps!==""&&+yh.steps>=13000){
+    deltaScore-=4; reasons.push((+yh.steps).toLocaleString()+" steps yesterday");
+  }
+  const stateTag = cnsHold ? "strained" : deltaScore>=6 ? "peak" : deltaScore<=-6 ? "recovering" : "optimal";
+  return {deltaScore, state:stateTag, cnsHold, reasons, badges, rhrBase, hrvBase};
+}
+
 /* Daily Fuel (Protein + Water), Readiness & Morning Weight Hub */
 function todayDaily(){
   const t=isoToday();
@@ -1207,14 +1536,19 @@ function todayDaily(){
   return state.plan.daily[t];
 }
 function computeReadiness(){
-  const d=todayDaily(), today=isoToday(), yest=addDays(today,-1);
+  const d=todayDaily(), today=isoToday(), yest=addDays(today,-1), th=todayHealth(today);
   let score=88, reasons=[];
   const last=sortedSessions()[0];
-  const sl = d.sleep!==""&&d.sleep!=null ? +d.sleep : (last&&last.date===today&&last.sleep!=="" ? +last.sleep : null);
+  const sl = d.sleep!==""&&d.sleep!=null ? +d.sleep : (th.sleep!==""&&th.sleep!=null ? +th.sleep : (last&&last.date===today&&last.sleep!=="" ? +last.sleep : null));
   if(sl!=null){
     if(sl>=7.5){ score+=6; reasons.push(sl+"h sleep (+recovery)"); }
     else if(sl<6){ score-=18; reasons.push(sl+"h short sleep (-18%)"); }
     else if(sl<7){ score-=6; reasons.push(sl+"h sleep"); }
+  }
+  const ans=computeAutonomicState(today);
+  if(ans.reasons.length){
+    score+=ans.deltaScore;
+    ans.reasons.forEach(r=>reasons.push(r));
   }
   const yPlan=plannedOn(yest);
   if(hasKind(yPlan,"football")){ score-=10; reasons.push("Football yesterday"); }
@@ -1223,7 +1557,7 @@ function computeReadiness(){
   if(d.feel==="fresh"){ score+=7; reasons.push("Feeling fresh"); }
   else if(d.feel==="sore"){ score-=14; reasons.push("Muscles sore/tight"); }
   score=Math.max(35,Math.min(100,score));
-  return {score, reasons:reasons.length?reasons.join(" · "):"Baseline recovery ready"};
+  return {score, ans, reasons:reasons.length?reasons.join(" · "):"Baseline recovery ready"};
 }
 function calcStreak(){
   if(!state.sessions.length) return {weeks:0, monthCount:0};
@@ -1239,6 +1573,217 @@ function calcStreak(){
   }
   return {weeks, monthCount};
 }
+
+/* Strain (0-21 scale), Acute:Chronic Workload Ratio (ACWR), TDEE & Longevity Intelligence */
+function estimateSessionKcal(s, bwKg){
+  if(!s) return 0;
+  const bw=+bwKg||+state.plan.bodyweight||85;
+  let sets=0, compSets=0;
+  (s.exercises||[]).forEach(e=>{
+    const m=exMeta(e.ex);
+    (e.sets||[]).forEach(st=>{ if(+st.r>0){ sets++; if(m.comp) compSets++; } });
+  });
+  const vol=sessionVolume(s);
+  return Math.round(sets*11 + compSets*6 + (vol*0.012) + (bw*1.4));
+}
+function computeDayStrain(iso){
+  const d=iso||isoToday(), h=(state.plan.health&&state.plan.health[d])||{};
+  const sess=state.sessions.filter(s=>s.date===d);
+  const planned=plannedOn(d), isPastOrToday=d<=isoToday();
+  const fb=isPastOrToday&&hasKind(planned,"football"), sp=isPastOrToday&&hasKind(planned,"sport");
+  let liftStrain=0, liftSets=0, liftVol=0;
+  sess.forEach(s=>{
+    const v=sessionVolume(s); liftVol+=v;
+    (s.exercises||[]).forEach(e=>(e.sets||[]).forEach(st=>{ if(+st.r>0) liftSets++; }));
+  });
+  if(liftSets>0) liftStrain = Math.min(11.5, 4.2 + liftSets*0.28 + Math.min(3.0, liftVol/3500));
+  const sportStrain = (fb?7.2:0) + (sp?5.2:0);
+  const steps = +h.steps||0;
+  const actKcal = +h.activeKcal||0;
+  const stepStrain = steps>0 ? Math.min(6.0, steps/3200) : 0;
+  const kcalStrain = actKcal>0 ? Math.min(7.5, actKcal/180) : 0;
+  const cardioStrain = Math.max(sportStrain, stepStrain, kcalStrain);
+  const raw = liftStrain + cardioStrain * (liftStrain>0 ? 0.72 : 1.0);
+  const strain = Math.min(21.0, Math.round(Math.max(1.5, raw)*10)/10);
+  const label = strain>=16.5?"All-Out Strain":strain>=13.0?"High Athletic Strain":strain>=9.0?"Optimal Training Load":"Light / Restorative";
+  return {strain, label, liftSets, liftVol, steps, actKcal, fb, sp};
+}
+function computeWorkloadRatio(){
+  const today=isoToday();
+  let acuteSum=0, chronicSum=0;
+  for(let i=0;i<28;i++){
+    const st=computeDayStrain(addDays(today,-i)).strain;
+    if(i<7) acuteSum+=st;
+    chronicSum+=st;
+  }
+  const acuteAvg = Math.round((acuteSum/7)*10)/10;
+  const chronicAvg = Math.max(4.0, Math.round((chronicSum/28)*10)/10);
+  const ratio = Math.round((acuteAvg/chronicAvg)*100)/100;
+  let zone="optimal", title="Sweet Spot (Optimal Progression)", advice="Your 7-day strain matches your 28-day chronic capacity. Prime window for progressive overload.";
+  if(ratio>1.35){
+    zone="high"; title="High Spike — Overreaching Watch";
+    advice="Your 7-day load is "+Math.round((ratio-1)*100)+"% above your 28-day baseline. Prioritize 8h sleep, hit your hydration target, and use the Hold box if joints feel heavy.";
+  } else if(ratio<0.80){
+    zone="low"; title="Deload / Under-Baseline Load";
+    advice="7-day load is below your chronic average — fresh tissue & nervous system. Great time to attack a main-lift PR.";
+  }
+  return {acuteAvg, chronicAvg, ratio, zone, title, advice};
+}
+function computeMetabolicFuel(iso){
+  const d=iso||isoToday(), h=(state.plan.health&&state.plan.health[d])||{};
+  const bw=+state.plan.bodyweight||85, g=state.plan.goal||"gain";
+  const bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{});
+  const age=+bio.age||28, heightCm=+bio.heightCm||180, sex=bio.sex||"M";
+  const bf = h.bodyFat!==""&&h.bodyFat!=null ? +h.bodyFat : (bio.bodyFat!==""&&bio.bodyFat!=null ? +bio.bodyFat : null);
+  const leanMassKg = bf!=null ? Math.round(bw*(1-bf/100)*10)/10 : Math.round(bw*0.84*10)/10;
+  const heightM = heightCm/100;
+  const ffmi = Math.round((leanMassKg/(heightM*heightM))*10)/10;
+  /* Basal Metabolic Rate: Apple Health Basal Energy -> Katch-McArdle (if BF% known) -> Mifflin-St Jeor */
+  const calcBmr = bf!=null ? Math.round(370 + 21.6*leanMassKg) : Math.round(10*bw + 6.25*heightCm - 5*age + (sex==="F"?-161:5));
+  const bmr = (+h.basalKcal>1000) ? Math.round(+h.basalKcal) : calcBmr;
+  const planned=plannedOn(d), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport");
+  const doneSess=state.sessions.filter(s=>s.date===d);
+  const sessKcal = doneSess.length ? doneSess.reduce((a,s)=>a+estimateSessionKcal(s,bw),0) : (lift ? 310 : 0);
+  const sportKcal = (fb?620:0) + (sp?430:0);
+  const stepKcal = (+h.steps>0) ? Math.round((+h.steps)*0.042) : 220;
+  /* If Apple Watch/Health activeKcal is synced, blend with any unrecorded planned session; else sum components */
+  const activeBurn = (+h.activeKcal>0) ? Math.max(+h.activeKcal, sessKcal + Math.round(stepKcal*0.6)) : (sessKcal + sportKcal + stepKcal);
+  const tdee = bmr + activeBurn;
+  const deltaKcal = g==="lose" ? -420 : g==="gain" ? 260 : 0;
+  const targetKcal = tdee + deltaKcal;
+  const protG = Math.round(bw * (g==="lose"?2.0:1.8));
+  const fatG = Math.round(bw * (g==="lose"?0.85:0.95));
+  const carbKcal = Math.max(400, targetKcal - (protG*4 + fatG*9));
+  const carbG = Math.round(carbKcal/4);
+  /* Hydration: base + sport/lift + sweat loss from Apple Health active burn */
+  const baseGlasses = (fb||sp) ? 12 : lift ? 10 : 8;
+  const extraSweatGlasses = (+h.activeKcal>650) ? Math.min(4, Math.floor((+h.activeKcal-500)/220)) : 0;
+  const waterGlassesTarget = baseGlasses + extraSweatGlasses;
+  const waterLitresTarget = +(waterGlassesTarget*0.25).toFixed(2);
+  return {bmr, activeBurn, sessKcal, sportKcal, stepKcal, tdee, deltaKcal, targetKcal, protG, carbG, fatG, waterGlassesTarget, waterLitresTarget, leanMassKg, ffmi, bf, age, heightCm};
+}
+function computeWellnessIntel(){
+  const today=isoToday(), d=todayDaily(), th=todayHealth(today), rd=computeReadiness(), mf=computeMetabolicFuel(today), st=computeDayStrain(today), acwr=computeWorkloadRatio();
+  const bw=+state.plan.bodyweight||85;
+  /* Pillar 1: Autonomic & CNS Recovery (0-100) */
+  const pAutonomic = rd.score;
+  /* Pillar 2: Sleep Architecture & Consistency (0-100) */
+  let sleepHrs = d.sleep!==""&&d.sleep!=null ? +d.sleep : (th.sleep!==""&&th.sleep!=null ? +th.sleep : healthBaseline("sleep",7,today).mean);
+  const sleepBase = healthBaseline("sleep",7,today);
+  let pSleep = Math.min(100, Math.max(40, Math.round((sleepHrs/7.8)*92)));
+  if(+th.deepRem>=2.8) pSleep=Math.min(100,pSleep+8);
+  const sleepDebt = Math.max(0, Math.round((7.5 - sleepBase.mean)*7*10)/10);
+  /* Pillar 3: Cardio-Metabolic Engine (VO2 Max + Steps + RHR) (0-100) */
+  const vo2 = +th.vo2max || healthBaseline("vo2max",14,today).mean || 46;
+  const steps = +th.steps || healthBaseline("steps",7,today).mean || 8000;
+  const pCardio = Math.min(100, Math.max(45, Math.round(((vo2-30)/25)*65 + Math.min(35, (steps/10000)*35))));
+  /* Pillar 4: Relative Muscular Strength & Consistency (0-100) */
+  const str=calcStreak();
+  let maxTier=0;
+  STRENGTH_STDS.forEach(s=>{
+    const h=historicalBest(s.ex);
+    const val=s.u==="reps"?h.maxR:h.max1RM;
+    const targets=s.u==="reps"?s.tiers:s.tiers.map(m=>Math.round(m*bw));
+    targets.forEach((t,idx)=>{ if(val>=t && idx+1>maxTier) maxTier=idx+1; });
+  });
+  const pStrength = Math.min(100, Math.max(50, 48 + maxTier*10 + Math.min(15, str.weeks*3)));
+  /* Pillar 5: Fuel & Hydration Precision (0-100) */
+  const protRatio = Math.min(1, (+d.protein||0)/Math.max(1,mf.protG));
+  const waterRatio = Math.min(1, (+d.water||0)/Math.max(1,mf.waterGlassesTarget));
+  const pFuel = Math.round(55 + protRatio*25 + waterRatio*20);
+  /* Overall Wellness Index */
+  const wellnessScore = Math.round(pAutonomic*0.25 + pSleep*0.20 + pCardio*0.20 + pStrength*0.20 + pFuel*0.15);
+  /* Physiological / Athletic Age vs Chronological Age */
+  const ageDelta = ((wellnessScore - 72) * -0.14) + (vo2>=48 ? -1.2 : vo2<38 ? 1.5 : 0) + (maxTier>=3 ? -1.0 : 0);
+  const bioAge = Math.round(Math.max(18, mf.age + Math.max(-6.5, Math.min(5.0, ageDelta)))*10)/10;
+  const ageDiff = Math.round((bioAge - mf.age)*10)/10;
+  /* Cross-Signal Discoveries ("What Apple Health Alone Misses") */
+  const insights=[];
+  if(th.rhr!=="" || th.hrv!==""){
+    if(rd.ans.cnsHold){
+      insights.push({c:"bad", t:"Autonomic Protection Triggered", b:"Apple Health shows "+rd.ans.reasons.join(" & ")+". Raw Health only logs the number — Fitness automatically holds today's barbell weight jumps so you stimulate muscle without frying your nervous system."});
+    } else if(rd.ans.state==="peak"){
+      insights.push({c:"good", t:"Peak CNS Window Open Today", b:"Your Apple Health biometrics ("+rd.ans.reasons.join(", ")+") indicate super-compensated parasympathetic recovery. Your workout engine is primed to push for a rep or weight PR today."});
+    } else {
+      insights.push({c:"good", t:"Autonomic & Muscular Equilibrium", b:"Your Apple Health vitals ("+rd.ans.reasons.join(", ")+") sit solidly inside your 7-day rolling baseline — green light for standard progressive overload."});
+    }
+  } else {
+    insights.push({c:"", t:"Connect Apple Health for Live CNS Adaptation", b:"Syncing Resting HR, HRV, and Deep/REM sleep lets Fitness detect central nervous system fatigue before you touch the bar and auto-adapt your working weights."});
+  }
+  const planned=plannedOn(today), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport"), lift=liftOf(planned);
+  insights.push({
+    c: (+d.protein||0)>=mf.protG ? "good" : "warn",
+    t: "Live Net Energy & Glycogen Prescription ("+mf.targetKcal.toLocaleString()+" kcal)",
+    b: "Apple Health tracks burn ("+mf.tdee.toLocaleString()+" kcal TDEE today = "+mf.bmr+" BMR + "+mf.activeBurn+" active kcal), but doesn't prescribe your fuel. For your "+GOALS[state.plan.goal||"gain"].toLowerCase()+" goal"+(fb||sp||lift?" on an active training day":" on a recovery day")+", aim for "+mf.protG+"g protein, "+mf.carbG+"g carbs, "+mf.fatG+"g fat, and "+mf.waterLitresTarget+"L water."
+  });
+  /* Sleep vs Lifting Correlation from actual history */
+  const withSleep=state.sessions.filter(s=>s.sleep!==""&&s.sleep!=null&&sessionVolume(s)>0);
+  if(withSleep.length>=2){
+    const hiS=withSleep.filter(s=>+s.sleep>=7.5), loS=withSleep.filter(s=>+s.sleep<7.5);
+    if(hiS.length&&loS.length){
+      const avgHi=Math.round(hiS.reduce((a,s)=>a+sessionVolume(s),0)/hiS.length);
+      const avgLo=Math.round(loS.reduce((a,s)=>a+sessionVolume(s),0)/loS.length);
+      const pct=avgLo>0?Math.round((avgHi-avgLo)/avgLo*100):0;
+      if(pct>0) insights.push({c:"good", t:"Personal Sleep-to-Strength Proof (+"+pct+"% Volume)", b:"Across your logged sessions, nights with 7.5h+ sleep averaged "+avgHi.toLocaleString()+" kg lifted vs "+avgLo.toLocaleString()+" kg on shorter sleep."});
+    }
+  }
+  insights.push({
+    c: acwr.zone==="high"?"warn":"good",
+    t: "Cardio-Muscular Longevity & Strain Balance (ACWR "+acwr.ratio+"x)",
+    b: "Combining your VO2 Max ("+vo2+" mL/kg/min) with "+TIER_NAMES[maxTier]+" relative strength and "+mf.ffmi+" FFMI places your physiological age at "+bioAge+" yrs ("+(ageDiff<=0?ageDiff+" yrs younger": "+"+ageDiff+" yrs")+"). "+acwr.advice
+  });
+  return {wellnessScore, bioAge, ageDiff, sleepDebt, vo2, steps, maxTier, pillars:[
+    {n:"Autonomic CNS",v:pAutonomic,s:rd.ans.state==="peak"?"Peak":rd.ans.cnsHold?"Strained":"Optimal"},
+    {n:"Sleep Quality",v:pSleep,s:sleepHrs+"h · debt "+sleepDebt+"h"},
+    {n:"Cardio & VO2",v:pCardio,s:"VO2 "+vo2+" · "+Math.round(steps/1000*10)/10+"k steps"},
+    {n:"Strength Tier",v:pStrength,s:TIER_NAMES[maxTier]+" · "+str.weeks+"wk"},
+    {n:"Fuel & Water",v:pFuel,s:(+d.protein||0)+"/"+mf.protG+"g · "+mf.targetKcal+" kcal"}
+  ], insights, mf, st, acwr, rd};
+}
+function buildShortcutSyncUrl(mode){
+  const today=isoToday(), d=todayDaily(), mf=computeMetabolicFuel(today);
+  const doneToday=state.sessions.filter(s=>s.date===today);
+  const payload = mode==="write" ? {
+    mode:"write",
+    date:today,
+    profile:state.profile||"hussein",
+    workout:doneToday.length ? sessionTitle(doneToday[0].session) : "Strength Training",
+    minutes:doneToday.length ? 45 : 0,
+    activeKcal:doneToday.length ? doneToday.reduce((a,s)=>a+estimateSessionKcal(s),0) : 0,
+    proteinG:+d.protein||0,
+    waterMl:(+d.water||0)*250,
+    weightKg:+state.plan.bodyweight||85
+  } : {
+    mode:"read",
+    date:today,
+    profile:state.profile||"hussein",
+    returnUrl:"https://husseinbdeir.github.io/fitness/",
+    cloudUrl:atob(_CLOUD_CFG.u),
+    cloudKey:atob(_CLOUD_CFG.k),
+    cloudPath:"profiles/"+(state.profile||"hussein")+"/health/latest",
+    targetKcal:mf.targetKcal,
+    targetProteinG:mf.protG,
+    targetWaterMl:mf.waterGlassesTarget*250
+  };
+  return "shortcuts://run-shortcut?name="+encodeURIComponent("Fitness Health Sync")+"&input=text&text="+encodeURIComponent(JSON.stringify(payload));
+}
+function renderTodayHealthStrip(){
+  const today=isoToday(), th=todayHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st;
+  const synced=hasHealthData(today);
+  const pills=[];
+  if(th.sleep!=="") pills.push('<span class="chip good">&#128716; '+th.sleep+'h'+(th.deepRem!==""?' ('+th.deepRem+'h Deep/REM)':'')+'</span>');
+  if(th.rhr!=="") pills.push('<span class="chip '+(+th.rhr<=60?"good":"warn")+'">&#10084;&#65039; '+th.rhr+' bpm RHR</span>');
+  if(th.hrv!=="") pills.push('<span class="chip '+(+th.hrv>=55?"good":"warn")+'">&#9889; '+th.hrv+' ms HRV</span>');
+  if(th.steps!=="") pills.push('<span class="chip sh">&#128095; '+(+th.steps).toLocaleString()+' steps</span>');
+  if(th.activeKcal!=="") pills.push('<span class="chip push">&#128293; '+th.activeKcal+' active kcal</span>');
+  return '<div class="health-strip">'+
+    '<div class="row between"><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Athletic Age '+wi.bioAge+'</span><span class="chip">Strain '+st.strain+'/21</span></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 9px;font-size:12px" data-act="hsyncnow">'+(synced?"&#8635; Sync Health":"&#9829; Sync Apple Health")+'</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Wellness Hub &rarr;</button></div></div>'+
+    (pills.length?'<div class="row" style="gap:6px">'+pills.join("")+'</div>':'')+
+    '<div class="row between small muted"><span><b>Live Energy Prescription:</b> '+mf.tdee.toLocaleString()+' kcal burn &rarr; <b>'+mf.targetKcal.toLocaleString()+' kcal target</b> ('+mf.protG+'g P &middot; '+mf.carbG+'g C &middot; '+mf.fatG+'g F)</span><span>'+(synced?"Synced today":"Tap Wellness Hub to log or connect iOS Shortcut")+'</span></div>'+
+  '</div>';
+}
+
 function renderDailyHub(){
   const d=todayDaily(), bw=+state.plan.bodyweight||85, g=state.plan.goal||"gain";
   const protTarget = Math.round(bw * (g==="lose"?2.0:1.8));
@@ -1271,7 +1816,7 @@ function renderDailyHub(){
       '<div class="row" style="gap:4px">'+cupHtml+'</div>'+
       '<div class="row between" style="margin-top:4px"><div class="row" style="gap:4px"><button class="btn sm sec" style="padding:4px 8px;font-size:12px" data-act="water" data-d="1">+250 ml</button><button class="btn sm ghost" style="padding:4px 7px;font-size:12px" data-act="water" data-d="-1">&minus;</button></div>'+
       '<div class="row" style="gap:4px;align-items:center"><span class="small muted">BW:</span><button class="btn sm ghost" style="padding:2px 6px" data-act="bwnudge" data-d="-0.2">&minus;</button><b class="small">'+bw+' kg</b><button class="btn sm ghost" style="padding:2px 6px" data-act="bwnudge" data-d="0.2">+</button>'+(wLog.length>1?'<span class="chip '+(diffW===0?"":(g==="lose"?(diffW<0?"good":"warn"):(diffW>0?"good":"warn")))+'">'+(diffW>0?"+":"")+diffW+' kg</span>':'')+'</div></div></div>'+
-    '</div></div>';
+    '</div>'+renderTodayHealthStrip()+'</div>';
 }
 
 /* Guided 5-Minute Mobility & Recovery Timer */
@@ -1479,8 +2024,12 @@ function recommend(e, item, f){
   if(wk===7){ if(w!=null) w=rnd((last?(ls[0].w||0):w)*0.7); sets=Math.max(1,Math.ceil(sets/2)); why.push("Deload week 7: 70 percent of the weight, half the sets."); }
   else if(wk>=1&&wk<=2&&last&&!repeat){ if(loaded&&w!=null&&sug.k==="up"){ w=ls[0].w||0; r=item.max; } why.push("Learning weeks 1-2: form first, no weight jumps yet."); }
   else if(wk>12){ why.push("Block complete: start a new block in Plan."); }
-  const sleep=f.sleep===""?null:+f.sleep; const hold=!!(f.hold||f.football);
+  const thDay=(state.plan.health&&state.plan.health[f.date||isoToday()])||{};
+  const sleep=f.sleep!==""&&f.sleep!=null?+f.sleep:(thDay.sleep!==""&&thDay.sleep!=null?+thDay.sleep:null); const hold=!!(f.hold||f.football);
   if(sleep!=null&&sleep<6&&last&&!repeat){ if(loaded) w=ls[0].w||0; r=item.min; why.push("Sleep "+sleep+" h: hold the weight, bottom of the range."); }
+  const ansNow=computeAutonomicState(f.date||isoToday());
+  if(ansNow.cnsHold&&last&&!repeat&&loaded&&w!=null&&w>(ls[0].w||0)){ w=ls[0].w||0; why.push("Apple Health CNS check ("+ansNow.reasons.slice(0,2).join(", ")+"): holding weight jump today to protect recovery."); }
+  else if(ansNow.state==="peak"&&loaded&&!repeat&&!hold){ why.push("Apple Health Peak CNS: HRV & RHR are in your optimal green zone today."); }
   if(hold&&last&&!repeat&&loaded&&w>(ls[0].w||0)){ w=ls[0].w||0; why.push("Holding today: no weight jump, reps only."); }
   if(state.plan.goal==="lose"&&loaded&&last&&!repeat&&w!=null&&w>(ls[0].w||0)) why.push("Cutting: if the heavier weight falls short, hold it and add reps, that still counts.");
   if(e.feel==="easy"){ if(loaded&&w!=null){ w=w+inc; why.push("Feels easy today: +"+inc+" kg on the remaining sets."); } else { r=Math.min(item.max+2,r+2); why.push("Feels easy today: two more reps."); } }
@@ -1522,7 +2071,7 @@ function bestMetric(e,bw){ let m=0; for(const s of e.sets||[]){ if(!(s.r>0)) con
 /* ---------- Rendering ---------- */
 const view=document.getElementById("view");
 const formOpen = () => !!state.form && state.tab==="log";
-function render(){ setStatus(); persistDraft(); renderHeader(); document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===state.tab)); if(!state.profile){ view.innerHTML=renderLogin(); return; } if(formOpen()){ view.innerHTML=renderForm(); return; } const r={today:renderToday,log:renderLog,plan:renderPlan,library:renderLibrary,guide:renderGuide}[state.tab]; view.innerHTML=r(); if(state.tab==="log") bindSparks(); }
+function render(){ setStatus(); persistDraft(); renderHeader(); document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.tab===state.tab)); if(!state.profile){ view.innerHTML=renderLogin(); return; } if(formOpen()){ view.innerHTML=renderForm(); return; } const r={today:renderToday,health:renderHealth,log:renderLog,plan:renderPlan,library:renderLibrary,guide:renderGuide}[state.tab]||renderToday; view.innerHTML=r(); if(state.tab==="log"||state.tab==="health") bindSparks(); }
 
 function renderHeader(){ const p=curProfile(), who=document.getElementById("who"), bl=document.getElementById("brandline"), nav=document.querySelector("nav.tabs");
   if(nav) nav.hidden=!state.profile; if(who){ who.hidden=!state.profile; who.textContent=p?p.name:"Switch"; }
@@ -1593,6 +2142,7 @@ function openForm(sessionKey, existing, trackOverride, keep){
   let f;
   if(existing){ f=clone(existing); f.existing=true; }
   else { const items=state.plan.sessions[track][sessionKey]||[]; f={id:isoToday()+"-"+sessionKey+"-"+Math.random().toString(36).slice(2,7),date:isoToday(),session:sessionKey,track,sleep:"",hold:false,notes:"",createdAt:new Date().toISOString(),exercises:items.map(item=>{ const last=lastLogOf(item.ex); const missed=last?missedSince(last.s.date):0; const sug=suggestion(item,last,missed); return {ex:item.ex,name:EX[item.ex]?EX[item.ex].n:item.ex,unit:item.unit,side:!!item.side,feel:"",sets:[],next:"",target:item.min+"-"+item.max,sug}; })};
+    const th0=todayHealth(isoToday()); if((f.sleep===""||f.sleep==null)&&th0.sleep!==""&&th0.sleep!=null) f.sleep=String(th0.sleep);
     if(keep) Object.assign(f,keep);
     f.exercises.forEach(e=>{ const item=planItemFor(e,track,sessionKey); const rec=recommend(e,item,f); e.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); }); }
   f.exercises.forEach(e=>{ const item=(state.plan.sessions[track][f.session]||[]).find(x=>x.ex===e.ex); if(!e.sug){ const l=lastLogOf(e.ex,f.id); e.sug=suggestion(item||{min:8,max:12,sets:3,unit:e.unit,inc:2.5},l,l?missedSince(l.s.date):0); } if(!e.target&&item) e.target=item.min+"-"+item.max; });
@@ -1684,6 +2234,117 @@ function onFormInput(e){ const t=e.target, f=state.form; if(!f||!t.dataset) retu
   if((fl==="session"||fl==="where")&&!f.existing){ const typed=f.exercises.some(e=>e.sets.some(x=>x.r!==""&&x.r!=null)); const tr=fl==="where"?t.value:f.track, sk=fl==="session"?t.value:f.session; if(typed){ f.track=tr; f.session=sk; render(); toast("Reps already typed, so the exercise list is kept"); return; } openForm(sk,null,tr,{date:f.date,sleep:f.sleep,hold:f.hold,notes:f.notes,startedAt:f.startedAt}); }
 }
 
+
+/* --- Health & Wellness Intelligence Tab (v13) --- */
+function renderHealth(){
+  const today=isoToday(), th=todayHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st, acwr=wi.acwr, rd=wi.rd;
+  const bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{});
+  const synced=hasHealthData(today);
+  const allDays=anyHealthDays();
+  const rhrB=healthBaseline("rhr",7,today), hrvB=healthBaseline("hrv",7,today), slpB=healthBaseline("sleep",7,today), stpB=healthBaseline("steps",7,today);
+
+  /* 1. Hero: Comprehensive Wellness & Longevity Index */
+  const hero = '<div class="card health-hero stack">'+
+    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span>'+(synced?'<span class="chip good">Synced Today</span>':'<span class="chip">Ready to Sync</span>')+'</div>'+
+    '<span class="chip '+(wi.ageDiff<=0?"good":"warn")+'">Physiological Age: '+wi.bioAge+' yrs ('+(wi.ageDiff<=0?wi.ageDiff+" yrs": "+"+wi.ageDiff+" yrs")+')</span></div>'+
+    '<div class="row between" style="align-items:flex-end"><div><span class="eyebrow">Integrated Wellness &amp; Readiness Index</span><h2 style="font-size:34px;line-height:1">'+wi.wellnessScore+' <span style="font-size:18px;color:var(--muted);font-weight:600">/ 100</span></h2></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#9829; Sync Apple Health</button><button class="btn sm sec" data-act="hwritetoday">&#8599; Export Today to Health</button><button class="btn sm ghost" data-act="hedittog">'+(state.healthEdit?"Done Editing":"Log / Edit Vitals")+'</button></div></div>'+
+    '<p class="small muted">Apple Health collects raw numbers in isolation. <b>Fitness</b> fuses your autonomic vitals (HRV, Resting HR, Deep/REM sleep, VO2 Max, Steps &amp; Active Energy) with your gym tonnage, 13-muscle recovery state, football/padel load, and daily protein/hydration to prescribe exact weights, macros, and injury prevention.</p>'+
+    '<div class="pillar-grid">'+wi.pillars.map(p=>'<div class="pillar-box"><div class="row between"><span class="eyebrow" style="font-size:10px">'+esc(p.n)+'</span><b class="small" style="color:'+(p.v>=80?"var(--good)":p.v>=65?"var(--accent)":"var(--warn)")+'">'+p.v+'%</b></div><div class="meter-bar"><i style="width:'+p.v+'%;background:'+(p.v>=80?"var(--good)":p.v>=65?"var(--accent)":"var(--warn)")+'"></i></div><span class="small muted" style="font-size:11px">'+esc(p.s)+'</span></div>').join("")+'</div>'+
+  '</div>';
+
+  /* 2. Biometric Vitals & 7-Day Rolling Baselines + Inline Editor */
+  const vTile = (label, val, unit, sub, statusCls) => '<div class="vital-card"><div class="v-top"><span class="eyebrow" style="font-size:11px">'+esc(label)+'</span>'+(statusCls?'<i class="dot '+statusCls+'" style="margin:0"></i>':'')+'</div><div class="v-val">'+(val!==""&&val!=null?esc(val):"&ndash;")+' <span class="v-unit">'+esc(unit)+'</span></div><div class="v-sub">'+sub+'</div></div>';
+  const rhrDiff = th.rhr!=="" ? Math.round((+th.rhr - rhrB.mean)*10)/10 : null;
+  const hrvDiff = th.hrv!=="" ? Math.round((+th.hrv - hrvB.mean)*10)/10 : null;
+  const slpVal = th.sleep!=="" ? th.sleep : (todayDaily().sleep!=="" ? todayDaily().sleep : "");
+  const vitalsGrid = '<div class="vitals-grid">'+
+    vTile("Sleep & Architecture", slpVal, "hrs", (th.deepRem!==""?"Deep+REM: <b>"+th.deepRem+"h</b> &middot; ":"")+"7d avg: "+slpB.mean+"h (debt "+wi.sleepDebt+"h)", slpVal===""?"":+slpVal>=7.5?"d1":+slpVal>=6.5?"d2":"d3")+
+    vTile("Heart Rate Variability", th.hrv, "ms", (hrvDiff!=null?(hrvDiff>=0?"+"+hrvDiff:hrvDiff)+" ms vs ":"")+(hrvB.personal?"7d baseline":"norm")+" ("+hrvB.mean+" ms)", th.hrv===""?"":hrvDiff>=-3?"d1":hrvDiff>=-10?"d2":"d3")+
+    vTile("Resting Heart Rate", th.rhr, "bpm", (rhrDiff!=null?(rhrDiff>0?"+"+rhrDiff:rhrDiff)+" bpm vs ":"")+(rhrB.personal?"7d baseline":"norm")+" ("+rhrB.mean+" bpm)", th.rhr===""?"":rhrDiff<=2?"d1":rhrDiff<=5?"d2":"d3")+
+    vTile("Steps & Locomotion", th.steps!==""?(+th.steps).toLocaleString():"", "steps", (th.distanceKm!==""?th.distanceKm+" km &middot; ":"")+"7d avg: "+Math.round(stpB.mean).toLocaleString()+" / 10k", th.steps===""?"":+th.steps>=8000?"d1":+th.steps>=5000?"d2":"d3")+
+    vTile("Active & Basal Burn", th.activeKcal!==""?th.activeKcal:mf.activeBurn, "kcal", "Basal BMR: "+mf.bmr+" kcal &middot; TDEE: <b>"+mf.tdee+" kcal</b>", "d1")+
+    vTile("Cardio Fitness (VO2)", th.vo2max!==""?th.vo2max:wi.vo2, "mL/kg", (+wi.vo2>=48?"Superior":+wi.vo2>=44?"Excellent":+wi.vo2>=39?"Good":"Fair")+" aerobic ceiling for age "+mf.age, +wi.vo2>=44?"d1":"d2")+
+    vTile("SpO2 & Respiration", th.spo2!==""?th.spo2+"%":(th.respRate!==""?th.respRate:"98%"), th.spo2!==""&&th.respRate!==""?("· "+th.respRate+"/m"):"SpO2", "Normal: 96-100% SpO2 &middot; 12-16 br/min", (th.spo2!==""&&+th.spo2<95)?"d3":"d1")+
+    vTile("Body Comp & FFMI", state.plan.bodyweight||85, "kg", "Lean mass: <b>"+mf.leanMassKg+" kg</b> &middot; FFMI: <b>"+mf.ffmi+"</b>"+(mf.bf!=null?" ("+mf.bf+"% BF)":""), "d1")+
+  '</div>';
+
+  const editorForm = state.healthEdit ? '<div class="tile stack" style="margin-top:6px"><div class="row between"><span class="eyebrow">Log or Adjust Today&#39;s Apple Health Vitals ('+fmtDate(today)+')</span><button class="btn sm ghost" data-act="hpreset">Fill Match-Day Sample</button></div>'+
+    '<div class="grid2">'+
+      '<label class="f">Sleep (hours)<input type="number" step="0.1" inputmode="decimal" id="hsleep" data-hf="sleep" value="'+esc(slpVal)+'" placeholder="e.g. 7.8"></label>'+
+      '<label class="f">Deep + REM (hours)<input type="number" step="0.1" inputmode="decimal" id="hdeep" data-hf="deepRem" value="'+esc(th.deepRem)+'" placeholder="e.g. 3.1"></label>'+
+      '<label class="f">Resting HR (bpm)<input type="number" step="1" inputmode="numeric" id="hrhr" data-hf="rhr" value="'+esc(th.rhr)+'" placeholder="e.g. 54"></label>'+
+      '<label class="f">HRV SDNN (ms)<input type="number" step="1" inputmode="numeric" id="hhrv" data-hf="hrv" value="'+esc(th.hrv)+'" placeholder="e.g. 68"></label>'+
+      '<label class="f">Steps today<input type="number" step="100" inputmode="numeric" id="hsteps" data-hf="steps" value="'+esc(th.steps)+'" placeholder="e.g. 9200"></label>'+
+      '<label class="f">Active Energy (kcal)<input type="number" step="10" inputmode="numeric" id="hkcal" data-hf="activeKcal" value="'+esc(th.activeKcal)+'" placeholder="e.g. 640"></label>'+
+      '<label class="f">VO2 Max (mL/kg/min)<input type="number" step="0.5" inputmode="decimal" id="hvo2" data-hf="vo2max" value="'+esc(th.vo2max)+'" placeholder="e.g. 48.5"></label>'+
+      '<label class="f">Blood Oxygen SpO2 (%)<input type="number" step="0.5" inputmode="decimal" id="hspo2" data-hf="spo2" value="'+esc(th.spo2)+'" placeholder="e.g. 98"></label>'+
+      '<label class="f">Respiratory Rate (/min)<input type="number" step="0.5" inputmode="decimal" id="hresp" data-hf="respRate" value="'+esc(th.respRate)+'" placeholder="e.g. 14.2"></label>'+
+      '<label class="f">Body Fat (%)<input type="number" step="0.5" inputmode="decimal" id="hbf" data-hf="bodyFat" value="'+esc(th.bodyFat!==''?th.bodyFat:bio.bodyFat)+'" placeholder="e.g. 14.5"></label>'+
+      '<label class="f">Height (cm)<input type="number" step="1" inputmode="numeric" id="hheight" data-bio="heightCm" value="'+esc(bio.heightCm)+'" placeholder="180"></label>'+
+      '<label class="f">Chronological Age<input type="number" step="1" inputmode="numeric" id="hage" data-bio="age" value="'+esc(bio.age)+'" placeholder="28"></label>'+
+    '</div><p class="small muted">Every value saves automatically to your profile &amp; cloud store, updates your 7-day baselines, and adapts today&#39;s workout recommendations.</p></div>' : '';
+
+  const vitalsCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health Biometrics &amp; Rolling Baselines</span><h3>Today vs. Personal 7-Day Norms</h3></div>'+
+    '<button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"Close Editor":"Edit Vitals")+'</button></div>'+vitalsGrid+editorForm+'</div>';
+
+  /* 3. Cross-Signal Insights ("Why Not Using Fitness Leaves You Out") */
+  const insightsCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Cross-Signal Wellness Synthesis</span><h3>What Apple Health Alone Cannot Tell You</h3></div><span class="chip sh">'+wi.insights.length+' Active Insights</span></div>'+
+    '<div class="stack" style="gap:8px">'+wi.insights.map(ins=>'<div class="insight-item '+(ins.c||"")+'"><b>'+esc(ins.t)+'</b><p class="small muted">'+esc(ins.b)+'</p></div>').join("")+'</div></div>';
+
+  /* 4. Strain vs. Recovery Balance & ACWR Injury Radar */
+  const strainPct = Math.min(100, Math.round(st.strain/21*100));
+  const strainCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Autonomic Recovery vs. Mechanical &amp; Cardio Strain</span><h3>Strain &amp; Overreaching Radar</h3></div><span class="chip '+(acwr.zone==="high"?"warn":acwr.zone==="optimal"?"good":"sh")+'">ACWR '+acwr.ratio+'x &middot; '+esc(acwr.title)+'</span></div>'+
+    '<div class="grid2">'+
+      '<div class="tile stack"><div class="row between"><span class="eyebrow">Today&#39;s Day Strain</span><b style="font-family:var(--display);font-size:22px">'+st.strain+' / 21.0</b></div>'+
+      '<div class="meter-bar"><i style="width:'+strainPct+'%;background:'+(st.strain>=16?"var(--push)":st.strain>=10?"var(--accent)":"var(--good)")+'"></i></div>'+
+      '<span class="small muted">'+esc(st.label)+' &middot; '+(st.liftSets?st.liftSets+' gym sets ('+Math.round(st.liftVol).toLocaleString()+' kg)':'No lift logged yet')+(st.fb?' &middot; Football':'')+(st.sp?' &middot; Padel':'')+'</span></div>'+
+      '<div class="tile stack"><div class="row between"><span class="eyebrow">Biometric Recovery</span><b style="font-family:var(--display);font-size:22px;color:'+(rd.score>=80?"var(--good)":rd.score>=65?"var(--warn)":"var(--bad)")+'">'+rd.score+'%</b></div>'+
+      '<div class="meter-bar"><i style="width:'+rd.score+'%;background:'+(rd.score>=80?"var(--good)":rd.score>=65?"var(--warn)":"var(--bad)")+'"></i></div>'+
+      '<span class="small muted">7d Acute Strain: <b>'+acwr.acuteAvg+'</b> vs 28d Chronic: <b>'+acwr.chronicAvg+'</b></span></div>'+
+    '</div>'+
+    '<p class="small muted">'+esc(acwr.advice)+'</p></div>';
+
+  /* 5. Dynamic TDEE, Net Energy Balance & Precision Macro Prescription */
+  const d=todayDaily();
+  const protPct=Math.min(100,Math.round((+d.protein||0)/mf.protG*100));
+  const watPct=Math.min(100,Math.round((+d.water||0)/mf.waterGlassesTarget*100));
+  const metabolicCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Real-Time Energy Expenditure &amp; Fuel Engine</span><h3>'+mf.targetKcal.toLocaleString()+' kcal Daily Target ('+esc(GOALS[state.plan.goal||"gain"])+')</h3></div>'+
+    '<span class="chip good">Live TDEE: '+mf.tdee.toLocaleString()+' kcal</span></div>'+
+    '<p class="small muted">Calculated from your Basal Metabolic Rate (<b>'+mf.bmr+' kcal</b>) + Active Energy &amp; Locomotion (<b>'+mf.activeBurn+' kcal</b>) '+(mf.deltaKcal>=0?'+ <b>'+mf.deltaKcal+' kcal</b> lean hypertrophy surplus':'&minus; <b>'+Math.abs(mf.deltaKcal)+' kcal</b> fat-loss deficit')+'.</p>'+
+    '<div class="macro-grid">'+
+      '<div class="tile stack"><span class="eyebrow">Protein ('+Math.round(mf.protG/(+state.plan.bodyweight||85)*10)/10+'g/kg)</span><b>'+(+d.protein||0)+' / '+mf.protG+' g</b><div class="meter-bar"><i style="width:'+protPct+'%;background:var(--good)"></i></div><span class="small muted">Muscle protein synthesis</span></div>'+
+      '<div class="tile stack"><span class="eyebrow">Carbohydrates</span><b>'+mf.carbG+' g</b><div class="meter-bar"><i style="width:100%;background:var(--accent)"></i></div><span class="small muted">'+(st.fb||st.sp||st.liftSets?"Upregulated for glycogen":"Baseline recovery fuel")+'</span></div>'+
+      '<div class="tile stack"><span class="eyebrow">Dietary Fats</span><b>'+mf.fatG+' g</b><div class="meter-bar"><i style="width:100%;background:var(--warn)"></i></div><span class="small muted">Hormonal &amp; joint health</span></div>'+
+      '<div class="tile stack"><span class="eyebrow">Sweat-Adjusted Water</span><b>'+(+((+d.water||0)*0.25).toFixed(2))+' / '+mf.waterLitresTarget+' L</b><div class="meter-bar"><i style="width:'+watPct+'%;background:var(--accent)"></i></div><span class="small muted">'+mf.waterGlassesTarget+' glasses today</span></div>'+
+    '</div></div>';
+
+  /* 6. 14-Day Biometric Trend Sparkline & Apple Health Bridge / Importer */
+  const tMetric = state.healthTrendMetric||"hrv";
+  const tLabels = {hrv:{n:"HRV (ms)",u:"ms"}, rhr:{n:"Resting HR (bpm)",u:"bpm"}, sleep:{n:"Sleep (hours)",u:"h"}, steps:{n:"Daily Steps",u:"steps"}};
+  const pts = allDays.slice(-14).map(iso=>({d:iso, v:+(state.plan.health[iso]||{})[tMetric]||0})).filter(x=>x.v>0);
+  const trendCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Biometric History</span><h3>14-Day Apple Health Trends</h3></div>'+
+    '<div class="filters">'+Object.keys(tLabels).map(k=>'<button data-act="htrend" data-m="'+k+'" class="'+(tMetric===k?"on":"")+'">'+esc(tLabels[k].n)+'</button>').join("")+'</div></div>'+
+    (pts.length>=2 ? '<div class="spark">'+sparkSvg(pts)+'</div>' : '<p class="small muted">Log or sync at least 2 days of '+esc(tLabels[tMetric].n)+' to view your rolling trend line.</p>')+'</div>';
+
+  const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px"><span class="eyebrow">Automatic iPhone Health Sync (30-Second iOS Shortcut Setup)</span>'+
+    '<ol style="margin:0;padding-left:18px;font-size:13px;display:flex;flex-direction:column;gap:5px">'+
+      '<li>Open the built-in <b>Shortcuts</b> app on your iPhone and create a shortcut named <b>Fitness Health Sync</b>.</li>'+
+      '<li>Add <b>Find Health Samples</b> for Sleep, Resting Heart Rate, HRV, Steps, Active Energy, VO2 Max, and Weight (last 1 day).</li>'+
+      '<li>Add <b>Get Contents of URL</b> (Method: <b>POST</b>) using your pre-authenticated Cloud Sync JSON below, OR open <code>https://husseinbdeir.github.io/fitness/?hsync=...</code>.</li>'+
+      '<li>In Shortcuts &rarr; <b>Automation</b>, set <b>When Wake-Up Alarm is Stopped</b> (or <b>When Fitness is Opened</b>) &rarr; Run <b>Fitness Health Sync</b> (Run Immediately). Your vitals will be waiting inside Fitness every morning!</li>'+
+    '</ol>'+
+    '<div class="row"><button class="btn sm sec" data-act="hcopycfg">Copy Cloud Webhook JSON for iOS Shortcut</button><button class="btn sm ghost" data-act="hcopysample">Copy Sample JSON Payload</button></div></div>' : '';
+
+  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Two-Way Apple Health Bridge</span><h3>Sync, Import &amp; iOS Automation</h3></div>'+
+    '<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide iOS Shortcut Guide":"iOS Shortcut Auto-Sync Guide")+'</button></div>'+
+    '<p class="small muted">Sync directly with Apple Health via iOS Shortcuts, paste a Shortcut clipboard payload, or import an Apple Health <code>export.xml</code> / CSV / JSON file.</p>'+
+    '<div class="row"><button class="btn sm" data-act="hsyncnow">&#9829; Run iOS Health Sync</button><button class="btn sm sec" data-act="hwritetoday">&#8599; Write Workout &amp; Fuel to Health</button><button class="btn sm sec" data-act="hpaste">Paste from Clipboard</button><button class="btn sm ghost" data-act="hfileopen">Import export.xml / JSON / CSV</button><input type="file" id="hfile" accept=".xml,.json,.csv" hidden></div>'+
+    setupHtml+'</div>';
+
+  return hero + vitalsCard + insightsCard + strainCard + metabolicCard + trendCard + bridgeCard;
+}
+
 /* --- Log tab --- */
 
 function renderVictoryBanner(){
@@ -1692,7 +2353,7 @@ function renderVictoryBanner(){
   return '<div class="victory stack"><div class="row between"><div><span class="eyebrow" style="color:var(--good)">Session Complete &middot; Great Work!</span><h2>'+esc(sessionTitle(v.session))+' Logged</h2></div><button class="btn sm ghost" data-act="dismissvic">Dismiss</button></div>'+
     '<div class="grid3"><div class="tile"><b>'+v.sets+'</b><span>sets completed</span></div><div class="tile"><b>'+(v.vol?Math.round(v.vol).toLocaleString()+" kg":v.reps+" reps")+'</b><span>'+(v.vol?"volume ("+eq+")":"total reps")+'</span></div><div class="tile"><b>'+(v.prs.length?"&#127942; "+v.prs.length:"Solid")+'</b><span>'+(v.prs.length?"new PRs unlocked":"consistency win")+'</span></div></div>'+
     (v.prs.length?'<p class="small"><b>Personal Records broken:</b> '+v.prs.map(esc).join(" &middot; ")+'</p>':'')+
-    '</div>';
+    '<div class="row between" style="padding-top:4px"><span class="small muted">Estimated session burn: <b>~'+Math.round((v.sets||12)*14 + (v.vol||0)*0.012 + ((+state.plan.bodyweight||85)*1.4))+' active kcal</b></span><button class="btn sm sec" data-act="hwritetoday">&#9829; Log Workout &amp; Fuel to Apple Health</button></div></div>';
 }
 function renderHeatmapCard(){
   const today=isoToday(), curWs=weekStart(today);
@@ -1885,7 +2546,7 @@ function renderGuide(){
 
 /* ---------- Events ---------- */
 /* Tabs are history entries, so the Android back button moves between tabs instead of closing the installed app. */
-const TABS=["today","log","plan","library","guide"];
+const TABS=["today","health","log","plan","library","guide"];
 function pushNav(){ try{ if(typeof window!=="undefined"&&window.history&&window.history.pushState) window.history.pushState({tab:state.tab},""); }catch(e){} }
 function goTab(tab){ state.tab=TABS.includes(tab)?tab:"today"; pushNav(); render(); window.scrollTo(0,0); }
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("popstate",e=>{ if(!state.profile) return; const t=e.state&&e.state.tab; state.tab=TABS.includes(t)?t:"today"; render(); window.scrollTo(0,0); });
@@ -2028,9 +2689,106 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="pushtest"){ await sendTestPush(false); }
   else if(a==="pushsync"){ toast("Refreshing 14-day notification schedule..."); await syncPushSchedule(); toast("Notification schedule synced to cloud!"); }
   else if(a==="pushhintno"){ lsSet("ubp.pushhint",1); render(); }
+  else if(a==="hedittog"){ state.healthEdit=!state.healthEdit; render(); }
+  else if(a==="hsetuptog"){ state.healthSetupOpen=!state.healthSetupOpen; render(); }
+  else if(a==="htrend"){ state.healthTrendMetric=b.dataset.m||"hrv"; render(); bindSparks(); }
+  else if(a==="hsyncnow"){
+    const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+    if(/iPhone|iPad|iPod/.test(ua)){
+      toast("Opening Fitness Health Sync in iOS Shortcuts...");
+      window.location.href=buildShortcutSyncUrl("read");
+    } else {
+      state.tab="health"; state.healthEdit=true; render();
+      toast("Log vitals below, paste from clipboard, or import Apple Health XML/JSON.");
+    }
+  }
+  else if(a==="hwritetoday"){
+    const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+    const today=isoToday(), d=todayDaily(), doneToday=state.sessions.filter(s=>s.date===today);
+    const kcal=doneToday.length?doneToday.reduce((acc,s)=>acc+estimateSessionKcal(s),0):0;
+    if(/iPhone|iPad|iPod/.test(ua)){
+      toast("Sending workout ("+kcal+" kcal), protein ("+(+d.protein||0)+"g) & water to Apple Health...");
+      window.location.href=buildShortcutSyncUrl("write");
+    } else {
+      const summary={date:today,workout:doneToday.length?sessionTitle(doneToday[0].session):"Rest",activeKcal:kcal,proteinG:+d.protein||0,waterMl:(+d.water||0)*250,weightKg:+state.plan.bodyweight||85};
+      try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(JSON.stringify(summary,null,2)); }catch(e){}
+      toast("Apple Health export payload copied ("+kcal+" kcal · "+(+d.protein||0)+"g protein · "+((+d.water||0)*250)+" ml water)");
+    }
+  }
+  else if(a==="hpaste"){
+    try{
+      if(navigator.clipboard&&navigator.clipboard.readText){
+        const txt=await navigator.clipboard.readText();
+        const n=ingestHealthPayload(txt,"Clipboard");
+        if(!n) toast("Clipboard did not contain valid Apple Health JSON or CSV.");
+      } else { toast("Clipboard read not available here — use Import File or Edit Vitals."); }
+    }catch(e){ toast("Could not read clipboard: "+(e&&e.message||e)); }
+  }
+  else if(a==="hfileopen"){
+    const inp=document.getElementById("hfile"); if(inp) inp.click();
+  }
+  else if(a==="hpreset"){
+    const today=isoToday(), yest=addDays(today,-1), d2=addDays(today,-2), d3=addDays(today,-3);
+    ingestHealthPayload({days:[
+      {date:d3,sleep:7.6,deepRem:2.9,rhr:56,hrv:64,steps:8400,activeKcal:580,vo2max:47.5,spo2:98,respRate:14.2},
+      {date:d2,sleep:7.4,deepRem:2.7,rhr:57,hrv:61,steps:11200,activeKcal:790,vo2max:47.6,spo2:98,respRate:14.5},
+      {date:yest,sleep:7.8,deepRem:3.1,rhr:55,hrv:66,steps:8900,activeKcal:610,vo2max:47.8,spo2:98,respRate:14.1},
+      {date:today,sleep:7.9,deepRem:3.2,rhr:54,hrv:71,steps:9450,activeKcal:660,vo2max:48.0,spo2:99,respRate:14.0}
+    ]},"Apple Health");
+  }
+  else if(a==="hcopycfg"){
+    const cfg={
+      url:atob(_CLOUD_CFG.u),
+      method:"POST",
+      headers:{"Content-Type":"text/plain;charset=UTF-8"},
+      body:{
+        key:atob(_CLOUD_CFG.k),
+        op:"patch",
+        patch:{
+          ["profiles/"+(state.profile||"hussein")+"/health/latest"]:{
+            ts:Date.now(),
+            date:isoToday(),
+            sleep:7.8,
+            deepRem:3.0,
+            rhr:55,
+            hrv:68,
+            steps:9000,
+            activeKcal:620,
+            vo2max:48.0,
+            weight:+state.plan.bodyweight||85
+          }
+        }
+      }
+    };
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(JSON.stringify(cfg,null,2)); toast("Cloud Sync POST config copied to clipboard for iOS Shortcuts!"); }catch(e){ toast("Config ready"); }
+  }
+  else if(a==="hcopysample"){
+    const smp=JSON.stringify({date:isoToday(),sleep:7.8,deepRem:3.1,rhr:54,hrv:70,steps:9200,activeKcal:640,vo2max:48.0,spo2:98,respRate:14.0,weight:+state.plan.bodyweight||85},null,2);
+    try{ if(navigator.clipboard&&navigator.clipboard.writeText) await navigator.clipboard.writeText(smp); toast("Sample Apple Health JSON copied!"); }catch(e){ toast("Sample ready"); }
+  }
 });
 function setOverride(ws,day,val){ state.plan.overrides=state.plan.overrides||{}; const o=state.plan.overrides[ws]=state.plan.overrides[ws]||{}; if(val===state.plan.week[day]) delete o[day]; else o[day]=val; if(!Object.keys(o).length) delete state.plan.overrides[ws]; savePlan(); render(); }
-view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return; } if(state.tab==="today"&&e.target.dataset.wday){ const t=e.target, d=t.dataset.wday, ws=viewedWeekStart(); setOverride(ws,d,applyPart(weekPlan(ws)[d],t.dataset.part||"lift",t.type==="checkbox"?t.checked:t.value)); return; } if(state.tab==="plan") onPlanInput(e); if(formOpen()) onFormInput(e); if(formOpen()&&e.target.id==="addex"&&e.target.value){ const k=e.target.value; const last=lastLogOf(k); const ne={ex:k,name:EX[k].n,unit:EX[k].eq==="body"?"reps":"kg",side:false,feel:"",sets:[],next:"",target:"8-12",sug:null}; const rec=recommend(ne,planItemFor(ne,state.form.track,state.form.session),state.form); ne.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); state.form.exercises.push(ne); render(); } });
+view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return; } if(state.tab==="today"&&e.target.dataset.wday){ const t=e.target, d=t.dataset.wday, ws=viewedWeekStart(); setOverride(ws,d,applyPart(weekPlan(ws)[d],t.dataset.part||"lift",t.type==="checkbox"?t.checked:t.value)); return; } if(state.tab==="plan") onPlanInput(e);
+  if(state.tab==="health"){
+    const t=e.target;
+    if(t.id==="hfile"&&t.files&&t.files[0]){
+      const reader=new FileReader();
+      reader.onload=ev=>{ ingestHealthPayload(String(ev.target.result||""), t.files[0].name); };
+      reader.readAsText(t.files[0]);
+      return;
+    }
+    if(t.dataset&&t.dataset.hf){
+      const k=t.dataset.hf, v=numOrEmpty(t.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1);
+      const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health";
+      if(k==="sleep") todayDaily().sleep=v;
+      if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v});
+      savePlan(); render(); return;
+    }
+    if(t.dataset&&t.dataset.bio){
+      state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{[t.dataset.bio]:+t.value||DEFAULT_BIO[t.dataset.bio]});
+      savePlan(); render(); return;
+    }
+  } if(formOpen()) onFormInput(e); if(formOpen()&&e.target.id==="addex"&&e.target.value){ const k=e.target.value; const last=lastLogOf(k); const ne={ex:k,name:EX[k].n,unit:EX[k].eq==="body"?"reps":"kg",side:false,feel:"",sets:[],next:"",target:"8-12",sug:null}; const rec=recommend(ne,planItemFor(ne,state.form.track,state.form.session),state.form); ne.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); state.form.exercises.push(ne); render(); } });
 function onLoginInput(e){ const t=e.target, l=t.dataset&&t.dataset.l; if(!l) return; if(t.dataset.day){ const a=(state.login[l]||[]).filter(d=>d!==t.dataset.day); if(t.checked) a.push(t.dataset.day); state.login[l]=DAYS.filter(d=>a.includes(d)); const lab=t.closest("label"); if(lab) lab.classList.toggle("on",t.checked); } else state.login[l]=t.type==="checkbox"?t.checked:t.value; }
 view.addEventListener("input",e=>{ if(!state.profile){ onLoginInput(e); return; } if(formOpen()){ onFormInput(e); return; } if(state.tab==="log"&&(e.target.id==="rmw"||e.target.id==="rmr")){ state.rmCalc=state.rmCalc||{w:60,r:8}; state.rmCalc[e.target.id==="rmw"?"w":"r"]=+e.target.value||0; const g=document.getElementById("rmgrid"); if(g) g.innerHTML=rmGridHtml(); return; }
   if(state.tab==="library"&&e.target.id==="libq"){ state.lib.q=e.target.value; const r=document.getElementById("libres"); if(r) r.innerHTML=libResults(); else render(); } });
