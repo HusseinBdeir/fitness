@@ -950,6 +950,7 @@ async function enterProfile(pid){ await detachProfile(); resetProfileState(); st
   if(state.draftRestored){ state.draftRestored=false; toast("Your unfinished session is back. Save it, or press Cancel to drop it."); }
   checkExistingPushSub();
   checkUrlHealthSync();
+  initHealthAutoSyncForProfile();
   if(state.db) await attachCloud(); }
 async function attachCloud(){ const db=state.db, pid=state.profile; await replayPending(db); if(state.profile!==pid||!state.db) return;
   state.unsub.push(sessCol().onSnapshot(s=>{ const cloud=s.docs.map(d=>Object.assign({id:d.id},d.data())); const pend=state.pending.sessions||{}; const ids=new Set(cloud.map(x=>x.id));
@@ -961,7 +962,7 @@ async function attachCloud(){ const db=state.db, pid=state.profile; await replay
     if(state.planDirty||state.planInflight||state.pending.plan) return; if((d.rev||0)<(state.plan.rev||0)) return;
     state.plan=migratePlan(d); persistLocal(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{}));
   if(db._http){ state.unsub.push(db.doc("profiles/"+pid+"/health/latest").onSnapshot(s=>{ if(!s.exists) return; const hd=s.data(); if(hd&&typeof hd==="object"&&hd.ts&&hd.ts!==(state.plan._lastCloudHealthTs||0)){ state.plan._lastCloudHealthTs=hd.ts; ingestHealthPayload(hd,"Apple Health Cloud Shortcut",true); } }, ()=>{})); } }
-async function detachProfile(){ if(!state.profile) return; flushAll(); await drainWrites(); state.unsub.forEach(u=>{ try{ u(); }catch(e){} }); state.unsub=[]; state.profile=null; }
+async function detachProfile(){ if(!state.profile) return; stopHealthAutoSyncLoop(); flushAll(); await drainWrites(); state.unsub.forEach(u=>{ try{ u(); }catch(e){} }); state.unsub=[]; state.profile=null; }
 async function leaveProfile(){ await detachProfile(); resetProfileState(); lsSet(LS.profile,null); ssSet(SS.open,null); state.login=LOGIN0(); render(); window.scrollTo(0,0); }
 function drainWrites(){ return new Promise(res=>{ const chk=()=>{ if(!writeBusy&&!writeQ.length) res(); else setTimeout(chk,40); }; chk(); }); }
 async function createProfile(name,pin,bw,setup){ name=String(name||"").trim(); const base=slug(name)||"person"; let pid=base, n=2; while(state.profiles.some(p=>p.id===pid)) pid=base+"-"+(n++);
@@ -1001,7 +1002,7 @@ function savePlan(){ state.plan.rev=Date.now(); state.planDirty=true; persistLoc
 function flushPlan(){ clearTimeout(planSaveTimer); planSaveTimer=null; if(!state.planDirty||!state.db||!state.profile) return; state.planDirty=false; state.planInflight=true; const snap=clone(state.plan); const ref=planDoc();
   queueWrite(()=>ref.set(snap).then(()=>{ if(state.plan.rev===snap.rev&&!state.planDirty) markPending("plan",null,false); })).then(()=>{ state.planInflight=false; if(state.planDirty) flushPlan(); }); }
 function flushAll(){ if(planSaveTimer) flushPlan(); persistDraft(); }
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushAll(); else if(document.visibilityState==="visible"){ if(state.db&&state.db._http) reconnect(); if(state.rest&&state.rest.running) tickRest(); if(state.mob&&state.mob.running) tickMob(); if(formOpen()) keepAwake(true); } });
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushAll(); else if(document.visibilityState==="visible"){ onHealthAppResume(); if(state.db&&state.db._http) reconnect(); if(state.rest&&state.rest.running) tickRest(); if(state.mob&&state.mob.running) tickMob(); if(formOpen()) keepAwake(true); } });
 window.addEventListener("pagehide",flushAll);
 let toastT; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},Math.min(7000,2200+String(m).length*35)); }
 
@@ -1247,6 +1248,56 @@ function renderBodyMapCard(){
 
 /* ---------- v13 Apple Health Integration & Wellness Intelligence Engine ---------- */
 const HEALTH_FIELDS = ["sleep","deepRem","rhr","hrv","steps","activeKcal","basalKcal","distanceKm","vo2max","spo2","respRate","weight","bodyFat"];
+const DEFAULT_HSYNC = {autoSync:false,everSynced:false,neverAsk:false,lastPromptDate:"",lastSyncAt:"",lastSyncMs:0,syncCountToday:0,syncCountDate:""};
+let healthAutoSyncTimer = null;
+let healthLifecycleBound = false;
+function getHealthSyncPrefs(){
+  const pid=state.profile||"hussein";
+  const raw=lsGet("ubp."+pid+".hsync");
+  const out=Object.assign({},DEFAULT_HSYNC,(raw&&typeof raw==="object")?raw:{});
+  const today=isoToday();
+  if(out.syncCountDate!==today){
+    out.syncCountToday=0;
+    out.syncCountDate=today;
+  }
+  return out;
+}
+function setHealthSyncPrefs(patch){
+  const pid=state.profile||"hussein";
+  const cur=getHealthSyncPrefs();
+  const next=Object.assign({},cur,patch||{});
+  lsSet("ubp."+pid+".hsync",next);
+  state.hsync=next;
+  return next;
+}
+function shouldShowHealthDailyPrompt(){
+  const p=getHealthSyncPrefs();
+  if(p.autoSync) return false;
+  if(p.neverAsk) return false;
+  return p.lastPromptDate!==isoToday();
+}
+function dismissHealthPromptToday(){
+  setHealthSyncPrefs({lastPromptDate:isoToday()});
+  render();
+  toast("Okay — we will ask again tomorrow if you want to sync Apple Health.");
+}
+function neverAskHealthPrompt(){
+  setHealthSyncPrefs({neverAsk:true,lastPromptDate:isoToday()});
+  render();
+  toast("Got it — we won't ask you to sync Apple Health again. Tap Sync Apple Health anytime if you change your mind.");
+}
+function renderHealthDailyPrompt(){
+  if(!shouldShowHealthDailyPrompt()) return "";
+  return '<div class="hnotice good" id="hsyncprompt">'+
+    '<div class="row between"><b>&#9829; Sync Apple Health Today?</b><span class="chip warn">Daily Sync Check</span></div>'+
+    '<span>You haven&#39;t synced Apple Health yet. Sync once and Fitness will automatically update your steps walked, calories burned, sleep stages, resting HR &amp; HRV repetitively throughout the day.</span>'+
+    '<div class="row" style="gap:6px;margin-top:2px">'+
+      '<button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+
+      '<button class="btn sm sec" data-act="hsync_later">Ask Tomorrow</button>'+
+      '<button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>'+
+    '</div>'+
+  '</div>';
+}
 function emptyHealthDay(){
   return {sleep:"",deepRem:"",rhr:"",hrv:"",steps:"",activeKcal:"",basalKcal:"",distanceKm:"",vo2max:"",spo2:"",respRate:"",weight:"",bodyFat:"",source:"",syncedAt:""};
 }
@@ -1371,10 +1422,56 @@ function bindLiveStepSensor(){
     }catch(e){}
   },{passive:true});
 }
-async function syncAppleHealthNow(){
+function onHealthAppResume(){
+  try{
+    if(!state.profile) return;
+    const p=getHealthSyncPrefs();
+    if(p.autoSync){
+      if(Date.now()-(p.lastSyncMs||0)>60000) runAutoHealthSyncTick(true);
+    } else if(shouldShowHealthDailyPrompt()&&!formOpen()){
+      render();
+    }
+  }catch(e){}
+}
+function startHealthAutoSyncLoop(){
+  stopHealthAutoSyncLoop();
+  bindLiveStepSensor();
+  healthAutoSyncTimer=setInterval(()=>{
+    if(!state.profile) return;
+    const p=getHealthSyncPrefs();
+    if(p.autoSync) runAutoHealthSyncTick(true);
+  }, 10*60*1000);
+}
+function stopHealthAutoSyncLoop(){
+  if(healthAutoSyncTimer){ clearInterval(healthAutoSyncTimer); healthAutoSyncTimer=null; }
+}
+function initHealthAutoSyncForProfile(){
+  const p=getHealthSyncPrefs();
+  state.hsync=p;
+  if(p.autoSync){
+    state.lastHealthSyncTime=p.lastSyncAt||"";
+    startHealthAutoSyncLoop();
+    if(Date.now()-(p.lastSyncMs||0)>60000) runAutoHealthSyncTick(true);
+  }
+}
+async function runAutoHealthSyncTick(quiet){
+  const p=getHealthSyncPrefs();
+  if(!p.autoSync) return null;
+  return await syncAppleHealthNow({quiet:quiet!==false,isAutoTick:true});
+}
+function stopAppleHealthSync(){
+  stopHealthAutoSyncLoop();
+  setHealthSyncPrefs({autoSync:false,lastPromptDate:isoToday()});
+  state.lastHealthSyncTime="";
+  if(!formOpen()) render();
+  toast("Apple Health repetitive syncing stopped. Tap Sync Apple Health anytime to resume.");
+}
+async function syncAppleHealthNow(opts){
+  opts=opts||{};
+  const quiet=!!opts.quiet;
   const today=isoToday();
   try{
-    if(typeof DeviceMotionEvent!=="undefined"&&typeof DeviceMotionEvent.requestPermission==="function"&&!state._motionBound){
+    if(!quiet&&typeof DeviceMotionEvent!=="undefined"&&typeof DeviceMotionEvent.requestPermission==="function"&&!state._motionBound){
       DeviceMotionEvent.requestPermission().then(p=>{ if(p==="granted") bindLiveStepSensor(); }).catch(()=>{});
     } else {
       bindLiveStepSensor();
@@ -1394,14 +1491,30 @@ async function syncAppleHealthNow(){
     const eh=effectiveHealth(d);
     mergeHealthDay(d,eh,"Apple Health & Watch");
   }
-  state.lastHealthSyncTime=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  const nowStr=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+  const curP=getHealthSyncPrefs();
+  const nextCount=(curP.syncCountDate===today?(curP.syncCountToday||0):0)+1;
+  /* Syncing via Sync Apple Health enables repetitive intraday autoSync even if Never Ask Again was previously pressed */
+  setHealthSyncPrefs({
+    autoSync:true,
+    everSynced:true,
+    lastPromptDate:today,
+    lastSyncAt:nowStr,
+    lastSyncMs:Date.now(),
+    syncCountToday:nextCount,
+    syncCountDate:today
+  });
+  startHealthAutoSyncLoop();
+  state.lastHealthSyncTime=nowStr;
   state.healthSyncModal=null;
   state.healthScWarn=null;
   persistLocal();
   if(formOpen()) refreshAllRec();
-  render();
+  else render();
   const th=effectiveHealth(today);
-  toast("\u2713 Apple Health Synced: "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal ("+th.totalKcal.toLocaleString()+" total) \u00b7 "+th.sleep+"h sleep \u00b7 "+th.rhr+" bpm RHR");
+  if(!quiet){
+    toast("\u2713 Apple Health Synced (Auto-Syncing Throughout Day): "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal ("+th.totalKcal.toLocaleString()+" total) \u00b7 "+th.sleep+"h sleep \u00b7 "+th.rhr+" bpm RHR");
+  }
   return th;
 }
 function numOrEmpty(v,dec){
@@ -2009,13 +2122,20 @@ function buildShortcutSyncUrl(mode){
 }
 function renderTodayHealthStrip(){
   const today=isoToday(), th=effectiveHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st;
+  const prefs=getHealthSyncPrefs();
   const stepPct=Math.min(100,Math.round((+th.steps||0)/10000*100));
   const kcalPct=Math.min(100,Math.round((+mf.activeBurn||0)/750*100));
   const slpPct=Math.min(100,Math.round((+th.sleep||0)/8*100));
-  const syncLabel=state.lastHealthSyncTime?("Synced "+state.lastHealthSyncTime):"Live Apple Health & Watch";
+  const syncLabel=prefs.autoSync
+    ? ("Auto-Syncing Throughout Day"+(prefs.lastSyncAt?" \u00b7 "+prefs.lastSyncAt:"")+(prefs.syncCountToday>1?" ("+prefs.syncCountToday+"x today)":""))
+    : (prefs.everSynced?"Sync Paused":"Tap Sync Apple Health to auto-sync");
+  const stopBtn=prefs.autoSync
+    ? '<button class="btn sm ghost" style="padding:4px 10px;font-size:12px;color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
+    : '';
   return '<div class="health-strip">'+
-    '<div class="row between"><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Athletic Age '+wi.bioAge+'</span><span class="chip">Strain '+st.strain+'/21</span></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 10px;font-size:12px" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Wellness Hub &rarr;</button></div></div>'+
+    renderHealthDailyPrompt()+
+    '<div class="row between"><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Athletic Age '+wi.bioAge+'</span><span class="chip">Strain '+st.strain+'/21</span>'+(prefs.autoSync?'<span class="chip good">&#8635; Auto-Syncing</span>':'')+'</div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 10px;font-size:12px" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+stopBtn+'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Wellness Hub &rarr;</button></div></div>'+
     '<div class="today-health-grid">'+
       '<div class="th-card"><div class="th-top"><span>&#128095; Steps Walked</span><span>'+stepPct+'%</span></div><div class="th-val">'+(+th.steps).toLocaleString()+' <span class="th-unit">steps</span></div><div class="meter-bar"><i style="width:'+stepPct+'%;background:#10B981"></i></div><div class="th-sub"><b>'+th.distanceKm+' km</b> walked &middot; '+th.flights+' floors</div></div>'+
       '<div class="th-card"><div class="th-top"><span>&#128293; Calories Burned</span><span>'+mf.activeBurn+' active</span></div><div class="th-val">'+mf.tdee.toLocaleString()+' <span class="th-unit">kcal</span></div><div class="meter-bar"><i style="width:'+kcalPct+'%;background:#E11D48"></i></div><div class="th-sub"><b>'+mf.activeBurn+'</b> active + <b>'+mf.bmr+'</b> BMR</div></div>'+
@@ -2477,21 +2597,28 @@ function onFormInput(e){ const t=e.target, f=state.form; if(!f||!t.dataset) retu
 }
 
 
-/* --- Health & Wellness Intelligence Tab (v13.2) --- */
+/* --- Health & Wellness Intelligence Tab (v13.3) --- */
 function renderHealth(){
   const today=isoToday(), th=effectiveHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st, acwr=wi.acwr, rd=wi.rd;
+  const prefs=getHealthSyncPrefs();
   const rhrB=healthBaseline("rhr",7,today), hrvB=healthBaseline("hrv",7,today), slpB=healthBaseline("sleep",7,today), stpB=healthBaseline("steps",7,today);
   const stepPct=Math.min(100,Math.round((+th.steps||0)/10000*100));
   const movePct=Math.min(100,Math.round((+mf.activeBurn||0)/750*100));
   const exPct=Math.min(100,Math.round((+th.exerciseMin||45)/45*100));
-  const syncStatus=state.lastHealthSyncTime?("Synced "+state.lastHealthSyncTime):"Apple Health & Watch Live";
+  const syncStatus=prefs.autoSync
+    ? ("Auto-Syncing Throughout Day"+(prefs.lastSyncAt?" \u00b7 "+prefs.lastSyncAt:""))
+    : (prefs.everSynced?"Sync Paused":"Tap Sync to Auto-Sync Throughout Day");
+  const stopBtn=prefs.autoSync
+    ? '<button class="btn sm sec" style="color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
+    : '';
+  const promptBanner = renderHealthDailyPrompt() ? '<div class="card stack">'+renderHealthDailyPrompt()+'</div>' : '';
 
   /* 1. Hero: Activity Rings (Steps, Calories Burned, Exercise) + Comprehensive Wellness Index */
   const hero = '<div class="card health-hero stack">'+
-    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span><span class="chip good">'+esc(syncStatus)+'</span></div>'+
+    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span><span class="chip '+(prefs.autoSync?"good":"")+'">'+esc(syncStatus)+'</span></div>'+
     '<span class="chip '+(wi.ageDiff<=0?"good":"warn")+'">Physiological Age: '+wi.bioAge+' yrs ('+(wi.ageDiff<=0?wi.ageDiff+" yrs": "+"+wi.ageDiff+" yrs")+')</span></div>'+
     '<div class="row between" style="align-items:flex-end"><div><span class="eyebrow">Integrated Wellness &amp; Readiness Index</span><h2 style="font-size:34px;line-height:1">'+wi.wellnessScore+' <span style="font-size:18px;color:var(--muted);font-weight:600">/ 100</span></h2></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button></div></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+stopBtn+'</div></div>'+
     '<div class="activity-rings-grid">'+
       '<div class="ring-card steps"><div class="row between"><span class="eyebrow">&#128095; Steps &amp; Distance Walked</span><b class="small" style="color:#10B981">'+stepPct+'% of 10k</b></div><div style="font-family:var(--display);font-size:26px;font-weight:700">'+(+th.steps).toLocaleString()+' <span class="v-unit">steps</span> &middot; '+th.distanceKm+' <span class="v-unit">km</span></div><div class="meter-bar"><i style="width:'+stepPct+'%;background:#10B981"></i></div><span class="small muted">'+th.flights+' flights climbed &middot; ~'+Math.round((+th.steps)*0.043)+' kcal from walking</span></div>'+
       '<div class="ring-card move"><div class="row between"><span class="eyebrow">&#128293; Calories Burned Today</span><b class="small" style="color:#E11D48">'+mf.activeBurn+' active kcal</b></div><div style="font-family:var(--display);font-size:26px;font-weight:700">'+mf.tdee.toLocaleString()+' <span class="v-unit">total kcal</span></div><div class="meter-bar"><i style="width:'+movePct+'%;background:#E11D48"></i></div><span class="small muted"><b>'+mf.activeBurn+'</b> active Move kcal + <b>'+mf.bmr+'</b> resting BMR kcal</span></div>'+
@@ -2516,7 +2643,7 @@ function renderHealth(){
   '</div>';
 
   const vitalsCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Telemetry</span><h3>Today&#39;s Vitals vs. Personal 7-Day Norms</h3></div>'+
-    '<span class="chip good">Auto-Synced</span></div>'+vitalsGrid+'</div>';
+    '<span class="chip '+(prefs.autoSync?"good":"")+'">'+(prefs.autoSync?"Auto-Syncing Throughout Day":"Live Telemetry")+'</span></div>'+vitalsGrid+'</div>';
 
   /* 3. Cross-Signal Insights ("Why Not Using Fitness Leaves You Out") */
   const insightsCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Cross-Signal Wellness Synthesis</span><h3>What Apple Health Alone Cannot Tell You</h3></div><span class="chip sh">'+wi.insights.length+' Active Insights</span></div>'+
@@ -2560,16 +2687,17 @@ function renderHealth(){
 
   /* 7. Quiet Collapsible Footer for Optional File Import / iCloud Shortcut Template */
   const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px">'+
-    '<p class="small muted">Your daily Steps, Distance, Calories Burned, Sleep Stages, Resting HR, and HRV are already synced and displayed above. If you also want to import a historical Apple Health <code>export.zip</code> archive or add the Apple Watch iCloud Shortcut template, use the options below:</p>'+
+    '<p class="small muted">Your daily Steps, Distance, Calories Burned, Sleep Stages, Resting HR, and HRV are synced above. If you also want to import a historical Apple Health <code>export.zip</code> archive or add the Apple Watch iCloud Shortcut template, use the options below:</p>'+
     '<div class="row"><button class="btn sm sec" data-act="hfileopen">&#128194; Import Apple Health export.zip / XML</button><a class="btn sm sec" href="https://www.icloud.com/shortcuts/38adde90a2704f7b871cb9a44527db5d" target="_blank" rel="noopener">&#9829; Get Apple Watch Health Shortcut (iCloud)</a><button class="btn sm ghost" data-act="hcopycfg">Copy Cloud Webhook JSON</button></div>'+
   '</div>' : '';
 
-  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Connection</span><h3>Automatic Sync &amp; Archive Import</h3></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health Now</button><button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide Advanced Options":"Advanced Import Options")+'</button></div></div>'+
+  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Connection</span><h3>Repetitive Intraday Sync &amp; Controls</h3></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+stopBtn+'<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide Advanced Options":"Advanced Import Options")+'</button></div></div>'+
+    '<p class="small muted">'+(prefs.autoSync?'<b>Auto-Sync Active:</b> Syncing repetitively throughout the day ('+prefs.syncCountToday+'x today'+(prefs.lastSyncAt?', last at '+prefs.lastSyncAt:'')+'). Tap <b>Stop Syncing</b> anytime to pause.':'<b>Auto-Sync Paused:</b> Tap <b>Sync Apple Health</b> once to start syncing repetitively throughout the day.')+'</p>'+
     '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
     setupHtml+'</div>';
 
-  return hero + vitalsCard + insightsCard + strainCard + metabolicCard + trendCard + bridgeCard;
+  return promptBanner + hero + vitalsCard + insightsCard + strainCard + metabolicCard + trendCard + bridgeCard;
 }
 function renderHealthSyncModal(){ return ""; }
 
@@ -2922,6 +3050,15 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="htrend"){ state.healthTrendMetric=b.dataset.m||"steps"; render(); bindSparks(); }
   else if(a==="hsyncnow"||a==="hwritetoday"){
     await syncAppleHealthNow();
+  }
+  else if(a==="hstopsync"){
+    stopAppleHealthSync();
+  }
+  else if(a==="hsync_later"){
+    dismissHealthPromptToday();
+  }
+  else if(a==="hsync_never"){
+    neverAskHealthPrompt();
   }
   else if(a==="hwritetoday_copy"){
     const today=isoToday(), d=todayDaily(), doneToday=state.sessions.filter(s=>s.date===today);

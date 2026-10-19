@@ -1,8 +1,8 @@
-/* Fitness PWA service worker, v13.2 (2026-10-19).
+/* Fitness PWA service worker, v13.3 (2026-10-19).
    App shell: network first, cache fallback (a deploy shows on the next open; the gym basement still opens the app).
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v13.2";
+const CACHE = "ubp-pwa-v13.3";
 const SHELL = [
   "./",
   "./index.html",
