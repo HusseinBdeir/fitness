@@ -1,8 +1,8 @@
-/* Fitness PWA service worker, v13.5 (2026-10-19).
+/* Fitness PWA service worker, v13.6 (2026-10-20).
    App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v13.5";
+const CACHE = "ubp-pwa-v13.6";
 const SHELL = [
   "./",
   "./index.html",
@@ -43,6 +43,7 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.pathname.endsWith(".shortcut")) return;
   if (FONT_HOSTS.includes(url.hostname)) {
     e.respondWith(
       caches.match(req).then(hit => hit || fetch(req).then(res => {
