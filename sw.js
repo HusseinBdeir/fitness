@@ -1,8 +1,8 @@
-/* Fitness PWA service worker, v13.3 (2026-10-19).
-   App shell: network first, cache fallback (a deploy shows on the next open; the gym basement still opens the app).
+/* Fitness PWA service worker, v13.4 (2026-10-19).
+   App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v13.3";
+const CACHE = "ubp-pwa-v13.4";
 const SHELL = [
   "./",
   "./index.html",
@@ -31,6 +31,14 @@ self.addEventListener("activate", e => {
   );
 });
 
+function matchCachedShell(req) {
+  return caches.match(req, { ignoreSearch: true }).then(hit => {
+    if (hit) return hit;
+    if (req.mode === "navigate") return caches.match("./index.html", { ignoreSearch: true }).then(h => h || caches.match("./", { ignoreSearch: true }));
+    return null;
+  });
+}
+
 self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -45,17 +53,18 @@ self.addEventListener("fetch", e => {
     return;
   }
   if (url.origin !== self.location.origin) return;
+  const fetchOpts = req.mode === "navigate" ? { cache: "no-cache" } : undefined;
   e.respondWith(
-    fetch(req)
+    fetch(req, fetchOpts)
       .then(res => {
-        if (res && res.ok) { const clone = res.clone(); caches.open(CACHE).then(c => c.put(req, clone)).catch(() => {}); }
-        return res;
+        if (res && res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(req, clone)).catch(() => {});
+          return res;
+        }
+        return matchCachedShell(req).then(hit => hit || res);
       })
-      .catch(() => caches.match(req, { ignoreSearch: true }).then(hit => {
-        if (hit) return hit;
-        if (req.mode === "navigate") return caches.match("./index.html", { ignoreSearch: true }).then(h => h || caches.match("./", { ignoreSearch: true }));
-        return Response.error();
-      }))
+      .catch(() => matchCachedShell(req).then(hit => hit || Response.error()))
   );
 });
 

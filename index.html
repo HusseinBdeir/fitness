@@ -3151,9 +3151,9 @@ function applyTheme(t,save){ try{ const de=document.documentElement; if(de&&de.s
 document.getElementById("themetog").addEventListener("click",()=>{ applyTheme(effectiveTheme()==="dark"?"light":"dark",true); });
 applyTheme(lsGet("ubp.theme"),false);
 if(typeof window!=="undefined"&&window.navigator&&"serviceWorker" in window.navigator&&window.location&&/^https?:/.test(window.location.protocol)){
-  window.navigator.serviceWorker.register("sw.js").then(()=>checkExistingPushSub()).catch(()=>{});
-  let hadController=!!window.navigator.serviceWorker.controller;
-  window.navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(hadController) toast("App updated. The new version loads the next time you open it."); hadController=true; });
+  window.navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{ checkExistingPushSub(); try{ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") reg.update().catch(()=>{}); }); }catch(e){} }).catch(()=>{});
+  let hadController=!!window.navigator.serviceWorker.controller, swReloading=false;
+  window.navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(hadController&&!swReloading){ swReloading=true; if(typeof formOpen==="function"&&formOpen()){ toast("App updated. Reopen to load the new version."); }else{ try{ window.location.reload(); }catch(e){} } } hadController=true; });
   window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); });
 }
 
