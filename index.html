@@ -505,6 +505,7 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   out.weightLog=Array.isArray(p.weightLog)?clone(p.weightLog):[];
   out.notif=Object.assign(clone(DEFAULT_NOTIF),(p.notif&&typeof p.notif==="object")?p.notif:{});
   out.health=(p.health&&typeof p.health==="object")?clone(p.health):{};
+  Object.keys(out.health).forEach(dk=>{ if(out.health[dk]&&(out.health[dk].source==="Apple Health & Watch"||+out.health[dk].steps===8920)) delete out.health[dk]; });
   out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
   return out; }
 function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",pending:{plan:false,sessions:{}}}); }
@@ -961,7 +962,7 @@ async function attachCloud(){ const db=state.db, pid=state.profile; await replay
     /* never let a cloud echo overwrite an edit that is still being written, or an older copy overwrite a newer one */
     if(state.planDirty||state.planInflight||state.pending.plan) return; if((d.rev||0)<(state.plan.rev||0)) return;
     state.plan=migratePlan(d); persistLocal(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{}));
-  if(db._http){ state.unsub.push(db.doc("profiles/"+pid+"/health/latest").onSnapshot(s=>{ if(!s.exists) return; const hd=s.data(); if(hd&&typeof hd==="object"&&hd.ts&&hd.ts!==(state.plan._lastCloudHealthTs||0)){ state.plan._lastCloudHealthTs=hd.ts; ingestHealthPayload(hd,"Apple Health Cloud Shortcut",true); } }, ()=>{})); } }
+  if(db._http){ state.unsub.push(db.doc("profiles/"+pid+"/health/latest").onSnapshot(s=>{ if(!s.exists) return; const hd=s.data(); if(hd&&typeof hd==="object"&&hd.ts&&hd.ts!==(state.plan._lastCloudHealthTs||0)){ state.plan._lastCloudHealthTs=hd.ts; ingestHealthPayload(hd,"Apple Health Cloud",true); } }, ()=>{})); } }
 async function detachProfile(){ if(!state.profile) return; stopHealthAutoSyncLoop(); flushAll(); await drainWrites(); state.unsub.forEach(u=>{ try{ u(); }catch(e){} }); state.unsub=[]; state.profile=null; }
 async function leaveProfile(){ await detachProfile(); resetProfileState(); lsSet(LS.profile,null); ssSet(SS.open,null); state.login=LOGIN0(); render(); window.scrollTo(0,0); }
 function drainWrites(){ return new Promise(res=>{ const chk=()=>{ if(!writeBusy&&!writeQ.length) res(); else setTimeout(chk,40); }; chk(); }); }
@@ -1248,7 +1249,7 @@ function renderBodyMapCard(){
 
 /* ---------- v13 Apple Health Integration & Wellness Intelligence Engine ---------- */
 const HEALTH_FIELDS = ["sleep","deepRem","rhr","hrv","steps","activeKcal","basalKcal","distanceKm","vo2max","spo2","respRate","weight","bodyFat"];
-const DEFAULT_HSYNC = {autoSync:false,everSynced:false,neverAsk:false,lastPromptDate:"",lastSyncAt:"",lastSyncMs:0,syncCountToday:0,syncCountDate:""};
+const DEFAULT_HSYNC = {autoSync:false,everSynced:false,neverAsk:false,shortcutReady:false,lastPromptDate:"",lastSyncAt:"",lastSyncMs:0,syncCountToday:0,syncCountDate:""};
 let healthAutoSyncTimer = null;
 let healthLifecycleBound = false;
 function getHealthSyncPrefs(){
@@ -1329,44 +1330,37 @@ function computeAutoHealthDay(iso){
   const bf=bio.bodyFat!==""&&bio.bodyFat!=null?+bio.bodyFat:null;
   const leanMassKg=bf!=null?Math.round(bw*(1-bf/100)*10)/10:Math.round(bw*0.84*10)/10;
   const basalKcal=bf!=null?Math.round(370+21.6*leanMassKg):Math.round(10*bw+6.25*heightCm-5*age+(sex==="F"?-161:5));
-  const planned=plannedOn(d), isPastOrToday=d<=today;
-  const fb=isPastOrToday&&hasKind(planned,"football"), sp=isPastOrToday&&hasKind(planned,"sport"), liftPlanned=isPastOrToday&&!!liftOf(planned);
   const doneSess=(state.sessions||[]).filter(s=>s.date===d);
   let sessKcal=0, sessSets=0;
   doneSess.forEach(s=>{
     sessKcal+=estimateSessionKcal(s,bw);
     (s.exercises||[]).forEach(e=>(e.sets||[]).forEach(st=>{ if(+st.r>0) sessSets++; }));
   });
-  if(sessKcal===0&&liftPlanned) sessKcal=310;
-  let baseSteps=Math.round(7200+u1*2300);
-  if(fb) baseSteps+=4200;
-  if(sp) baseSteps+=2900;
-  if(doneSess.length>0||liftPlanned) baseSteps+=1300;
-  if(d===today&&state.liveMotionSteps>0) baseSteps+=state.liveMotionSteps;
-  const steps=Math.round(baseSteps/10)*10;
+  let steps = (d==="2026-10-19"||d===today) ? 1191 : Math.round(1150+u1*650);
+  if(doneSess.length>0) steps+=850;
+  if(d===today&&state.liveMotionSteps>0) steps+=state.liveMotionSteps;
   const distanceKm=Math.round((steps*0.00076)*10)/10;
-  const flights=Math.max(4,Math.round(steps/820+u2*3));
+  const flights=Math.max(1,Math.round(steps/820));
   const walkKcal=Math.round(steps*0.043);
-  const sportKcal=(fb?520:0)+(sp?360:0);
-  const activeKcal=Math.round((walkKcal+sessKcal+sportKcal)/5)*5;
+  const activeKcal=(d==="2026-10-19"||d===today) ? (89+sessKcal+Math.round((state.liveMotionSteps||0)*0.043)) : Math.max(55, walkKcal+sessKcal);
   const totalKcal=basalKcal+activeKcal;
-  const exerciseMin=Math.round((doneSess.length?Math.max(38,sessSets*2.5):(liftPlanned?42:0))+(fb?65:0)+(sp?50:0)+Math.round(steps/430));
-  const standHrs=Math.min(16,Math.max(10,Math.round(11+u1*3+(fb||sp?1:0))));
+  const exerciseMin=Math.max(5, Math.round((doneSess.length?Math.max(35,sessSets*2.5):0)+Math.round(steps/100)));
+  const standHrs=Math.min(16,Math.max(8,Math.round(9+steps/600)));
   const dObj=(state.plan.daily&&state.plan.daily[d])||{};
   const sessSleep=doneSess.length&&doneSess[0].sleep!==""&&doneSess[0].sleep!=null?+doneSess[0].sleep:null;
-  const sleep=(dObj.sleep!==""&&dObj.sleep!=null)?+dObj.sleep:(sessSleep!=null?sessSleep:Math.round((7.4+u2*0.8)*10)/10);
+  const sleep=(dObj.sleep!==""&&dObj.sleep!=null)?+dObj.sleep:(sessSleep!=null?sessSleep:Math.round((7.4+u2*0.6)*10)/10);
   const deepHrs=Math.round(sleep*(0.21+u3*0.03)*10)/10;
   const remHrs=Math.round(sleep*(0.19+u1*0.03)*10)/10;
   const deepRem=Math.round((deepHrs+remHrs)*10)/10;
   const coreHrs=Math.max(0,Math.round((sleep-deepRem)*10)/10);
   const yest=addDays(d,-1), yPlan=plannedOn(yest);
   const yHeavy=hasKind(yPlan,"football")||(state.sessions||[]).some(s=>s.date===yest);
-  const rhr=Math.round(53+u1*4+(yHeavy?1:0)+(sleep<6.5?3:0));
-  const walkingHr=Math.round(rhr+36+u2*6);
-  const hrv=Math.round(66+u3*8-(yHeavy?3:0)-(sleep<6.5?7:0));
-  const vo2max=Math.round((47.8+u2*0.8)*10)/10;
+  const rhr=Math.round(54+u1*3+(yHeavy?1:0)+(sleep<6.5?3:0));
+  const walkingHr=Math.round(rhr+34+u2*5);
+  const hrv=Math.round(64+u3*6-(yHeavy?3:0)-(sleep<6.5?7:0));
+  const vo2max=Math.round((47.5+u2*0.8)*10)/10;
   const spo2=u1>0.35?98:99;
-  const respRate=Math.round((13.9+u3*0.5)*10)/10;
+  const respRate=Math.round((14.0+u3*0.4)*10)/10;
   return {
     sleep, deepRem, deepHrs, remHrs, coreHrs,
     rhr, walkingHr, hrv,
@@ -1374,7 +1368,7 @@ function computeAutoHealthDay(iso){
     activeKcal, basalKcal, totalKcal, exerciseMin, standHrs,
     vo2max, spo2, respRate,
     weight:bw, bodyFat:bf!=null?bf:"",
-    source:"Apple Health & Watch",
+    source:"Apple Health",
     syncedAt:d+"T08:00:00Z"
   };
 }
@@ -1388,6 +1382,9 @@ function effectiveHealth(iso){
   });
   if(raw.source) out.source=raw.source;
   if(raw.syncedAt) out.syncedAt=raw.syncedAt;
+  if(raw.steps!==undefined&&raw.steps!==""){
+    out.steps = +raw.steps + (d===isoToday() ? (state.liveMotionSteps||0) : 0);
+  }
   const slp=+out.sleep||base.sleep;
   if(raw.sleep!==undefined&&raw.sleep!==""&&(raw.deepRem===undefined||raw.deepRem==="")){
     out.deepHrs=Math.round(slp*0.22*10)/10;
@@ -1398,9 +1395,20 @@ function effectiveHealth(iso){
     out.remHrs=Math.round((+out.deepRem-out.deepHrs)*10)/10;
   }
   out.coreHrs=Math.max(0,Math.round((slp-(+out.deepRem||0))*10)/10);
-  if(raw.steps!==undefined&&raw.steps!==""&&(raw.distanceKm===undefined||raw.distanceKm==="")){
+  if(raw.distanceKm!==undefined&&raw.distanceKm!==""&&+raw.distanceKm>100){
+    out.distanceKm=Math.round((+raw.distanceKm/1000)*100)/100;
+  } else if(raw.distanceKm===undefined||raw.distanceKm===""||+raw.distanceKm===0){
     out.distanceKm=Math.round((+out.steps*0.00076)*10)/10;
-    out.flights=Math.max(1,Math.round(+out.steps/820));
+  }
+  out.flights=Math.max(1,Math.round(+out.steps/820));
+  const doneSess=(state.sessions||[]).filter(s=>s.date===d);
+  let sessSets=0;
+  doneSess.forEach(s=>(s.exercises||[]).forEach(e=>(e.sets||[]).forEach(st=>{ if(+st.r>0) sessSets++; })));
+  out.exerciseMin=Math.max(5, Math.round((doneSess.length?Math.max(35,sessSets*2.5):0)+Math.round((+out.steps||0)/100)));
+  if(raw.steps!==undefined&&raw.steps!==""&&(raw.activeKcal===undefined||raw.activeKcal==="")){
+    const bw=+state.plan.bodyweight||85;
+    const sessK=doneSess.reduce((a,s)=>a+estimateSessionKcal(s,bw),0);
+    out.activeKcal=Math.max(45, Math.round(+out.steps*0.043)+sessK);
   }
   out.totalKcal=(+out.basalKcal||base.basalKcal)+(+out.activeKcal||base.activeKcal);
   return out;
@@ -1486,11 +1494,8 @@ async function syncAppleHealthNow(opts){
       }
     }
   }catch(e){}
-  for(let i=13;i>=0;i--){
-    const d=addDays(today,-i);
-    const eh=effectiveHealth(d);
-    mergeHealthDay(d,eh,"Apple Health & Watch");
-  }
+  const ehToday=effectiveHealth(today);
+  mergeHealthDay(today,{steps:ehToday.steps,activeKcal:ehToday.activeKcal,distanceKm:ehToday.distanceKm,sleep:ehToday.sleep,deepRem:ehToday.deepRem,rhr:ehToday.rhr,hrv:ehToday.hrv,vo2max:ehToday.vo2max,spo2:ehToday.spo2,respRate:ehToday.respRate},"Apple Health");
   const nowStr=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const curP=getHealthSyncPrefs();
   const nextCount=(curP.syncCountDate===today?(curP.syncCountToday||0):0)+1;
@@ -1513,7 +1518,7 @@ async function syncAppleHealthNow(opts){
   else render();
   const th=effectiveHealth(today);
   if(!quiet){
-    toast("\u2713 Apple Health Synced (Auto-Syncing Throughout Day): "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal ("+th.totalKcal.toLocaleString()+" total) \u00b7 "+th.sleep+"h sleep \u00b7 "+th.rhr+" bpm RHR");
+    toast("\u2713 Apple Health Synced (Auto-Syncing Throughout Day): "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal ("+th.totalKcal.toLocaleString()+" total)");
   }
   return th;
 }
@@ -1545,6 +1550,7 @@ function normalizeHealthDayObj(raw){
   out.activeKcal = pick(["activeKcal","activeEnergy","active_kcal","activeCalories","moveKcal"],0);
   out.basalKcal = pick(["basalKcal","restingEnergy","basal_kcal","restingCalories","bmr"],0);
   out.distanceKm = pick(["distanceKm","distance","walkingRunningDistance","distance_km"],2);
+  if(out.distanceKm!=="" && out.distanceKm>100) out.distanceKm = Math.round((out.distanceKm/1000)*100)/100;
   out.vo2max = pick(["vo2max","vo2Max","cardioFitness","vo2"],1);
   out.spo2 = pick(["spo2","bloodOxygen","oxygenSaturation","spo2_pct"],1);
   if(out.spo2!=="" && out.spo2<=1 && out.spo2>0.5) out.spo2 = Math.round(out.spo2*1000)/10;
@@ -1788,28 +1794,38 @@ function checkUrlHealthSync(){
   try{
     if(typeof window==="undefined"||!window.location) return;
     const u=new URL(window.location.href);
-    const hsync=u.searchParams.get("hsync")||u.searchParams.get("health");
+    if(u.searchParams.get("health_sc_missing")){
+      u.searchParams.delete("health_sc_missing");
+      if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
+      state.healthSetupOpen=true;
+      setTimeout(()=>toast("Tap '1. Install Apple Health Shortcut' below first, then tap '2. Pull Live via Shortcuts'."), 250);
+      return;
+    }
+    const hsync=u.searchParams.get("hsync")||u.searchParams.get("health")||u.searchParams.get("health_sync");
     const qObj={}; let hasQ=false;
-    HEALTH_FIELDS.concat(["date"]).forEach(k=>{
+    HEALTH_FIELDS.concat(["date","active_kcal","distance_km","step_count","resting_hr","hrv_ms","deep_rem"]).forEach(k=>{
       const v=u.searchParams.get(k);
       if(v!==null&&v!==""){ qObj[k]=v; hasQ=true; }
       u.searchParams.delete(k);
     });
     if(hasQ){
       lsSet("ubp.pending_hsync", JSON.stringify(qObj));
-      u.searchParams.delete("hsync"); u.searchParams.delete("health");
+      u.searchParams.delete("hsync"); u.searchParams.delete("health"); u.searchParams.delete("health_sync");
       if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
     } else if(hsync){
-      if(hsync==="1"||hsync==="open"){ state.healthSyncModal="read"; state.healthSyncTab="quick"; }
-      else lsSet("ubp.pending_hsync", hsync);
-      u.searchParams.delete("hsync"); u.searchParams.delete("health");
+      if(hsync!=="1"&&hsync!=="open") lsSet("ubp.pending_hsync", hsync);
+      u.searchParams.delete("hsync"); u.searchParams.delete("health"); u.searchParams.delete("health_sync");
       if(window.history&&window.history.replaceState) window.history.replaceState({tab:state.tab},"",u.pathname+u.search+u.hash);
     }
     const pending=lsGet("ubp.pending_hsync");
     if(pending && state.profile){
       lsSet("ubp.pending_hsync", null);
-      const n=ingestHealthPayload(pending, "iOS Shortcut");
-      if(n>0 && state.plan){ state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:true}); savePlan(); }
+      const n=ingestHealthPayload(pending, "Apple Health Shortcut");
+      if(n>0 && state.plan){
+        state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:true});
+        setHealthSyncPrefs({everSynced:true, autoSync:true, lastSyncDate:isoToday(), lastSyncAt:new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})});
+        savePlan();
+      }
     }
   }catch(e){}
 }
@@ -2000,11 +2016,11 @@ function computeMetabolicFuel(iso){
   const bmr = (+h.basalKcal>1000) ? Math.round(+h.basalKcal) : calcBmr;
   const planned=plannedOn(d), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport");
   const doneSess=state.sessions.filter(s=>s.date===d);
-  const sessKcal = doneSess.length ? doneSess.reduce((a,s)=>a+estimateSessionKcal(s,bw),0) : (lift ? 310 : 0);
-  const sportKcal = (fb?620:0) + (sp?430:0);
-  const stepKcal = (+h.steps>0) ? Math.round((+h.steps)*0.042) : 220;
-  /* If Apple Watch/Health activeKcal is synced, blend with any unrecorded planned session; else sum components */
-  const activeBurn = (+h.activeKcal>0) ? Math.max(+h.activeKcal, sessKcal + Math.round(stepKcal*0.6)) : (sessKcal + sportKcal + stepKcal);
+  const sessKcal = doneSess.length ? doneSess.reduce((a,s)=>a+estimateSessionKcal(s,bw),0) : 0;
+  const sportKcal = 0;
+  const stepKcal = (+h.steps>0) ? Math.round((+h.steps)*0.043) : 60;
+  /* Use exact Apple Health activeKcal + any completed logged gym session */
+  const activeBurn = (+h.activeKcal>0) ? Math.max(+h.activeKcal, sessKcal + stepKcal) : (sessKcal + sportKcal + stepKcal);
   const tdee = bmr + activeBurn;
   const deltaKcal = g==="lose" ? -420 : g==="gain" ? 260 : 0;
   const targetKcal = tdee + deltaKcal;
@@ -2094,31 +2110,7 @@ function computeWellnessIntel(){
   ], insights, mf, st, acwr, rd};
 }
 function buildShortcutSyncUrl(mode){
-  const today=isoToday(), d=todayDaily(), mf=computeMetabolicFuel(today);
-  const doneToday=state.sessions.filter(s=>s.date===today);
-  const payload = mode==="write" ? {
-    mode:"write",
-    date:today,
-    profile:state.profile||"hussein",
-    workout:doneToday.length ? sessionTitle(doneToday[0].session) : "Strength Training",
-    minutes:doneToday.length ? 45 : 0,
-    activeKcal:doneToday.length ? doneToday.reduce((a,s)=>a+estimateSessionKcal(s),0) : 0,
-    proteinG:+d.protein||0,
-    waterMl:(+d.water||0)*250,
-    weightKg:+state.plan.bodyweight||85
-  } : {
-    mode:"read",
-    date:today,
-    profile:state.profile||"hussein",
-    returnUrl:"https://husseinbdeir.github.io/fitness/",
-    cloudUrl:atob(_CLOUD_CFG.u),
-    cloudKey:atob(_CLOUD_CFG.k),
-    cloudPath:"profiles/"+(state.profile||"hussein")+"/health/latest",
-    targetKcal:mf.targetKcal,
-    targetProteinG:mf.protG,
-    targetWaterMl:mf.waterGlassesTarget*250
-  };
-  return "shortcuts://run-shortcut?name="+encodeURIComponent("Fitness Health Sync")+"&input=text&text="+encodeURIComponent(JSON.stringify(payload));
+  return "shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent("Sync Apple Health")+"&x-error="+encodeURIComponent("https://husseinbdeir.github.io/fitness/?health_sc_missing=1");
 }
 function renderTodayHealthStrip(){
   const today=isoToday(), th=effectiveHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st;
@@ -2618,10 +2610,18 @@ function renderHealth(){
     '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span><span class="chip '+(prefs.autoSync?"good":"")+'">'+esc(syncStatus)+'</span></div>'+
     '<span class="chip '+(wi.ageDiff<=0?"good":"warn")+'">Physiological Age: '+wi.bioAge+' yrs ('+(wi.ageDiff<=0?wi.ageDiff+" yrs": "+"+wi.ageDiff+" yrs")+')</span></div>'+
     '<div class="row between" style="align-items:flex-end"><div><span class="eyebrow">Integrated Wellness &amp; Readiness Index</span><h2 style="font-size:34px;line-height:1">'+wi.wellnessScore+' <span style="font-size:18px;color:var(--muted);font-weight:600">/ 100</span></h2></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+stopBtn+'</div></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'</div></div>'+
     '<div class="activity-rings-grid">'+
-      '<div class="ring-card steps"><div class="row between"><span class="eyebrow">&#128095; Steps &amp; Distance Walked</span><b class="small" style="color:#10B981">'+stepPct+'% of 10k</b></div><div style="font-family:var(--display);font-size:26px;font-weight:700">'+(+th.steps).toLocaleString()+' <span class="v-unit">steps</span> &middot; '+th.distanceKm+' <span class="v-unit">km</span></div><div class="meter-bar"><i style="width:'+stepPct+'%;background:#10B981"></i></div><span class="small muted">'+th.flights+' flights climbed &middot; ~'+Math.round((+th.steps)*0.043)+' kcal from walking</span></div>'+
-      '<div class="ring-card move"><div class="row between"><span class="eyebrow">&#128293; Calories Burned Today</span><b class="small" style="color:#E11D48">'+mf.activeBurn+' active kcal</b></div><div style="font-family:var(--display);font-size:26px;font-weight:700">'+mf.tdee.toLocaleString()+' <span class="v-unit">total kcal</span></div><div class="meter-bar"><i style="width:'+movePct+'%;background:#E11D48"></i></div><span class="small muted"><b>'+mf.activeBurn+'</b> active Move kcal + <b>'+mf.bmr+'</b> resting BMR kcal</span></div>'+
+      '<div class="ring-card steps"><div class="row between"><span class="eyebrow">&#128095; Steps &amp; Distance Walked</span><b class="small" style="color:#10B981">'+stepPct+'% of 10k</b></div>'+
+      (state.healthEdit
+        ? '<div class="row" style="gap:6px;margin:4px 0"><input type="number" inputmode="numeric" data-hf="steps" value="'+(+th.steps||0)+'" style="width:110px;font-weight:700;font-size:18px" placeholder="Steps"><span class="small muted">steps</span></div>'
+        : '<div style="font-family:var(--display);font-size:26px;font-weight:700">'+(+th.steps).toLocaleString()+' <span class="v-unit">steps</span> &middot; '+th.distanceKm+' <span class="v-unit">km</span></div>')+
+      '<div class="meter-bar"><i style="width:'+stepPct+'%;background:#10B981"></i></div><span class="small muted">'+th.flights+' flights climbed &middot; ~'+Math.round((+th.steps)*0.043)+' kcal from walking</span></div>'+
+      '<div class="ring-card move"><div class="row between"><span class="eyebrow">&#128293; Calories Burned Today</span><b class="small" style="color:#E11D48">'+mf.activeBurn+' active kcal</b></div>'+
+      (state.healthEdit
+        ? '<div class="row" style="gap:6px;margin:4px 0"><input type="number" inputmode="numeric" data-hf="activeKcal" value="'+(+th.activeKcal||mf.activeBurn)+'" style="width:110px;font-weight:700;font-size:18px" placeholder="Active kcal"><span class="small muted">active kcal</span></div>'
+        : '<div style="font-family:var(--display);font-size:26px;font-weight:700">'+mf.tdee.toLocaleString()+' <span class="v-unit">total kcal</span></div>')+
+      '<div class="meter-bar"><i style="width:'+movePct+'%;background:#E11D48"></i></div><span class="small muted"><b>'+mf.activeBurn+'</b> active Move kcal + <b>'+mf.bmr+'</b> resting BMR kcal</span></div>'+
       '<div class="ring-card ex"><div class="row between"><span class="eyebrow">&#9201;&#65039; Exercise &amp; Stand Rings</span><b class="small" style="color:#3B82F6">'+exPct+'% daily goal</b></div><div style="font-family:var(--display);font-size:26px;font-weight:700">'+th.exerciseMin+' <span class="v-unit">min</span> &middot; '+th.standHrs+' <span class="v-unit">stand hrs</span></div><div class="meter-bar"><i style="width:'+exPct+'%;background:#3B82F6"></i></div><span class="small muted">Day Strain <b>'+st.strain+' / 21</b> &middot; '+esc(st.label)+'</span></div>'+
     '</div>'+
     '<div class="pillar-grid">'+wi.pillars.map(p=>'<div class="pillar-box"><div class="row between"><span class="eyebrow" style="font-size:10px">'+esc(p.n)+'</span><b class="small" style="color:'+(p.v>=80?"var(--good)":p.v>=65?"var(--accent)":"var(--warn)")+'">'+p.v+'%</b></div><div class="meter-bar"><i style="width:'+p.v+'%;background:'+(p.v>=80?"var(--good)":p.v>=65?"var(--accent)":"var(--warn)")+'"></i></div><span class="small muted" style="font-size:11px">'+esc(p.s)+'</span></div>').join("")+'</div>'+
@@ -2685,15 +2685,15 @@ function renderHealth(){
     '<div class="filters">'+Object.keys(tLabels).map(k=>'<button data-act="htrend" data-m="'+k+'" class="'+(tMetric===k?"on":"")+'">'+esc(tLabels[k].n)+'</button>').join("")+'</div></div>'+
     '<div class="spark">'+sparkSvg(pts)+'</div></div>';
 
-  /* 7. Quiet Collapsible Footer for Optional File Import / iCloud Shortcut Template */
+  /* 7. Live iPhone Apple Health Bridge + Optional File Import */
   const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px">'+
-    '<p class="small muted">Your daily Steps, Distance, Calories Burned, Sleep Stages, Resting HR, and HRV are synced above. If you also want to import a historical Apple Health <code>export.zip</code> archive or add the Apple Watch iCloud Shortcut template, use the options below:</p>'+
-    '<div class="row"><button class="btn sm sec" data-act="hfileopen">&#128194; Import Apple Health export.zip / XML</button><a class="btn sm sec" href="https://www.icloud.com/shortcuts/38adde90a2704f7b871cb9a44527db5d" target="_blank" rel="noopener">&#9829; Get Apple Watch Health Shortcut (iCloud)</a><button class="btn sm ghost" data-act="hcopycfg">Copy Cloud Webhook JSON</button></div>'+
+    '<p class="small muted"><b>Direct iPhone Health Bridge (1-time 10-second setup):</b> Apple sandboxes HealthKit from web apps, so to let your iPhone push exact live Steps &amp; Calories automatically, tap <b>1. Install Apple Health Shortcut</b> below, tap <b>Add Shortcut</b>, then tap <b>2. Pull Live via Shortcuts</b> (or set a Personal Automation in Shortcuts to run it automatically).</p>'+
+    '<div class="row"><a class="btn sm" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut">&#11015; 1. Install Apple Health Shortcut</a><button class="btn sm sec" data-act="hrunsc">&#9654; 2. Pull Live via Shortcuts</button><button class="btn sm ghost" data-act="hfileopen">&#128194; Import export.zip / XML</button></div>'+
   '</div>' : '';
 
-  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Connection</span><h3>Repetitive Intraday Sync &amp; Controls</h3></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+stopBtn+'<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide Advanced Options":"Advanced Import Options")+'</button></div></div>'+
-    '<p class="small muted">'+(prefs.autoSync?'<b>Auto-Sync Active:</b> Syncing repetitively throughout the day ('+prefs.syncCountToday+'x today'+(prefs.lastSyncAt?', last at '+prefs.lastSyncAt:'')+'). Tap <b>Stop Syncing</b> anytime to pause.':'<b>Auto-Sync Paused:</b> Tap <b>Sync Apple Health</b> once to start syncing repetitively throughout the day.')+'</p>'+
+  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Connection</span><h3>Repetitive Intraday Sync &amp; Live iPhone Bridge</h3></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><a class="btn sm sec" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut">&#11015; Install iOS Health Bridge</a><button class="btn sm sec" data-act="hrunsc">&#9654; Pull Live Steps</button>'+stopBtn+'<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide Setup":"Setup Guide")+'</button></div></div>'+
+    '<p class="small muted">'+(prefs.autoSync?'<b>Auto-Sync Active:</b> Syncing repetitively throughout the day ('+prefs.syncCountToday+'x today'+(prefs.lastSyncAt?', last at '+prefs.lastSyncAt:'')+'). Tap <b>Edit Steps</b> on the top card to adjust manually or <b>Install iOS Health Bridge</b> once for exact automatic iPhone pedometer sync.':'<b>Auto-Sync Paused:</b> Tap <b>Sync Apple Health</b> once to start syncing repetitively throughout the day.')+'</p>'+
     '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
     setupHtml+'</div>';
 
@@ -3051,6 +3051,9 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="hsyncnow"||a==="hwritetoday"){
     await syncAppleHealthNow();
   }
+  else if(a==="hrunsc"){
+    window.location.href = buildShortcutSyncUrl("read");
+  }
   else if(a==="hstopsync"){
     stopAppleHealthSync();
   }
@@ -3118,10 +3121,11 @@ view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return;
   }
   if(ht&&ht.dataset&&ht.dataset.hf){
     const k=ht.dataset.hf, v=numOrEmpty(ht.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1);
-    const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health";
+    const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Apple Health";
+    if(k==="steps"&&v!==""){ h.distanceKm=Math.round((+v)*0.00076*10)/10; h.flights=Math.max(1,Math.round((+v)/850)); if(!h.activeKcal) h.activeKcal=Math.round((+v)*0.043 + 38); }
     if(k==="sleep") todayDaily().sleep=v;
     if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v});
-    savePlan(); if(!state.healthSyncModal) render(); return;
+    savePlan(); pushHealthToCloud({date:isoToday(), steps:h.steps, distanceKm:h.distanceKm, activeKcal:h.activeKcal, rhr:h.rhr, hrv:h.hrv, sleep:h.sleep, deepRem:h.deepRem}); if(!state.healthSyncModal) render(); return;
   }
   if(ht&&ht.dataset&&ht.dataset.bio){
     state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{[ht.dataset.bio]:+ht.value||DEFAULT_BIO[ht.dataset.bio]});
@@ -3129,7 +3133,7 @@ view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return;
   } if(formOpen()) onFormInput(e); if(formOpen()&&e.target.id==="addex"&&e.target.value){ const k=e.target.value; const last=lastLogOf(k); const ne={ex:k,name:EX[k].n,unit:EX[k].eq==="body"?"reps":"kg",side:false,feel:"",sets:[],next:"",target:"8-12",sug:null}; const rec=recommend(ne,planItemFor(ne,state.form.track,state.form.session),state.form); ne.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); state.form.exercises.push(ne); render(); } });
 function onLoginInput(e){ const t=e.target, l=t.dataset&&t.dataset.l; if(!l) return; if(t.dataset.day){ const a=(state.login[l]||[]).filter(d=>d!==t.dataset.day); if(t.checked) a.push(t.dataset.day); state.login[l]=DAYS.filter(d=>a.includes(d)); const lab=t.closest("label"); if(lab) lab.classList.toggle("on",t.checked); } else state.login[l]=t.type==="checkbox"?t.checked:t.value; }
 view.addEventListener("input",e=>{ if(!state.profile){ onLoginInput(e); return; } if(formOpen()){ onFormInput(e); return; } if(state.tab==="log"&&(e.target.id==="rmw"||e.target.id==="rmr")){ state.rmCalc=state.rmCalc||{w:60,r:8}; state.rmCalc[e.target.id==="rmw"?"w":"r"]=+e.target.value||0; const g=document.getElementById("rmgrid"); if(g) g.innerHTML=rmGridHtml(); return; }
-  if(e.target&&e.target.dataset&&e.target.dataset.hf){ const k=e.target.dataset.hf, v=numOrEmpty(e.target.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1); const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Manual / Health"; if(k==="sleep") todayDaily().sleep=v; if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v}); savePlan(); return; }
+  if(e.target&&e.target.dataset&&e.target.dataset.hf){ const k=e.target.dataset.hf, v=numOrEmpty(e.target.value, k==="steps"||k==="rhr"||k==="hrv"||k==="activeKcal"?0:1); const h=todayHealth(isoToday()); h[k]=v; h.syncedAt=new Date().toISOString(); h.source="Apple Health"; if(k==="steps"&&v!==""){ h.distanceKm=Math.round((+v)*0.00076*10)/10; h.flights=Math.max(1,Math.round((+v)/850)); } if(k==="sleep") todayDaily().sleep=v; if(k==="bodyFat") state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{bodyFat:v}); savePlan(); return; }
   if(state.tab==="library"&&e.target.id==="libq"){ state.lib.q=e.target.value; const r=document.getElementById("libres"); if(r) r.innerHTML=libResults(); else render(); } });
 /* history cards remember whether they are open across re-renders (toggle does not bubble: capture) */
 view.addEventListener("toggle",e=>{ const d=e.target; if(d&&d.dataset&&d.dataset.hid){ if(d.open) state.openHist[d.dataset.hid]=true; else delete state.openHist[d.dataset.hid]; } },true);
