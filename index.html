@@ -397,7 +397,8 @@ const DEFAULT_SESSIONS = {
     L:[it("bss",3,8,12,{unit:"reps",side:true,note:"The main lift. Rear foot on a chair. Backpack with books when 12 is easy."}),it("slhipthrust",3,10,15,{unit:"reps",side:true,note:"Glutes and hamstrings."}),it("revlunge",3,10,15,{unit:"reps",side:true}),it("nordic",3,3,6,{unit:"reps",note:"5-second negatives, feet under a sofa. Hamstrings for football."}),it("stepup",3,10,15,{unit:"reps",side:true}),it("slcalf",3,12,20,{unit:"reps",side:true}),it("wallsit",3,30,60,{unit:"s"})]
   }
 };
-const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[]};
+const DEFAULT_NOTIF = {enabled:false,rest:true,morning:true,morningHour:9,evening:true,eveningHour:20};
+const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF};
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -413,7 +414,7 @@ const repLabel = u => u==="s"?"sec":"reps";
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
 const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{}};
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -460,8 +461,333 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   if(!GOALS[out.goal]) out.goal="gain"; out.legs=!!out.legs; out.ups=+out.ups===3?3:2;
   out.daily=(p.daily&&typeof p.daily==="object")?clone(p.daily):{};
   out.weightLog=Array.isArray(p.weightLog)?clone(p.weightLog):[];
+  out.notif=Object.assign(clone(DEFAULT_NOTIF),(p.notif&&typeof p.notif==="object")?p.notif:{});
   return out; }
 function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",pending:{plan:false,sessions:{}}}); }
+
+/* ---------- v12 Full Web Push Notifications (RFC 8291 aes128gcm + RFC 8292 VAPID ES256) ---------- */
+const _VAPID = {
+  pub: "BKAC6gWORFSoi6Yf7XuS3voZnBgflXmG1GzW0K1pt4hcNoY7FNYPK-Jn-gAghKvphbSM_-ieA6U8w0E9yEgKB68",
+  jwk: {kty:"EC",crv:"P-256",x:"oALqBY5EVKiLph_te5Le-hmcGB-VeYbUbNbQrWm3iFw",y:"NoY7FNYPK-Jn-gAghKvphbSM_-ieA6U8w0E9yEgKB68",d:"MS5ta1KAESpycusDW8d1NMaj3fxc_oNO_F0V23oh5aA",ext:true},
+  sub: "mailto:hussein@bhfirms.com"
+};
+let _vapidSignKey = null;
+function b64ToBytes(b64){
+  const s=String(b64||"").replace(/-/g,"+").replace(/_/g,"/");
+  const pad=s.length%4===0?"":("====".slice(s.length%4));
+  const bin=(typeof atob==="function")?atob(s+pad):Buffer.from(s+pad,"base64").toString("binary");
+  const out=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return out;
+}
+function bytesToB64(bytes){
+  const u=bytes instanceof Uint8Array?bytes:new Uint8Array(bytes);
+  if(typeof btoa==="function"){ let s=""; for(let i=0;i<u.length;i++) s+=String.fromCharCode(u[i]); return btoa(s); }
+  return Buffer.from(u).toString("base64");
+}
+function bytesToB64u(bytes){
+  return bytesToB64(bytes).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function catBytes(){
+  let n=0; for(let i=0;i<arguments.length;i++) n+=arguments[i].length;
+  const out=new Uint8Array(n); let o=0;
+  for(let i=0;i<arguments.length;i++){ out.set(arguments[i],o); o+=arguments[i].length; }
+  return out;
+}
+async function signVapid(endpoint, expSec){
+  const subtle=crypto&&crypto.subtle; if(!subtle) throw new Error("WebCrypto unavailable");
+  if(!_vapidSignKey){
+    _vapidSignKey=await subtle.importKey("jwk",_VAPID.jwk,{name:"ECDSA",namedCurve:"P-256"},false,["sign"]);
+  }
+  const aud=new URL(endpoint).origin;
+  const enc=new TextEncoder();
+  const hdr=bytesToB64u(enc.encode(JSON.stringify({typ:"JWT",alg:"ES256"})));
+  const claims=bytesToB64u(enc.encode(JSON.stringify({aud,exp:Math.floor(expSec||Date.now()/1000+43200),sub:_VAPID.sub})));
+  const input=enc.encode(hdr+"."+claims);
+  const sig=new Uint8Array(await subtle.sign({name:"ECDSA",hash:"SHA-256"},_vapidSignKey,input));
+  return "vapid t="+hdr+"."+claims+"."+bytesToB64u(sig)+", k="+_VAPID.pub;
+}
+async function encryptWebPush(subJson, payloadObj){
+  const subtle=crypto&&crypto.subtle; if(!subtle) throw new Error("WebCrypto unavailable");
+  const keys=(subJson&&subJson.keys)||{};
+  const uPub=b64ToBytes(keys.p256dh), authBytes=b64ToBytes(keys.auth);
+  if(uPub.length!==65||authBytes.length!==16) throw new Error("Invalid subscription keys");
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const sKP=await subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveBits"]);
+  const sPub=new Uint8Array(await subtle.exportKey("raw",sKP.publicKey));
+  const uPubKey=await subtle.importKey("raw",uPub,{name:"ECDH",namedCurve:"P-256"},false,[]);
+  const shared=await subtle.deriveBits({name:"ECDH",public:uPubKey},sKP.privateKey,256);
+  const enc=new TextEncoder();
+  const zKey=await subtle.importKey("raw",shared,"HKDF",false,["deriveBits"]);
+  const keyInfo=catBytes(enc.encode("WebPush: info\x00"),uPub,sPub);
+  const ikm=await subtle.deriveBits({name:"HKDF",hash:"SHA-256",salt:authBytes,info:keyInfo},zKey,256);
+  const ikmKey=await subtle.importKey("raw",ikm,"HKDF",false,["deriveBits"]);
+  const cekBits=await subtle.deriveBits({name:"HKDF",hash:"SHA-256",salt,info:enc.encode("Content-Encoding: aes128gcm\x00")},ikmKey,128);
+  const nonce=new Uint8Array(await subtle.deriveBits({name:"HKDF",hash:"SHA-256",salt,info:enc.encode("Content-Encoding: nonce\x00")},ikmKey,96));
+  const cek=await subtle.importKey("raw",cekBits,"AES-GCM",false,["encrypt"]);
+  const plain=catBytes(enc.encode(typeof payloadObj==="string"?payloadObj:JSON.stringify(payloadObj)),new Uint8Array([2]));
+  const ct=new Uint8Array(await subtle.encrypt({name:"AES-GCM",iv:nonce},cek,plain));
+  const hdr=new Uint8Array([0,0,16,0,65]);
+  return bytesToB64(catBytes(salt,hdr,sPub,ct));
+}
+function getDeviceId(){
+  let id=lsGet("ubp.devid");
+  if(!id){ id="dev_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7); lsSet("ubp.devid",id); }
+  return id;
+}
+function pushSupported(){
+  return typeof window!=="undefined" && "Notification" in window && "serviceWorker" in navigator && "PushManager" in window;
+}
+function notifPerm(){
+  try{ return (typeof Notification!=="undefined"&&Notification.permission)||"default"; }catch(e){ return "default"; }
+}
+async function callCloudPush(body){
+  if(typeof window==="undefined"||typeof window.fetch!=="function") return null;
+  const url=atob(_CLOUD_CFG.u), key=atob(_CLOUD_CFG.k);
+  const res=await window.fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(Object.assign({key},body))});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return await res.json();
+}
+function swLocalNotif(payload){
+  try{
+    if(typeof navigator!=="undefined"&&navigator.serviceWorker){
+      if(navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({type:"show-notification",payload});
+      else navigator.serviceWorker.ready.then(reg=>{ if(reg&&reg.showNotification) reg.showNotification(payload.title||"Upper Body Programme",{body:payload.body||"",icon:"./icon-192.png",badge:"./icon-192.png",tag:payload.tag||"ubp-local",renotify:true,data:{url:payload.url||"./",tab:payload.tab||"today"}}); }).catch(()=>{});
+    }
+  }catch(e){}
+}
+async function checkExistingPushSub(){
+  if(!pushSupported()) return null;
+  try{
+    const reg=await navigator.serviceWorker.getRegistration();
+    if(!reg||!reg.pushManager) return null;
+    const sub=await reg.pushManager.getSubscription();
+    state.pushSub=sub?sub.toJSON():null;
+    if(state.pushSub && state.plan.notif && state.plan.notif.enabled) schedulePushSync();
+    return state.pushSub;
+  }catch(e){ return null; }
+}
+async function enablePush(){
+  if(state.pushBusy) return;
+  const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+  const ios=/iPhone|iPad|iPod/.test(ua);
+  if(ios && !isStandalone()){
+    toast("On iPhone, add the app to your Home Screen first (Share -> Add to Home Screen), then open it from there to enable push notifications.");
+    return;
+  }
+  if(!pushSupported()){
+    toast("Push notifications are not supported in this browser. Open the installed Home Screen app.");
+    return;
+  }
+  state.pushBusy=true; render();
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=="granted"){
+      toast("Notification permission was not granted. Enable notifications in your phone Settings -> Fitness.");
+      return;
+    }
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(_VAPID.pub)});
+    }
+    state.pushSub=sub.toJSON();
+    state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{},{enabled:true});
+    lsSet("ubp.pushhint",1);
+    savePlan();
+    await syncPushSchedule();
+    toast("Push notifications enabled! Sending a confirmation banner...");
+    await sendTestPush(true);
+  }catch(e){
+    toast("Could not enable push: "+(e&&e.message||e));
+  }finally{
+    state.pushBusy=false; render();
+  }
+}
+async function disablePush(){
+  state.pushBusy=true; render();
+  try{
+    if(pushSupported()){
+      const reg=await navigator.serviceWorker.getRegistration();
+      if(reg&&reg.pushManager){ const sub=await reg.pushManager.getSubscription(); if(sub) await sub.unsubscribe().catch(()=>{}); }
+    }
+    state.pushSub=null;
+    state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{},{enabled:false});
+    savePlan();
+    if(state.db&&state.db._http){
+      try{
+        const snap=await state.db.doc("push_registry").get();
+        const items=((snap.exists&&snap.data()&&snap.data().items)||[]).filter(x=>x&&x.id!==getDeviceId());
+        await state.db.doc("push_registry").set({items,updatedAt:new Date().toISOString()});
+      }catch(e){}
+    }
+    toast("Push notifications turned off on this device.");
+  }finally{
+    state.pushBusy=false; render();
+  }
+}
+async function sendTestPush(isWelcome){
+  const msg={
+    title:isWelcome?"Notifications Active \uD83D\uDD14":"Upper Body Programme \uD83D\uDCAA",
+    body:isWelcome?"Lock-screen rest timers, workout day reminders & evening protein check-ins are now active.":"Test Web Push delivered from cloud! Lock-screen alerts are working.",
+    tag:"ubp-test-"+Date.now(),
+    url:"./",
+    tab:"today"
+  };
+  if(!state.pushSub||!state.pushSub.endpoint){
+    if(notifPerm()==="granted"){ swLocalNotif(msg); toast("Local notification sent (enable Push to receive alerts while the app is closed)."); return; }
+    await enablePush(); return;
+  }
+  try{
+    toast("Sending push notification...");
+    const vapid=await signVapid(state.pushSub.endpoint, Math.floor(Date.now()/1000)+43200);
+    const bodyB64=await encryptWebPush(state.pushSub, msg);
+    const res=await callCloudPush({op:"push",endpoint:state.pushSub.endpoint,vapid,bodyB64,ttl:3600});
+    if(res&&res.pushStatus>=200&&res.pushStatus<300){
+      if(!isWelcome) toast("Push delivered (HTTP "+res.pushStatus+")! Check your notification banner.");
+    } else if(res&&res.pushStatus===410){
+      state.pushSub=null; toast("Subscription expired on device — re-subscribing..."); await enablePush();
+    } else {
+      swLocalNotif(msg);
+      if(!isWelcome) toast("Notification displayed.");
+    }
+  }catch(e){
+    swLocalNotif(msg);
+    if(!isWelcome) toast("Offline fallback notification shown.");
+  }
+}
+async function scheduleTimerPush(sec, title, body, tag){
+  const nf=state.plan.notif||DEFAULT_NOTIF;
+  if(!nf.enabled||nf.rest===false||!state.pushSub||!state.pushSub.endpoint) return;
+  const delaySec=Math.max(1,Math.min(600,Math.round(+sec||90)));
+  const timerId="rt_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+  if(state.rest) { state.rest.timerId=timerId; state.rest.pushFgCancel=false; }
+  try{
+    const vapid=await signVapid(state.pushSub.endpoint, Math.floor(Date.now()/1000)+43200);
+    const bodyB64=await encryptWebPush(state.pushSub, {title,body,tag:tag||"ubp-rest",url:"./",tab:"log"});
+    callCloudPush({op:"push_delay",timerKey:"push_timer/"+(state.profile||"default"),timerId,delaySec,endpoint:state.pushSub.endpoint,vapid,bodyB64}).catch(()=>{});
+  }catch(e){}
+}
+function cancelTimerPush(){
+  if(!state.rest||!state.rest.timerId) return;
+  state.rest.timerId=null;
+  const nf=state.plan.notif||DEFAULT_NOTIF;
+  if(!nf.enabled||!state.pushSub||!state.db||!state.db._http) return;
+  try{
+    callCloudPush({op:"patch",patch:{["push_timer/"+(state.profile||"default")]:{id:"cancelled",ts:Date.now()}}}).catch(()=>{});
+  }catch(e){}
+}
+async function buildPushSlots(subJson, daysCount){
+  daysCount=daysCount||14;
+  const nf=state.plan.notif||DEFAULT_NOTIF;
+  if(!nf.enabled||!subJson||!subJson.endpoint) return {};
+  const slots={}, today=isoToday(), nowMs=Date.now();
+  const bw=+state.plan.bodyweight||85, g=state.plan.goal||"gain";
+  const protTarget=Math.round(bw*(g==="lose"?2.0:1.8));
+  for(let d=0;d<daysCount;d++){
+    const iso=addDays(today,d);
+    const [Y,M,D]=iso.split("-").map(Number);
+    const planned=plannedOn(iso), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport");
+    const done=state.sessions.some(s=>s.date===iso);
+    if(nf.morning!==false && !done && (lift||fb||sp)){
+      const dtAm=new Date(Y,M-1,D,+nf.morningHour||9,0,0);
+      if(dtAm.getTime()>nowMs-1800000){
+        const slotKey=dtAm.toISOString().slice(0,13);
+        let title="", body="";
+        if(lift){
+          const items=(state.plan.sessions[state.plan.track]&&state.plan.sessions[state.plan.track][lift])||[];
+          const exNames=items.slice(0,3).map(x=>EX[x.ex]?EX[x.ex].n:x.ex).join(", ");
+          const extra=fb&&sp?" + Football & Padel":fb?" + Football":sp?" + Padel":"";
+          title=sessionTitle(lift)+extra+" Today \uD83D\uDCAA";
+          body=(exNames?exNames+(items.length>3?" + "+(items.length-3)+" more":""):items.length+" exercises")+" on deck. Tap to log readiness & start.";
+        } else if(fb&&sp){
+          title="Football & Padel Day \u26BD\uD83C\uDFBE";
+          body="Double match day — hydration target scales to 12 glasses (3.0 L). Tap to check in.";
+        } else if(fb){
+          title="Match Day: Football \u26BD";
+          body="No upper session today. Hydration target rises to 12 glasses — tap to log readiness & stretch.";
+        } else {
+          title="Game Day: Padel / Sport \uD83C\uDFBE";
+          body="Hydration target rises to 12 glasses today. Tap to check in & run the 5-min mobility flow.";
+        }
+        const exp=Math.floor(dtAm.getTime()/1000)+57600;
+        const [vapid,bodyB64]=await Promise.all([signVapid(subJson.endpoint,exp),encryptWebPush(subJson,{title,body,tag:"ubp-am-"+iso,url:"./",tab:"today"})]);
+        slots[slotKey]={vapid,bodyB64};
+      }
+    }
+    if(nf.evening!==false){
+      const dtPm=new Date(Y,M-1,D,+nf.eveningHour||20,0,0);
+      const dayDaily=(state.plan.daily&&state.plan.daily[iso])||{};
+      const protDone=(+dayDaily.protein||0)>=protTarget;
+      if(dtPm.getTime()>nowMs-1800000 && !(done && protDone)){
+        const slotKey=dtPm.toISOString().slice(0,13);
+        let title="", body="";
+        if(lift && !done){
+          title=sessionTitle(lift)+" Still Open Today \uD83C\uDFCB\uFE0F";
+          body="Haven't logged "+sessionTitle(lift)+" yet — tap to log your session or move it in this week's schedule.";
+        } else {
+          const curP=+dayDaily.protein||0;
+          title="Evening Fuel & Hydration Check-In \uD83E\uDD69\uD83D\uDCA7";
+          body=(curP>0?curP+" / "+protTarget+" g protein logged today. ":"")+"Tap to top up your daily protein palms & hydration glasses.";
+        }
+        const exp=Math.floor(dtPm.getTime()/1000)+57600;
+        const [vapid,bodyB64]=await Promise.all([signVapid(subJson.endpoint,exp),encryptWebPush(subJson,{title,body,tag:"ubp-pm-"+iso,url:"./",tab:"today"})]);
+        slots[slotKey]={vapid,bodyB64};
+      }
+    }
+  }
+  return slots;
+}
+let pushSyncTimer=null;
+function schedulePushSync(){
+  if(!state.pushSub||!state.db||!state.db._http||!state.profile) return;
+  clearTimeout(pushSyncTimer);
+  pushSyncTimer=setTimeout(()=>{ syncPushSchedule().catch(()=>{}); },600);
+}
+async function syncPushSchedule(){
+  if(!state.pushSub||!state.db||!state.db._http||!state.profile) return;
+  const nf=state.plan.notif||DEFAULT_NOTIF;
+  const devId=getDeviceId();
+  const snap=await state.db.doc("push_registry").get().catch(()=>({exists:false}));
+  const existing=(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().items))?snap.data().items:[];
+  const others=existing.filter(x=>x&&x.id&&x.id!==devId&&x.endpoint!==state.pushSub.endpoint);
+  if(!nf.enabled){
+    await state.db.doc("push_registry").set({items:others,updatedAt:new Date().toISOString()});
+    return;
+  }
+  const slots=await buildPushSlots(state.pushSub,14);
+  const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",updatedAt:new Date().toISOString(),slots};
+  await state.db.doc("push_registry").set({items:others.concat([entry]),updatedAt:new Date().toISOString()});
+}
+function renderTodayNotifBanner(){
+  const nf=state.plan.notif||DEFAULT_NOTIF;
+  const active=!!(nf.enabled && state.pushSub && notifPerm()==="granted");
+  if(active || lsGet("ubp.pushhint")) return "";
+  const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+  const ios=/iPhone|iPad|iPod/.test(ua);
+  if(!pushSupported() && !ios) return "";
+  return '<div class="card stack"><div class="row between"><span class="eyebrow">Home Screen Push Notifications</span><span class="chip sh">New</span></div>'+
+    '<p class="small muted">Get native lock-screen alerts when your rest timer finishes between sets, morning reminders on workout &amp; match days, and evening protein check-in nudges.</p>'+
+    '<div class="row"><button class="btn sm" data-act="pushon">'+(state.pushBusy?"Enabling...":"Enable Push Notifications")+'</button><button class="btn sm ghost" data-act="pushhintno">Not now</button></div></div>';
+}
+function renderNotifCard(){
+  const nf=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{});
+  const perm=notifPerm();
+  const active=!!(nf.enabled && state.pushSub && perm==="granted");
+  const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
+  const iosNeedsInstall=/iPhone|iPad|iPod/.test(ua)&&!isStandalone();
+  const statusChip=active?'<span class="chip good">&#128276; Active on this device</span>':perm==="denied"?'<span class="chip bad">Blocked in browser settings</span>':iosNeedsInstall?'<span class="chip warn">Add to Home Screen first</span>':'<span class="chip">Off</span>';
+  const amHours={6:"06:00",7:"07:00",8:"08:00",9:"09:00",10:"10:00",11:"11:00",12:"12:00"};
+  const pmHours={18:"18:00",19:"19:00",20:"20:00",21:"21:00",22:"22:00"};
+  return '<div class="card stack"><div class="row between"><div><span class="eyebrow">Web Push Notifications</span><h3>Lock-Screen Alerts &amp; Daily Reminders</h3></div>'+statusChip+'</div>'+
+    '<p class="small muted">'+(iosNeedsInstall?"On iPhone, open this app from your Home Screen icon to enable Web Push notifications.":perm==="denied"?"Notifications are blocked for this app. Open your phone Settings -> Fitness -> Notifications and allow notifications.":"Works even when the app is closed or your phone is locked. Rest timer alerts fire at the exact second your set recovery finishes; daily reminders adapt automatically to your schedule, overrides and logged sessions.")+'</p>'+
+    '<div class="stack" style="gap:8px">'+
+      '<label class="f inl"><input type="checkbox" id="pnrest" data-nf="rest"'+(nf.rest!==false?" checked":"")+'> <b>Rest &amp; mobility timer lock-screen alerts</b> <span class="small muted">(pings when 75s / 120s rest finishes while locked or in another app)</span></label>'+
+      '<div class="row between"><label class="f inl"><input type="checkbox" id="pnam" data-nf="morning"'+(nf.morning!==false?" checked":"")+'> <b>Morning training &amp; match-day reminder</b> <span class="small muted">(silent on rest days)</span></label><select id="pnamh" data-nf="morningHour" aria-label="Morning reminder time" style="width:auto;min-width:92px">'+selOpts(amHours,String(nf.morningHour||9))+'</select></div>'+
+      '<div class="row between"><label class="f inl"><input type="checkbox" id="pnpm" data-nf="evening"'+(nf.evening!==false?" checked":"")+'> <b>Evening workout &amp; protein check-in nudge</b> <span class="small muted">(silent once logged)</span></label><select id="pnpmh" data-nf="eveningHour" aria-label="Evening reminder time" style="width:auto;min-width:92px">'+selOpts(pmHours,String(nf.eveningHour||20))+'</select></div>'+
+    '</div>'+
+    '<div class="row">'+(active?'<button class="btn sm" data-act="pushtest">Send Test Push</button><button class="btn sm sec" data-act="pushsync">Refresh Schedule</button><button class="btn sm ghost" data-act="pushoff">Turn Off</button>':'<button class="btn sm" data-act="pushon">'+(state.pushBusy?"Enabling...":"Enable Push Notifications")+'</button>'+(perm==="granted"?'<button class="btn sm sec" data-act="pushtest">Send Test Push</button>':''))+'</div></div>';
+}
 
 /* ---------- Standalone Website / PWA Cloud Sync (Power Automate HTTP Flow) ---------- */
 const _CLOUD_CFG = { u: "aHR0cHM6Ly84MmU4OTUyMGMyNzRlNDBjYTY4ZjA4NTUxNmMxYmIuNDMuZW52aXJvbm1lbnQuYXBpLnBvd2VycGxhdGZvcm0uY29tOjQ0My9wb3dlcmF1dG9tYXRlL2F1dG9tYXRpb25zL2RpcmVjdC9jdS8yNi93b3JrZmxvd3MvMTM0MWEzODg3MTg2NDNmNTllNWY3YjRkNDM3MDU4MzYvdHJpZ2dlcnMvbWFudWFsL3BhdGhzL2ludm9rZT9hcGktdmVyc2lvbj0xJnNwPSUyRnRyaWdnZXJzJTJGbWFudWFsJTJGcnVuJnN2PTEuMCZzaWc9VFktMTBYX0lLeHhpZk1pZDBCcW1tX2M3YUZxVkhVbFZNN3lRRnNQZmNLNA==", k: "YWZkMjE4YzdjZjk1NWM4OGMyOGIzM2Q3NjNhODEyOWFkYzAzOTJhZGRjOTUxMjA5" };
@@ -578,6 +904,7 @@ async function initStore(){
 /* The open profile: its subscriptions live in state.unsub and are dropped on switch; the write queue drains first so a queued write never lands under the next person. */
 async function enterProfile(pid){ await detachProfile(); resetProfileState(); state.profile=pid; lsSet(LS.profile,pid); ssSet(SS.open,pid); loadLocal(); render(); window.scrollTo(0,0);
   if(state.draftRestored){ state.draftRestored=false; toast("Your unfinished session is back. Save it, or press Cancel to drop it."); }
+  checkExistingPushSub();
   if(state.db) await attachCloud(); }
 async function attachCloud(){ const db=state.db, pid=state.profile; await replayPending(db); if(state.profile!==pid||!state.db) return;
   state.unsub.push(sessCol().onSnapshot(s=>{ const cloud=s.docs.map(d=>Object.assign({id:d.id},d.data())); const pend=state.pending.sessions||{}; const ids=new Set(cloud.map(x=>x.id));
@@ -621,10 +948,10 @@ async function reconnect(){ const db=state.db; if(!db||!db._http||reconnecting) 
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("online",()=>reconnect());
 function queueWrite(fn){ return new Promise(res=>{ writeQ.push({fn,res}); pumpWrites(); }); }
 function pumpWrites(){ if(writeBusy||!writeQ.length) return; const {fn,res}=writeQ.shift(); writeBusy=true; let p; try{ p=Promise.resolve(fn()); }catch(e){ p=Promise.reject(e); } p.catch(onWriteError).then(()=>{ writeBusy=false; res(); pumpWrites(); }); }
-function saveSession(doc){ const i=state.sessions.findIndex(s=>s.id===doc.id); if(i>=0) state.sessions[i]=doc; else state.sessions.push(doc); persistLocal(); markPending("session",doc.id,"set"); if(!state.db) return; const ref=sessCol().doc(doc.id); queueWrite(()=>ref.set(clone(doc)).then(()=>markPending("session",doc.id,false))); }
-function deleteSession(id){ state.sessions=state.sessions.filter(s=>s.id!==id); persistLocal(); markPending("session",id,"del"); if(!state.db) return; const ref=sessCol().doc(id); queueWrite(()=>ref.delete().then(()=>markPending("session",id,false))); }
+function saveSession(doc){ const i=state.sessions.findIndex(s=>s.id===doc.id); if(i>=0) state.sessions[i]=doc; else state.sessions.push(doc); persistLocal(); markPending("session",doc.id,"set"); schedulePushSync(); if(!state.db) return; const ref=sessCol().doc(doc.id); queueWrite(()=>ref.set(clone(doc)).then(()=>markPending("session",doc.id,false))); }
+function deleteSession(id){ state.sessions=state.sessions.filter(s=>s.id!==id); persistLocal(); markPending("session",id,"del"); schedulePushSync(); if(!state.db) return; const ref=sessCol().doc(id); queueWrite(()=>ref.delete().then(()=>markPending("session",id,false))); }
 /* savePlan: local copy at once, cloud write after a short pause (one write per burst of edits); flushPlan sends it now. */
-function savePlan(){ state.plan.rev=Date.now(); state.planDirty=true; persistLocal(); markPending("plan",null,true); if(!state.db) return; clearTimeout(planSaveTimer); planSaveTimer=setTimeout(flushPlan,150); }
+function savePlan(){ state.plan.rev=Date.now(); state.planDirty=true; persistLocal(); markPending("plan",null,true); schedulePushSync(); if(!state.db) return; clearTimeout(planSaveTimer); planSaveTimer=setTimeout(flushPlan,150); }
 function flushPlan(){ clearTimeout(planSaveTimer); planSaveTimer=null; if(!state.planDirty||!state.db||!state.profile) return; state.planDirty=false; state.planInflight=true; const snap=clone(state.plan); const ref=planDoc();
   queueWrite(()=>ref.set(snap).then(()=>{ if(state.plan.rev===snap.rev&&!state.planDirty) markPending("plan",null,false); })).then(()=>{ state.planInflight=false; if(state.planDirty) flushPlan(); }); }
 function flushAll(){ if(planSaveTimer) flushPlan(); persistDraft(); }
@@ -1015,24 +1342,28 @@ function renderRestDock(){
 function tickRest(){
   const r=state.rest; if(!r.running) return;
   r.sec=Math.max(0,Math.ceil(((r.endAt||0)-Date.now())/1000));
+  if(r.sec>0 && r.sec<=3 && !r.pushFgCancel && typeof document!=="undefined" && document.visibilityState==="visible"){ r.pushFgCancel=true; cancelTimerPush(); }
   if(r.sec<=0){
-    r.sec=0; r.running=false;
+    const lbl=r.label; r.sec=0; r.running=false; r.timerId=null;
     if(restInterval){ clearInterval(restInterval); restInterval=null; }
     playGymChime();
+    if(typeof document!=="undefined" && document.visibilityState==="hidden" && (state.plan.notif&&state.plan.notif.enabled&&state.plan.notif.rest!==false)) swLocalNotif({title:"Rest Over — Next Set Ready \uD83D\uDCAA",body:(lbl?lbl+" · ":"")+"Your rest timer is complete.",tag:"ubp-rest",tab:"log"});
     toast("Rest done. Next set.");
   }
   renderRestDock();
 }
 function startRestTimer(secs, label){
   secs=+secs||90;
-  state.rest={sec:secs, total:secs, running:true, label:label||"", endAt:Date.now()+secs*1000};
+  state.rest={sec:secs, total:secs, running:true, label:label||"", endAt:Date.now()+secs*1000, timerId:null, pushFgCancel:false};
   renderRestDock();
+  scheduleTimerPush(secs, "Rest Over — Next Set Ready \uD83D\uDCAA", (label?label+" · ":"")+"Your "+secs+"s rest is complete. Time for your next set!", "ubp-rest");
   if(restInterval){ clearInterval(restInterval); restInterval=null; }
   if(typeof window!=="undefined" && window.claude===null && !window.requestAnimationFrame) return;
   restInterval=setInterval(tickRest,500);
 }
 function stopRestTimer(){
-  state.rest={sec:0,total:120,running:false,label:"",endAt:0};
+  cancelTimerPush();
+  state.rest={sec:0,total:120,running:false,label:"",endAt:0,timerId:null,pushFgCancel:false};
   if(restInterval){ clearInterval(restInterval); restInterval=null; }
   renderRestDock();
 }
@@ -1042,7 +1373,7 @@ function tickMob(){
   if(left<=0){
     playGymChime();
     const list=MOB_ROUTINES[m.type]||MOB_ROUTINES.upper;
-    if(m.step<list.length-1){ m.step++; m.sec=list[m.step].s; m.endAt=Date.now()+m.sec*1000; toast("Next stretch: "+list[m.step].n); }
+    if(m.step<list.length-1){ m.step++; m.sec=list[m.step].s; m.endAt=Date.now()+m.sec*1000; scheduleTimerPush(m.sec, "Stretch Complete \uD83E\uDDD8", list[m.step].n+" finished.", "ubp-mob"); toast("Next stretch: "+list[m.step].n); }
     else { m.sec=0; m.running=false; if(mobInterval){ clearInterval(mobInterval); mobInterval=null; } toast("5-minute mobility routine complete!"); }
     render();
   } else if(left!==m.sec){ m.sec=left; const c=document.getElementById("mobclock"); if(c) c.textContent=m.sec+"s"; }
@@ -1252,7 +1583,7 @@ function renderToday(){
     block='<div class="card stack"><div class="row between"><span class="eyebrow">12-week block, week '+wk+'</span><button class="btn ghost sm" data-act="newblock">Start a new block today</button></div><div class="timeline">'+tl.join("")+'</div>'+note+'</div>'; }
   let lastCard='';
   if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+last.session+'">'+sessionTitle(last.session)+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
-  return hero+renderDailyHub()+renderWeekCard()+renderBodyMapCard()+renderMobilityCard()+block+lastCard+
+  return hero+renderTodayNotifBanner()+renderDailyHub()+renderWeekCard()+renderBodyMapCard()+renderMobilityCard()+block+lastCard+
     '<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
 }
 
@@ -1484,7 +1815,7 @@ function renderPlan(){
       '<div class="row" style="gap:8px"><label class="f" style="flex:1">Load type<select data-pi="'+i+'" data-ps="'+k+'" data-pf="unit" id="pun'+k+i+'"><option value="kg"'+(item.unit==="kg"?" selected":"")+'>Weight in kg</option><option value="bw"'+(item.unit==="bw"?" selected":"")+'>Bodyweight + kg</option><option value="reps"'+(item.unit==="reps"?" selected":"")+'>Reps only</option><option value="s"'+(item.unit==="s"?" selected":"")+'>Seconds (hold)</option></select></label><label class="f inl" style="padding-top:16px"><input type="checkbox" data-pi="'+i+'" data-ps="'+k+'" data-pf="side" id="psd'+k+i+'"'+(item.side?" checked":"")+'> each side</label></div>'+
       '<label class="f">Coaching note<input type="text" data-pi="'+i+'" data-ps="'+k+'" data-pf="note" id="pno'+k+i+'" value="'+esc(item.note||"")+'"></label>'+
       '<div class="tools"><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt(EX[item.ex].q)+'" target="_blank" rel="noopener">Video</a></div></div>').join("")+'</div><button class="btn sm sec" data-act="addplan" data-s="'+k+'">+ Add exercise</button></div>'; }).join("");
-  return renderProfileCard()+renderSetupCard()+'<div class="card stack"><span class="eyebrow">Where you train</span><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing only. Make it the default if most sessions happen here.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>'+
+  return renderProfileCard()+renderSetupCard()+renderNotifCard()+'<div class="card stack"><span class="eyebrow">Where you train</span><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing only. Make it the default if most sessions happen here.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>'+
     '<div class="card stack"><span class="eyebrow">Week layout</span><div class="weekedit">'+weekSel+'</div>'+(warn.length?'<div class="banner">'+warn.map(esc).join("<br>")+'</div>':'<p class="small muted">'+ups.length+' upper sessions, '+fb.length+' football, '+sp.length+' sport, '+rests.length+' rest. Looks right.</p>')+'<p class="small muted">A and B are the two upper sessions'+(p.legs?", Legs has its own day":"")+'; keep a day between upper sessions. Football, padel and rest days are yours to set, and a day can hold more than one thing: tick football or padel next to a lift. This is the default week. To change one week only (a football night or padel game that is off), use Edit this week on Today; every other week stays as set here.</p></div>'+
     sess+renderBackupCard()+'<p class="small muted">Changes save automatically. The weights themselves live in the log: when you log a session, each exercise opens with your last weight and the progression rule tells you whether to add.</p>';
 }
@@ -1507,6 +1838,7 @@ function onPlanInput(e){ const t=e.target; if(state.tab==="plan"){ const tr=stat
   if(t.id==="psgoal"){ state.plan.goal=GOALS[t.value]?t.value:"gain"; savePlan(); render(); return; }
   if(t.id==="psups"){ state.plan.ups=+t.value===3?3:2; savePlan(); render(); toast(state.plan.ups===3?"Three upper sessions: press Place the lifts for me, or add the third A in the week layout.":"Two upper sessions a week."); return; }
   if(t.id==="pslegs"){ state.plan.legs=!!t.checked; if(!state.plan.legs){ DAYS.forEach(d=>{ if(liftOf(state.plan.week[d])==="L") state.plan.week[d]=withLift(state.plan.week[d],null); }); Object.keys(state.plan.overrides||{}).forEach(ws=>{ DAYS.forEach(d=>{ if(liftOf(state.plan.overrides[ws][d])==="L") state.plan.overrides[ws][d]=withLift(state.plan.overrides[ws][d],null); }); }); } savePlan(); render(); toast(state.plan.legs?"Legs is on. Pick Legs on a day in the week layout, or press Place the lifts for me.":"Legs day removed from the week"); return; }
+  if(t.dataset.nf){ state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{}); const k=t.dataset.nf; state.plan.notif[k]=t.type==="checkbox"?t.checked:+t.value; savePlan(); render(); toast("Notification preferences saved"); return; }
   if(t.dataset.pf){ const item=state.plan.sessions[tr][t.dataset.ps][+t.dataset.pi]; const f=t.dataset.pf; if(f==="side") item.side=t.checked; else if(f==="ex"||f==="note"||f==="unit") item[f]=t.value; else item[f]=+t.value; savePlan(); if(f==="ex") render(); } } }
 
 /* --- Library --- */
@@ -1647,15 +1979,16 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   }
   else if(a==="mobopen"){ state.mob={open:true,type:b.dataset.t||"upper",step:0,sec:(MOB_ROUTINES[b.dataset.t||"upper"][0].s),running:false}; render(); }
   else if(a==="mobtype"){ const t=b.dataset.t||"upper"; state.mob={open:true,type:t,step:0,sec:MOB_ROUTINES[t][0].s,running:false}; render(); }
-  else if(a==="mobclose"){ state.mob.open=false; state.mob.running=false; if(mobInterval){clearInterval(mobInterval);mobInterval=null;} render(); }
+  else if(a==="mobclose"){ cancelTimerPush(); state.mob.open=false; state.mob.running=false; if(mobInterval){clearInterval(mobInterval);mobInterval=null;} render(); }
   else if(a==="mobnext"){
+    cancelTimerPush();
     const list=MOB_ROUTINES[state.mob.type]||MOB_ROUTINES.upper;
     state.mob.step=(state.mob.step+1)%list.length; state.mob.sec=list[state.mob.step].s; state.mob.running=false; render();
   }
   else if(a==="mobtog"){
     ensureAudio();
     state.mob.running=!state.mob.running;
-    if(state.mob.running){ state.mob.endAt=Date.now()+(+state.mob.sec||0)*1000; if(!mobInterval && !(typeof window!=="undefined"&&window.claude===null&&!window.requestAnimationFrame)) mobInterval=setInterval(tickMob,500); }
+    if(state.mob.running){ const list=MOB_ROUTINES[state.mob.type]||MOB_ROUTINES.upper; const cur=list[state.mob.step]||list[0]; state.mob.endAt=Date.now()+(+state.mob.sec||0)*1000; scheduleTimerPush(+state.mob.sec||30, "Stretch Complete \uD83E\uDDD8", cur.n+" finished — ready for the next stretch.", "ubp-mob"); if(!mobInterval && !(typeof window!=="undefined"&&window.claude===null&&!window.requestAnimationFrame)) mobInterval=setInterval(tickMob,500); } else { cancelTimerPush(); }
     render();
   }
   else if(a==="dismissvic"){ state.lastSavedSummary=null; render(); }
@@ -1690,6 +2023,11 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="pincancel"){ state.pinEdit=false; render(); }
   else if(a==="pinsave"){ const el=document.getElementById("npin"); const v=el?String(el.value||"").trim():""; if(v&&!/^\d{4,6}$/.test(v)){ toast("The PIN is 4 to 6 digits"); return; } updateProfile({pinHash:v?await pinHash(v):null}); state.pinEdit=false; render(); toast(v?"PIN saved":"PIN removed"); }
   else if(a==="switch"){ leaveProfile(); }
+  else if(a==="pushon"){ await enablePush(); }
+  else if(a==="pushoff"){ await disablePush(); }
+  else if(a==="pushtest"){ await sendTestPush(false); }
+  else if(a==="pushsync"){ toast("Refreshing 14-day notification schedule..."); await syncPushSchedule(); toast("Notification schedule synced to cloud!"); }
+  else if(a==="pushhintno"){ lsSet("ubp.pushhint",1); render(); }
 });
 function setOverride(ws,day,val){ state.plan.overrides=state.plan.overrides||{}; const o=state.plan.overrides[ws]=state.plan.overrides[ws]||{}; if(val===state.plan.week[day]) delete o[day]; else o[day]=val; if(!Object.keys(o).length) delete state.plan.overrides[ws]; savePlan(); render(); }
 view.addEventListener("change",e=>{ if(!state.profile){ onLoginInput(e); return; } if(state.tab==="today"&&e.target.dataset.wday){ const t=e.target, d=t.dataset.wday, ws=viewedWeekStart(); setOverride(ws,d,applyPart(weekPlan(ws)[d],t.dataset.part||"lift",t.type==="checkbox"?t.checked:t.value)); return; } if(state.tab==="plan") onPlanInput(e); if(formOpen()) onFormInput(e); if(formOpen()&&e.target.id==="addex"&&e.target.value){ const k=e.target.value; const last=lastLogOf(k); const ne={ex:k,name:EX[k].n,unit:EX[k].eq==="body"?"reps":"kg",side:false,feel:"",sets:[],next:"",target:"8-12",sug:null}; const rec=recommend(ne,planItemFor(ne,state.form.track,state.form.session),state.form); ne.sets=Array.from({length:rec.sets},(_,i)=>{ const p=rec.per[i]||{}; return {w:(rec.loaded&&p.w!=null)?p.w:"",r:"",auto:true}; }); state.form.exercises.push(ne); render(); } });
@@ -1707,7 +2045,7 @@ try{ if(typeof ResizeObserver!=="undefined"){ new ResizeObserver(measureHeader).
 
 document.getElementById("restbar").addEventListener("click",e=>{
   const b=e.target.closest("[data-act]"); if(!b) return;
-  if(b.dataset.act==="restadj"){ if(!state.rest.running) return; state.rest.endAt=Math.max(Date.now(),(state.rest.endAt||Date.now())+(+b.dataset.d||0)*1000); state.rest.total=Math.max(state.rest.total,Math.ceil((state.rest.endAt-Date.now())/1000)); tickRest(); }
+  if(b.dataset.act==="restadj"){ if(!state.rest.running) return; state.rest.endAt=Math.max(Date.now(),(state.rest.endAt||Date.now())+(+b.dataset.d||0)*1000); const rem=Math.max(1,Math.ceil((state.rest.endAt-Date.now())/1000)); state.rest.total=Math.max(state.rest.total,rem); scheduleTimerPush(rem, "Rest Over — Next Set Ready \uD83D\uDCAA", (state.rest.label?state.rest.label+" · ":"")+"Your rest is complete.", "ubp-rest"); tickRest(); }
   else if(b.dataset.act==="restskip"){ stopRestTimer(); }
 });
 /* Theme: the choice is kept (ubp.theme) and painted before the first frame by the head script; the status bar colour follows. */
@@ -1716,9 +2054,10 @@ function applyTheme(t,save){ try{ const de=document.documentElement; if(de&&de.s
 document.getElementById("themetog").addEventListener("click",()=>{ applyTheme(effectiveTheme()==="dark"?"light":"dark",true); });
 applyTheme(lsGet("ubp.theme"),false);
 if(typeof window!=="undefined"&&window.navigator&&"serviceWorker" in window.navigator&&window.location&&/^https?:/.test(window.location.protocol)){
-  window.navigator.serviceWorker.register("sw.js").catch(()=>{});
+  window.navigator.serviceWorker.register("sw.js").then(()=>checkExistingPushSub()).catch(()=>{});
   let hadController=!!window.navigator.serviceWorker.controller;
   window.navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(hadController) toast("App updated. The new version loads the next time you open it."); hadController=true; });
+  window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); });
 }
 
 initStore();
