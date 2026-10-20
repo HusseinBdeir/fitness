@@ -1,24 +1,93 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0F172A"/>
-      <stop offset="55%" stop-color="#1D55A3"/>
-      <stop offset="100%" stop-color="#0F766E"/>
+    <radialGradient id="bgGlow" cx="50%" cy="38%" r="70%">
+      <stop offset="0%" stop-color="#13284C"/>
+      <stop offset="55%" stop-color="#0B1730"/>
+      <stop offset="100%" stop-color="#060C1A"/>
+    </radialGradient>
+    <linearGradient id="ringStrain" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E11D48"/>
+      <stop offset="55%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#FB7185"/>
     </linearGradient>
-    <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#F8FAFC"/>
-      <stop offset="100%" stop-color="#E2E8F0"/>
+    <linearGradient id="ringRec" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#059669"/>
+      <stop offset="55%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#6EE7B7"/>
     </linearGradient>
+    <linearGradient id="ringStr" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2563EB"/>
+      <stop offset="55%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#BAE6FD"/>
+    </linearGradient>
+    <linearGradient id="pulseGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="30%" stop-color="#FFFFFF"/>
+      <stop offset="72%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#34D399"/>
+    </linearGradient>
+    <radialGradient id="coreHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.25"/>
+      <stop offset="70%" stop-color="#10B981" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#0B1730" stop-opacity="0"/>
+    </radialGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-  <circle cx="256" cy="256" r="184" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="14"/>
-  <path d="M256 72 A184 184 0 1 1 96 348" fill="none" stroke="#34D399" stroke-width="14" stroke-linecap="round"/>
-  <g transform="rotate(-28 256 256)" fill="url(#bar)">
-    <rect x="156" y="242" width="200" height="28" rx="8"/>
-    <rect x="112" y="176" width="36" height="160" rx="12"/>
-    <rect x="76" y="198" width="28" height="116" rx="10" fill="#60A5FA"/>
-    <rect x="364" y="176" width="36" height="160" rx="12"/>
-    <rect x="408" y="198" width="28" height="116" rx="10" fill="#60A5FA"/>
-  </g>
-</svg>
 
+  <!-- Deep Architectural Obsidian-Navy Plate -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGlow)"/>
+  <circle cx="256" cy="256" r="236" fill="none" stroke="#1E293B" stroke-width="2"/>
+
+  <!-- Precision Instrument Chronograph Ticks -->
+  <g>
+    <line x1="256.00" y1="42.00" x2="256.00" y2="26.00" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="312.42" y1="45.43" x2="315.53" y2="33.84" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="365.00" y1="67.21" x2="371.00" y2="56.81" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="407.32" y1="104.68" x2="418.63" y2="93.37" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="444.79" y1="147.00" x2="455.19" y2="141.00" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="466.57" y1="199.58" x2="478.16" y2="196.47" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="470.00" y1="256.00" x2="486.00" y2="256.00" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="466.57" y1="312.42" x2="478.16" y2="315.53" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="444.79" y1="365.00" x2="455.19" y2="371.00" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="407.32" y1="407.32" x2="418.63" y2="418.63" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="365.00" y1="444.79" x2="371.00" y2="455.19" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="312.42" y1="466.57" x2="315.53" y2="478.16" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="256.00" y1="470.00" x2="256.00" y2="486.00" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="199.58" y1="466.57" x2="196.47" y2="478.16" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="147.00" y1="444.79" x2="141.00" y2="455.19" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="104.68" y1="407.32" x2="93.37" y2="418.63" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="67.21" y1="365.00" x2="56.81" y2="371.00" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="45.43" y1="312.42" x2="33.84" y2="315.53" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="42.00" y1="256.00" x2="26.00" y2="256.00" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="45.43" y1="199.58" x2="33.84" y2="196.47" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="67.21" y1="147.00" x2="56.81" y2="141.00" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="104.68" y1="104.68" x2="93.37" y2="93.37" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="147.00" y1="67.21" x2="141.00" y2="56.81" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+    <line x1="199.58" y1="45.43" x2="196.47" y2="33.84" stroke="#94A3B8" stroke-opacity="0.12" stroke-width="2" stroke-linecap="round"/>
+  </g>
+
+  <!-- Track Rings (Subtle Sunk Grooves) -->
+  <circle cx="256" cy="256" r="194" fill="none" stroke="#E11D48" stroke-opacity="0.18" stroke-width="23"/>
+  <circle cx="256" cy="256" r="158" fill="none" stroke="#10B981" stroke-opacity="0.18" stroke-width="23"/>
+  <circle cx="256" cy="256" r="122" fill="none" stroke="#38BDF8" stroke-opacity="0.18" stroke-width="23"/>
+
+  <!-- Active Telemetry Rings -->
+  <path d="M 131.30 404.61 A 194 194 0 1 1 353.00 424.01" fill="none" stroke="url(#ringStrain)" stroke-width="23" stroke-linecap="round"/>
+  <path d="M 154.44 377.04 A 158 158 0 1 1 399.20 322.77" fill="none" stroke="url(#ringRec)" stroke-width="23" stroke-linecap="round"/>
+  <path d="M 177.58 349.46 A 122 122 0 1 1 373.84 224.42" fill="none" stroke="url(#ringStr)" stroke-width="23" stroke-linecap="round"/>
+
+  <!-- Luminous Ring Cap Highlights -->
+  <circle cx="353.00" cy="424.01" r="6.5" fill="#FFF1F2" fill-opacity="0.9"/>
+  <circle cx="399.20" cy="322.77" r="6.5" fill="#ECFDF5" fill-opacity="0.9"/>
+  <circle cx="373.84" cy="224.42" r="6.5" fill="#F0F9FF" fill-opacity="0.9"/>
+
+  <!-- Core Biometric Chamber -->
+  <circle cx="256" cy="256" r="98" fill="#070E1E" stroke="#1E3A5F" stroke-width="2.5"/>
+  <circle cx="256" cy="256" r="94" fill="url(#coreHalo)"/>
+
+  <!-- HRV / Cardiac ECG Waveform + Peak Readiness Node -->
+  <path d="M 172 264 L 204 264 L 217 242 L 231 286 L 252 186 L 271 308 L 287 232 L 300 264 L 340 264"
+        fill="none" stroke="url(#pulseGrad)" stroke-width="14.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Brass / Gold Apex PR & Readiness Beacon -->
+  <circle cx="252" cy="186" r="9.5" fill="#FBBF24" stroke="#070E1E" stroke-width="3.5"/>
+</svg>
