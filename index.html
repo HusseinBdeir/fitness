@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=13.10">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.10">
-<link rel="apple-touch-icon" href="icon-180.png?v=13.10">
+<link rel="manifest" href="manifest.json?v=13.11">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.11">
+<link rel="apple-touch-icon" href="icon-180.png?v=13.11">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -96,7 +96,7 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .tile>b{font-family:var(--display);font-size:26px;font-weight:700;display:block;line-height:1.05;font-variant-numeric:tabular-nums}
 .tile span{font-size:12px;color:var(--muted);line-height:1.25}
 .tile>b.txt{font-size:22px;line-height:1.1;overflow-wrap:anywhere}
-.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px;text-decoration:none}
 .btn.sec{background:var(--sunk);color:var(--fg)}
 .btn.ghost{background:none;border:1px solid var(--line);color:var(--fg)}
 .btn.danger{background:var(--bad-soft);color:var(--bad)}
@@ -311,8 +311,9 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .hnotice.bad{border-left-color:var(--bad);background:rgba(239,68,68,.08)}
 .hnotice.good{border-left-color:var(--good)}
 .step-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;flex-wrap:wrap}
-.sc-cta{background:var(--surface);border:1.5px solid #E11D48;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 14px -6px rgba(225,29,72,.22)}
-.sc-cta.synced{border-color:var(--good);box-shadow:none;background:var(--sunk);padding:10px 12px}
+.sc-cta{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.sc-cta.synced{border-color:var(--good)}
+.sc-setup{border-top:1px solid var(--line);padding-top:8px;margin-top:2px;display:flex;flex-direction:column;gap:8px}
 .subnav{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .subnav::-webkit-scrollbar{display:none}
 .subnav button{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer;min-height:34px}
@@ -449,7 +450,7 @@ const DEFAULT_SESSIONS = {
   }
 };
 const DEFAULT_NOTIF = {enabled:false,rest:true,morning:true,morningHour:9,evening:true,eveningHour:20};
-const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:"",shortcutReady:false};
+const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:"",shortcutReady:true,_scV2:1};
 const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF,health:{},bio:DEFAULT_BIO};
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -523,6 +524,7 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
     if(hd.source==="Apple Health"||hd.source==="Apple Health Auto"||hd.source==="Estimated"){ delete out.health[dk]; return; }
   });
   out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
+  if(!out.bio._scV2){ out.bio.shortcutReady=true; out.bio._scV2=1; }
   return out; }
 function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",sub:{today:"all",health:"all",log:"all",plan:"all"},pending:{plan:false,sessions:{}}}); }
 
@@ -1269,7 +1271,7 @@ function renderBodyMapCard(){
 
 /* ---------- v13 Apple Health Integration & Wellness Intelligence Engine ---------- */
 const HEALTH_FIELDS = ["sleep","deepRem","rhr","hrv","steps","activeKcal","basalKcal","distanceKm","vo2max","spo2","respRate","weight","bodyFat"];
-const DEFAULT_HSYNC = {autoSync:false,everSynced:false,neverAsk:false,shortcutReady:false,lastPromptDate:"",lastSyncAt:"",lastSyncMs:0,syncCountToday:0,syncCountDate:"",motionSteps:0,motionDate:""};
+const DEFAULT_HSYNC = {autoSync:false,everSynced:false,neverAsk:false,shortcutReady:true,lastPromptDate:"",lastSyncAt:"",lastSyncMs:0,syncCountToday:0,syncCountDate:"",motionSteps:0,motionDate:""};
 let healthAutoSyncTimer = null;
 let healthResumeTimers = [];
 function isIOSDevice(){
@@ -1358,15 +1360,13 @@ function neverAskHealthPrompt(){
 }
 function renderHealthDailyPrompt(){
   if(!shouldShowHealthDailyPrompt()) return "";
-  const p=getHealthSyncPrefs();
-  const scReady=!!(p.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
   return '<div class="hnotice good" id="hsyncprompt">'+
-    '<div class="row between"><b>&#9829; Connect &amp; Sync Apple Health</b><span class="chip warn">'+(scReady?"Ready to Sync":"2-Tap iPhone Setup")+'</span></div>'+
-    '<span>'+(scReady?"Pull today&#39;s live steps, active calories, resting HR &amp; HRV from your iPhone Shortcut.":"First time on this iPhone? Tap 1. Install Shortcut once, then tap 2. Sync Apple Health.")+'</span>'+
+    '<div class="row between"><b>&#9829; Sync Apple Health</b><span class="chip sh">iPhone Shortcut</span></div>'+
+    '<span>Pull today&#39;s steps and active calories from your iPhone Shortcut, or enter steps directly.</span>'+
     '<div class="row" style="gap:6px;margin-top:2px">'+
-      (!scReady?'<a class="btn sm sec" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; 1. Install Shortcut</a>':'')+
-      '<button class="btn sm" data-act="hsyncnow">&#8635; '+(scReady?"Sync Apple Health":"2. Sync Apple Health")+'</button>'+
-      '<button class="btn sm sec" data-act="hsync_later">Ask Tomorrow</button>'+
+      '<button class="btn sm" data-act="hsyncnow">Sync Apple Health</button>'+
+      '<button class="btn sm sec" data-act="hedittog">Edit Steps</button>'+
+      '<button class="btn sm ghost" data-act="hsync_later">Ask Tomorrow</button>'+
       '<button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>'+
     '</div>'+
   '</div>';
@@ -1500,7 +1500,7 @@ function onHealthAppResume(){
     if(!state.profile) return;
     checkUrlHealthSync();
     const p=getHealthSyncPrefs();
-    if(p.autoSync || (state.plan&&state.plan.bio&&state.plan.bio.shortcutReady)){
+    if(p.autoSync){
       runAutoHealthSyncTick(true);
       healthResumeTimers.forEach(t=>clearTimeout(t));
       healthResumeTimers=[
@@ -1540,7 +1540,7 @@ function initHealthAutoSyncForProfile(){
 }
 async function runAutoHealthSyncTick(quiet){
   const p=getHealthSyncPrefs();
-  if(!p.autoSync && !(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady)) return null;
+  if(!p.autoSync) return null;
   return await syncAppleHealthNow({quiet:quiet!==false,isAutoTick:true});
 }
 function stopAppleHealthSync(){
@@ -1599,17 +1599,14 @@ async function syncAppleHealthNow(opts){
   state.lastHealthSyncTime=nowStr;
   state.healthSyncModal=null;
   state.healthScWarn=null;
-  if(opts.fromButton && !authToday && !cloudUpdated){
-    state.healthSetupOpen=true;
-  }
   persistLocal();
   if(formOpen()) refreshAllRec();
   else render();
   const th=effectiveHealth(today);
   if(!quiet){
     if(authToday) toast("\u2713 Apple Health: "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal \u00b7 as of "+healthReadingTime(curRaw)+" via "+(curRaw.source||"Apple Health"));
-    else if(opts.fromButton && isIOSDevice()) toast("Opening Sync Apple Health Shortcut\u2026 (First time? Tap 1. Install iOS Health Bridge at the top of the page first)");
-    else toast("No Apple Health reading yet today \u2014 tap 1. Install iOS Health Bridge at the top of the page, then 2. Sync Apple Health Now.");
+    else if(opts.fromButton && isIOSDevice()) toast("Running Sync Apple Health shortcut\u2026");
+    else toast("No Apple Health reading yet today \u2014 tap Sync Apple Health on your iPhone or tap Edit Steps to enter steps directly.");
   }
   return th;
 }
@@ -1626,7 +1623,7 @@ function healthSyncLabel(prefs){
     const t=healthReadingTime(raw);
     return "Apple Health reading"+(t?" "+t:"")+" via "+(raw.source==="Manual"?"manual entry":"iPhone Shortcut")+(prefs.autoSync?" \u00b7 cloud check every 5 min":"");
   }
-  return "No Apple Health reading yet today \u2014 use the Shortcut button above to sync";
+  return "No Apple Health reading yet today";
 }
 function numOrEmpty(v,dec){
   if(v===undefined||v===null||v==="") return "";
@@ -1948,7 +1945,7 @@ function checkUrlHealthSync(){
       state.tab="health";
       state.healthSetupOpen=true;
       render();
-      setTimeout(()=>toast("Shortcut not installed yet \u2014 tap '1. Install iOS Health Bridge' at the top of this page first, then tap '2. Sync Apple Health Now'."), 250);
+      setTimeout(()=>toast("Sync Apple Health shortcut not found in iOS Shortcuts \u2014 use Update / Install Shortcut below or tap Cancel."), 250);
       return;
     }
     const pending=lsGet("ubp.pending_hsync");
@@ -2274,17 +2271,20 @@ function renderTodayHealthStrip(){
     ? '<button class="btn sm ghost" style="padding:4px 10px;font-size:12px;color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
     : '';
   const showPrompt = shouldShowHealthDailyPrompt();
-  const topConnectBar = !th.authoritative
-    ? '<div class="sc-cta"'+(showPrompt?' id="hsyncprompt"':'')+'><div class="row between"><span class="small"><b>'+(scReady?"Apple Health Shortcut Ready:":"Connect Apple Health (2-Step Setup):")+'</b> '+(scReady?"Tap Sync Apple Health to run your iPhone Shortcut and pull today&#39;s live steps &amp; calories.":"1. Install the iOS Shortcut once, then 2. Tap Sync Apple Health to pull today&#39;s reading.")+'</span></div>'+
-      '<div class="row" style="gap:6px">'+
-        (!scReady||state.healthSetupOpen?'<a class="btn sm" style="background:#E11D48;color:#fff;padding:5px 10px;font-size:12px" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; 1. Install iOS Health Bridge</a>':'')+
-        '<button class="btn sm" style="padding:5px 11px;font-size:12px" data-act="hsyncnow">&#9654; '+(scReady?"Sync Apple Health":"2. Sync Apple Health")+'</button>'+
-        '<button class="btn sm sec" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+
-        '<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Health Tab &rarr;</button>'+
-        (showPrompt?'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_never">Never Ask Again</button>':'')+
-      '</div></div>'
-    : '<div class="row between"'+(showPrompt?' id="hsyncprompt"':'')+'><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Strain '+st.strain+'/21</span></div>'+
-      '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 10px;font-size:12px" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Health Tab &rarr;</button>'+(showPrompt?'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_never">Never Ask Again</button>':'')+'</div></div>';
+  const topConnectBar = '<div class="row between"'+(showPrompt?' id="hsyncprompt"':'')+'>'+
+    '<div class="row" style="gap:6px">'+
+      '<span class="apple-pill">&#9829; Apple Health</span>'+
+      (th.authoritative
+        ? '<span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Strain '+st.strain+'/21</span>'
+        : '<span class="small muted">iPhone Shortcut linked</span>')+
+    '</div>'+
+    '<div class="row" style="gap:6px">'+
+      '<button class="btn sm'+(th.authoritative?' sec':'')+'" style="padding:5px 11px;font-size:12px" data-act="hsyncnow">Sync Apple Health</button>'+
+      '<button class="btn sm sec" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"Done":"Edit Steps")+'</button>'+
+      stopBtn+
+      '<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Health &rarr;</button>'+
+      (showPrompt?'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_never">Never Ask Again</button>':'')+
+    '</div></div>';
   return '<div class="health-strip">'+
     topConnectBar+
     '<div class="today-health-grid">'+
@@ -2780,26 +2780,30 @@ function renderHealth(){
     ? '<button class="btn sm sec" style="color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
     : '';
   const showPrompt = shouldShowHealthDailyPrompt();
-  const setupDrawer = (state.healthSetupOpen || !th.authoritative)
-    ? '<div class="sc-cta'+(th.authoritative?" synced":"")+'"'+(showPrompt?' id="hsyncprompt"':'')+'>'+
-        '<div class="row between"><div><span class="eyebrow" style="color:'+(th.authoritative?"var(--good)":"#E11D48")+'">'+(th.authoritative?"Apple Health iPhone Shortcut Connected":"Step-by-Step iPhone Setup &amp; Live Sync")+'</span>'+
-        '<h3 style="margin-top:2px">'+(th.authoritative?"Synced Today at "+esc(healthReadingTime(rawToday)||"Latest"):(scReady?"Tap Below to Pull Today&#39;s Apple Health":"Connect Apple Health in 2 Quick Steps"))+'</h3></div>'+
-        '<span class="chip '+(th.authoritative?"good":"warn")+'">'+(th.authoritative?"Connected":(scReady?"Shortcut Ready":"Setup First"))+'</span></div>'+
-        '<p class="small muted">'+(th.authoritative
-          ? "Your iPhone Shortcut is linked. Tap <b>Sync Apple Health</b> anytime to pull fresh Steps, Calories, Heart Rate &amp; HRV, or set a Shortcuts <b>Personal Automation</b> (Time of Day, Run Immediately) for background updates."
-          : "Apple sandboxes HealthKit from web browsers. <b>Step 1 (one-time):</b> Tap <b>1. Install iOS Health Bridge</b> and press <b>Add Shortcut</b>. <b>Step 2:</b> Tap <b>2. Sync Apple Health Now</b> to run the Shortcut and pull your live readings.")+'</p>'+
-        '<div class="row" style="gap:8px">'+
-          '<a class="btn sm" style="'+(scReady&&th.authoritative?"":"background:#E11D48;color:#fff")+'" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; '+(scReady?"Reinstall iOS Health Bridge":"1. Install iOS Health Bridge")+'</a>'+
-          '<button class="btn sm" data-act="hsyncnow">&#9654; '+(scReady?"Sync Apple Health Now":"2. Sync Apple Health Now")+'</button>'+
-          '<button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+
-          '<button class="btn sm ghost" data-act="hfileopen">&#128194; Import XML/ZIP</button>'+
-          (showPrompt?'<button class="btn sm ghost" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>':'')+
-          stopBtn+
-        '</div>'+
-        '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
-      '</div>'
-    : '<div class="sc-cta synced"><div class="row between"><div class="row" style="gap:8px"><span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span><span class="small muted">'+esc(syncStatus)+'</span></div>'+
-      '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'<a class="btn sm ghost" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; iOS Shortcut</a><button class="btn sm ghost" data-act="hsetuptog">&#9881; Setup Guide</button></div></div><input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden></div>';
+  const setupDrawer = '<div class="sc-cta'+(th.authoritative?" synced":"")+'"'+(showPrompt?' id="hsyncprompt"':'')+'>'+
+    '<div class="row between">'+
+      '<div class="row" style="gap:8px">'+
+        '<span class="chip '+(th.authoritative?"good":"sh")+'">'+(th.authoritative?"&#10003; Apple Health "+esc(healthReadingTime(rawToday)):"iPhone Shortcut Ready")+'</span>'+
+        '<span class="small muted">'+esc(syncStatus)+'</span>'+
+      '</div>'+
+      '<div class="row" style="gap:6px">'+
+        '<button class="btn sm" data-act="hsyncnow">Sync Apple Health</button>'+
+        '<button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"Done":"Edit Steps")+'</button>'+
+        stopBtn+
+        '<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Cancel":"Shortcut Options")+'</button>'+
+        (showPrompt?'<button class="btn sm ghost" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>':'')+
+      '</div>'+
+    '</div>'+
+    '<div class="sc-setup"'+(state.healthSetupOpen?'':' hidden')+'>'+
+      '<span class="small muted">Update or reinstall the <b>Sync Apple Health</b> shortcut in iOS Shortcuts (opens with a Cancel/Done bar), or import an Apple Health export file:</span>'+
+      '<div class="row" style="gap:8px">'+
+        '<a class="btn sm sec" href="https://raw.githubusercontent.com/HusseinBdeir/fitness/main/Sync-Apple-Health.shortcut" target="_blank" rel="noopener external" data-act="hinstallsc">Update / Install Shortcut</a>'+
+        '<button class="btn sm ghost" data-act="hfileopen">Import XML / ZIP</button>'+
+        '<button class="btn sm ghost" data-act="hsetuptog">Cancel</button>'+
+      '</div>'+
+    '</div>'+
+    '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
+  '</div>';
 
   /* 1. Hero: Top Shortcut & Sync Action Box FIRST + Activity Rings + Comprehensive Wellness Index */
   const hero = '<div class="card health-hero stack">'+
@@ -3250,8 +3254,22 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="pushsync"){ toast("Refreshing 14-day notification schedule..."); await syncPushSchedule(); toast("Notification schedule synced to cloud!"); }
   else if(a==="pushhintno"){ lsSet("ubp.pushhint",1); render(); }
   else if(a==="subnav"){ state.sub=state.sub||{}; state.sub[b.dataset.tab||state.tab]=b.dataset.sub||"all"; render(); if(state.tab==="log"||state.tab==="health") bindSparks(); }
-  else if(a==="hinstallsc"){ setHealthSyncPrefs({shortcutInstalled:true}); toast("Step 1: Tap 'Add Shortcut' when iOS opens it, then come back and tap '2. Sync Apple Health Now'."); }
-  else if(a==="hedittog"){ state.healthEdit=!state.healthEdit; render(); }
+  else if(a==="hinstallsc"){
+    if(state.plan) state.plan.bio=Object.assign(clone(DEFAULT_BIO),state.plan.bio||{},{shortcutReady:true,_scV2:1});
+    setHealthSyncPrefs({shortcutInstalled:true,shortcutReady:true});
+    state.healthSetupOpen=false;
+    savePlan();
+    render();
+    toast("Tap 'Add Shortcut' (or 'Replace') when iOS opens it, or tap Done in the top-left corner to cancel.");
+  }
+  else if(a==="hedittog"){
+    state.healthEdit=!state.healthEdit;
+    render();
+    if(state.healthEdit){
+      const el=document.querySelector('input[data-hf="steps"]');
+      if(el&&el.focus) el.focus();
+    }
+  }
   else if(a==="hsetuptog"){ state.healthSetupOpen=!state.healthSetupOpen; render(); }
   else if(a==="htrend"){ state.healthTrendMetric=b.dataset.m||"steps"; render(); bindSparks(); }
   else if(a==="hsyncnow"||a==="hwritetoday"){
