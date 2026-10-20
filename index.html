@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=13.11">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.11">
-<link rel="apple-touch-icon" href="icon-180.png?v=13.11">
+<link rel="manifest" href="manifest.json?v=14.0">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.0">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.0">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -89,7 +89,8 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .between{justify-content:space-between}
 .stack{display:flex;flex-direction:column;gap:10px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:420px){.grid2{grid-template-columns:1fr}}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:420px){.grid3{grid-template-columns:repeat(3,1fr)}}
 .tile{background:var(--sunk);border-radius:8px;padding:12px;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
@@ -129,7 +130,8 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .wknav .mid{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;text-align:center}
 .wknav .r{text-align:right}
 .sug.repeat{background:var(--warn-soft);color:var(--warn)}
-input[type=text],input[type=number],input[type=date],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 9px;min-width:0;width:100%}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 9px;min-width:0;max-width:100%;width:100%;min-height:38px}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block}
 input[type=number]{font-variant-numeric:tabular-nums}
 input::placeholder{color:var(--muted);opacity:.7}
 textarea{min-height:64px;resize:vertical}
@@ -322,6 +324,40 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .sec-hdr .sec-lbl{font-family:var(--display);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .sec-hdr .sec-line{flex:1;height:1px;background:var(--line)}
 
+
+/* ---------- v14 AI Personal Trainer, Consistent Log Station & Smart Planner Styles ---------- */
+.ai-coach-card{border:1.5px solid var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--surface) 74%);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 6px 20px -10px rgba(29,85,163,.25)}
+.ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 9px;border-radius:999px;background:var(--accent);color:var(--accent-ink)}
+.ai-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:600px){.ai-grid{grid-template-columns:1fr}}
+.ai-directive{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:9px 11px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.ai-directive.good{border-left-color:var(--good)}
+.ai-directive.warn{border-left-color:var(--warn)}
+.ai-directive b{font-size:13px;color:var(--fg)}
+.ai-directive span{font-size:12px;color:var(--muted);line-height:1.35}
+.hold-banner{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px 12px;align-items:flex-start!important}
+.hold-banner input[type=checkbox]{margin-top:2px;flex-shrink:0}
+.exrow{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:10px}
+.exrow:first-child{border-top:1px solid var(--line);padding-top:12px;margin-top:0}
+.ex-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-family:var(--display);font-weight:700;font-size:13px;margin-right:6px;vertical-align:middle}
+.starter-cal{background:var(--surface);border:1px dashed var(--accent);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.swap-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:4px}
+@media (max-width:520px){.swap-grid{grid-template-columns:1fr}}
+.swap-cat{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.swap-cat .sc-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.coach-drawer{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+.coach-drawer summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--accent);list-style:none;display:flex;align-items:center;justify-content:space-between}
+.coach-drawer summary::-webkit-details-marker{display:none}
+.coach-box{background:var(--sunk);border-radius:8px;padding:10px 12px;margin-top:8px;display:flex;flex-direction:column;gap:6px;font-size:12.5px}
+.prog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:580px){.prog-grid{grid-template-columns:1fr}}
+.prog-card{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;min-width:0}
+.audit-strip{display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px;background:var(--sunk);border-radius:8px;align-items:center;justify-content:space-between}
+.bp-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media (max-width:620px){.bp-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:380px){.bp-steps{grid-template-columns:1fr}}
+.bp-step{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.bp-step .bp-n{font-family:var(--display);font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -418,7 +454,41 @@ const EX = {
   catcow:{n:"Cat-cow and thoracic rotation",g:"Stretch",t:"stretch",eq:"body",d:1,q:"cat cow thoracic rotation mobility",steps:["On hands and knees: arch the back up, then let it sag, 10 slow reps.","Then one hand behind the head, rotate the elbow up to the ceiling, 10 each side.","Keeps the upper back moving so the shoulders do not have to compensate."]},
   childpose:{n:"Child's pose",g:"Stretch",t:"stretch",eq:"body",d:1,q:"childs pose stretch lats",steps:["Knees wide, sit the hips back to the heels, arms reaching forward on the floor.","Press the chest toward the floor, breathe slowly.","Hold 45 to 60 seconds. Walk the hands to one side to hit each lat."]},
   hipflex:{n:"Hip flexor and hamstring stretch (football days)",g:"Stretch",t:"stretch",eq:"body",d:1,q:"hip flexor and hamstring stretch after football",steps:["Half-kneeling, push the hips forward until the front of the back hip stretches. 30 seconds each side.","Then one leg straight on a step, hinge forward with a flat back for the hamstring. 30 seconds each side.","Do this after matches, not before heavy lifting."]},
-  foam:{n:"Foam rolling (upper back, lats)",g:"Stretch",t:"stretch",eq:"body",d:1,q:"foam rolling upper back and lats",steps:["Roller across the upper back, arms crossed, roll slowly from the shoulder blades to the mid back.","Lie on your side with the roller under the armpit for the lats.","1 to 2 minutes per area, slow, on the sore spots."]}
+  foam:{n:"Foam rolling (upper back, lats)",g:"Stretch",t:"stretch",eq:"body",d:1,q:"foam rolling upper back and lats",steps:["Roller across the upper back, arms crossed, roll slowly from the shoulder blades to the mid back.","Lie on your side with the roller under the armpit for the lats.","1 to 2 minutes per area, slow, on the sore spots."]},
+  kneepushup:{n:"Incline or knee push-up",g:"Chest",t:"push",eq:"body",d:1,q:"incline push up beginner form",steps:["Hands on a bench, sturdy table, or floor with knees down and body in a straight line from head to knees.","Brace your abs and glutes so the hips do not sag.","Lower your chest to the edge or floor over 2 full seconds, elbows tucked at 45 degrees.","Press back to straight arms. Move to full floor push-ups once 3 x 12 is comfortable."]},
+  cablefly:{n:"Seated cable chest fly",g:"Chest",t:"push",eq:"gym",d:1,q:"seated cable chest fly form",steps:["Set both pulleys at mid-chest height and sit tall against the pad.","With a slight bend in the elbows, bring your hands together in a wide hug arc.","Squeeze the inner chest for 1 second where the hands meet.","Return slowly for 2 seconds until you feel a gentle stretch across the pecs."]},
+  pecdeck:{n:"Pec deck machine fly",g:"Chest",t:"push",eq:"gym",d:1,q:"pec deck machine fly form",steps:["Adjust the seat so the handles line up with mid-chest.","Pin your shoulder blades back into the pad and keep elbows slightly soft.","Bring the handles together smoothly and pause 1 second at peak contraction.","Lower back under control without letting the weight stack slam."]},
+  inclinebench:{n:"Incline barbell bench press",g:"Chest",t:"push",eq:"gym",d:2,q:"incline barbell bench press form",steps:["Set the bench to 30 degrees, eyes under the bar, feet planted firmly.","Retract your shoulder blades and take a grip slightly wider than shoulder width.","Lower the bar under control for 2 seconds to the upper chest (collarbone area).","Drive the bar up and slightly back without bouncing."]},
+  declinepushup:{n:"Feet-elevated push-up",g:"Chest",t:"push",eq:"body",d:2,q:"decline push up feet elevated form",steps:["Place your feet on a low bench, step, or chair and hands shoulder-width on the floor.","Keep the core braced so your lower back does not arch.","Lower for 2 seconds until your nose or chest is near the floor.","Press forcefully to lockout; this shifts more load onto the upper chest and front shoulders."]},
+  diamondpushup:{n:"Close-grip (diamond) push-up",g:"Chest",t:"push",eq:"body",d:2,q:"diamond push up form triceps chest",steps:["Place hands closer than shoulder width so thumbs and index fingers form a triangle or narrow gap.","Keep elbows tucked close to the ribs as you lower for 2 seconds.","Touch chest to hands, then press to full lockout.","Great bodyweight builder for triceps lockout and inner chest."]},
+  pseudoplanche:{n:"Pseudo-planche push-up",g:"Chest",t:"push",eq:"body",d:3,q:"pseudo planche push up tutorial",steps:["Start in a push-up with hands turned 45 degrees outward and lean your shoulders forward past your wrists.","Keep your protraction and hollow body tight throughout the set.","Lower for 2 seconds keeping the forward lean, elbows grazing the ribs.","Press back up and protract the shoulder blades at the top."]},
+  ringdip:{n:"Ring or straight-bar dips",g:"Chest",t:"push",eq:"body",d:3,q:"gymnastic ring dips form",steps:["Support yourself at the top with rings turned out or on a straight bar, arms locked and shoulders depressed.","Lean slightly forward and lower slowly for 2 seconds until shoulders reach elbow level.","Keep the rings or elbows tight to the sides so the shoulder joint stays stable.","Press back to full support lockout."]},
+  deadhang:{n:"Active & passive bar hang",g:"Back",t:"pull",eq:"body",d:1,q:"dead hang active hang shoulder health",steps:["Grip the pull-up bar shoulder-width apart with an overhand grip.","Relax into a full hang for 15 seconds to decompress the shoulders and build grip endurance.","Then pull the shoulder blades down into an active hang for 15 seconds.","Foundation step for anyone working toward their first pull-up."]},
+  asspullup:{n:"Assisted pull-up machine",g:"Back",t:"pull",eq:"gym",d:1,q:"assisted pull up machine form",steps:["Select a counterweight that lets you complete 8 to 12 smooth reps and kneel on the pad.","Take an overhand grip slightly wider than shoulders and start from a full hang.","Depress the shoulder blades first, then drive elbows down to bring your chin over the bar.","Lower for 2 full seconds. Reduce the assistance weight by one pin when you hit 3 x 12."]},
+  closegrip_pulldown:{n:"Close-grip neutral lat pulldown",g:"Back",t:"pull",eq:"gym",d:1,q:"close grip v bar lat pulldown form",steps:["Attach the V-handle or neutral-grip bar and lock your thighs under the pad.","Lean back 10 degrees, chest proud, and pull the handle to your lower sternum.","Drive elbows down and back, squeezing the lower lats for 1 second.","Let the arms extend all the way up under control for a full lat stretch."]},
+  tbarrow:{n:"T-bar or landmine row",g:"Back",t:"pull",eq:"gym",d:2,q:"t bar row form",steps:["Straddle the bar, hinge at the hips to a 45-degree torso angle, and brace your core.","Pull the handle toward your upper abdomen while keeping your spine neutral.","Squeeze the mid-back at the top for a count.","Lower for 2 seconds without jerking the torso."]},
+  pendlay:{n:"Barbell bent-over row",g:"Back",t:"pull",eq:"gym",d:2,q:"barbell bent over row form",steps:["Stand with feet hip-width, hinge hips back until torso is 30 to 45 degrees above parallel.","Grip the bar just outside the knees, back flat, core braced hard.","Row the bar into your lower ribs by driving the elbows behind you.","Control the bar down for 2 seconds."]},
+  meadows:{n:"Weighted pull-up (dip belt)",g:"Back",t:"pull",eq:"gym",d:3,q:"weighted pull ups progression",steps:["Attach plates on a dip belt or hold a dumbbell between the feet once 3 x 10 bodyweight pull-ups is clean.","Start from a dead hang, set the scapulae, and pull explosively until the chin clears the bar.","Control the 2-second negative all the way to full extension.","Progress by 2.5 kg whenever all sets reach the top of the rep target."]},
+  frontlever_tuck:{n:"Tuck front-lever row",g:"Back",t:"pull",eq:"body",d:3,q:"tuck front lever row tutorial",steps:["Hang from the bar, pull your knees into a tight tuck, and bring your torso parallel to the ground.","Keeping the hips level with the shoulders, row your body upward toward the bar.","Pause briefly at the top, then lower back to the horizontal tuck hang.","Elite bodyweight horizontal pull for lats and core."]},
+  dbfly_rear:{n:"Chest-supported rear delt fly",g:"Shoulders",t:"pull",eq:"gym",d:1,q:"chest supported rear delt fly dumbbell",steps:["Set an incline bench to 30 degrees and lie chest-down holding light dumbbells.","With arms nearly straight, sweep the elbows out wide toward the ceiling.","Squeeze the back of the shoulders for 1 second without shrugging the traps.","Lower slowly for 2 seconds."]},
+  cablelatraise:{n:"Single-arm cable lateral raise",g:"Shoulders",t:"push",eq:"gym",d:1,q:"cable lateral raise form",steps:["Set the cable pulley at wrist height and stand sideways to the stack.","Raise the cable out to the side in a smooth arc to shoulder height.","Because the cable pulls from the bottom, tension stays constant through the whole range.","Lower over 2 seconds without letting the stack touch."]},
+  bb_ohp:{n:"Standing barbell overhead press",g:"Shoulders",t:"push",eq:"gym",d:2,q:"standing barbell overhead press form",steps:["Unrack the bar at the collarbones, hands just outside shoulders, wrists stacked.","Squeeze glutes and abs tight so the lower back stays neutral.","Press the bar straight overhead, moving your head slightly through once the bar clears the forehead.","Lower under control for 2 seconds back to the collarbones."]},
+  landminepress:{n:"Single-arm landmine press",g:"Shoulders",t:"push",eq:"gym",d:2,q:"single arm landmine shoulder press",steps:["Stand in a staggered stance holding the end of a landmine barbell at shoulder height.","Press the bar up and forward along its natural arc while keeping ribs down.","Reach slightly with the shoulder blade at the top, then lower for 2 seconds.","The angled pressing path is exceptionally friendly on sensitive shoulders."]},
+  handstand_hold:{n:"Wall handstand hold",g:"Shoulders",t:"push",eq:"body",d:2,q:"chest to wall handstand hold progression",steps:["Walk your feet up the wall until your body is angled or chest-to-wall, hands shoulder-width apart.","Push the floor away hard (shrug shoulders toward the ears) and squeeze glutes and abs.","Breathe steadily and hold for 20 to 45 seconds.","Walk down safely before form breaks. Builds the base for handstand push-ups."]},
+  preacher:{n:"Preacher curl (EZ-bar or machine)",g:"Arms",t:"pull",eq:"gym",d:1,q:"preacher curl form",steps:["Adjust the seat so your armpits rest snugly at the top of the preacher pad.","Lower the weight slowly until the arms are nearly straight (do not bounce at the bottom).","Curl up and squeeze the biceps hard for 1 second.","Locks the elbows in place so you cannot cheat with momentum."]},
+  ezcurl:{n:"EZ-bar standing curl",g:"Arms",t:"pull",eq:"gym",d:1,q:"ez bar curl form",steps:["Hold the angled grips of the EZ-bar, elbows tucked at your sides.","Curl the bar in a smooth arc without swinging the lower back.","Squeeze at the top, then lower for 2 full seconds.","The semi-supinated grip reduces wrist strain compared to a straight bar."]},
+  inclinecurl:{n:"Incline dumbbell curl",g:"Arms",t:"pull",eq:"gym",d:2,q:"incline dumbbell curl form",steps:["Sit back on a 45-to-60-degree incline bench with arms hanging straight behind your torso.","Keeping elbows pointed at the floor, curl the dumbbells up.","Feel the deep stretch on the long head of the biceps at the bottom of every rep.","Lower for 2 seconds to full extension."]},
+  closegripbench:{n:"Close-grip bench press",g:"Arms",t:"push",eq:"gym",d:2,q:"close grip bench press triceps form",steps:["Lie on the flat bench and grip the bar shoulder-width apart (not touching hands).","Tuck elbows closer to the body as you lower the bar to the lower chest.","Press powerfully to lockout, focusing on driving through the triceps.","Heavy compound builder for triceps mass and pressing lockout."]},
+  deadbug:{n:"Dead bug",g:"Core",t:"core",eq:"body",d:1,q:"dead bug core exercise form",steps:["Lie on your back with arms reaching to the ceiling and knees bent at 90 degrees over the hips.","Flatten your lower back firmly into the floor so no gap remains.","Slowly extend one leg and the opposite arm toward the floor while exhaling.","Return to center and switch sides. Beginner-proof core stability without neck or back strain."]},
+  plank:{n:"Forearm plank hold",g:"Core",t:"core",eq:"body",d:1,q:"perfect forearm plank form",steps:["Forearms on the floor, elbows directly under shoulders, legs straight.","Pull elbows toward your toes while squeezing glutes and quads tight.","Hold a straight line from head to heels while breathing normally.","Count in seconds; move to hollow body holds or ab wheel once 60 seconds is solid."]},
+  cablecrunch:{n:"Kneeling cable crunch",g:"Core",t:"core",eq:"gym",d:1,q:"kneeling cable crunch form",steps:["Kneel below a high pulley holding the rope beside your head.","Hold hips stationary and curl your ribcage down toward your pelvis.","Exhale and pause 1 second at the bottom crunch.","Extend slowly back up until the abs stretch, allowing progressive weight overload."]},
+  abwheel:{n:"Ab wheel rollout",g:"Core",t:"core",eq:"body",d:2,q:"ab wheel rollout form tutorial",steps:["Kneel on a pad holding the wheel under your shoulders, pelvis tucked slightly under (posterior tilt).","Roll forward slowly only as far as you can keep your lower back from arching.","Pull back to the kneeling start by bracing the abs and lats.","High-tension anti-extension core builder."]},
+  toestobar:{n:"Hanging straight-leg raise / toes-to-bar",g:"Core",t:"core",eq:"body",d:3,q:"hanging leg raise strict form",steps:["Hang from the pull-up bar with an active shoulder depression and zero swing.","Keeping legs straight, curl the pelvis up to bring your feet toward the bar.","Pause briefly at the top, then lower for 2 full seconds without swinging.","Top-tier calisthenics core progression after hanging knee raises."]},
+  gobletsquat:{n:"Goblet squat (dumbbell or kettlebell)",g:"Legs",t:"legs",eq:"gym",d:1,q:"goblet squat form beginner",steps:["Hold one dumbbell or kettlebell vertically against your chest, elbows tucked down.","Stand with feet shoulder-width and toes turned out 15 degrees.","Sit straight down between your hips until thighs pass parallel, keeping your chest tall.","Drive through the whole foot to stand. The front load naturally teaches upright squat posture."]},
+  legext:{n:"Seated leg extension",g:"Legs",t:"legs",eq:"gym",d:1,q:"leg extension machine form",steps:["Set the back pad so the knee joint aligns with the machine pivot and pad rests on the lower shin.","Grip the side handles, extend the knees smoothly to full straightening.","Hold the quad squeeze at the top for 1 full second.","Lower over 2 seconds under control."]},
+  glute_bridge:{n:"Bodyweight glute bridge",g:"Legs",t:"legs",eq:"body",d:1,q:"glute bridge form beginner",steps:["Lie on your back with knees bent, feet flat hip-width apart, heels a hand-length from glutes.","Brace your abs and drive through your heels to lift hips into a straight line.","Squeeze glutes hard at the top for 2 seconds without overarching the lower back.","Lower slowly and repeat; progress to single-leg or barbell hip thrust."]},
+  hack_squat:{n:"Hack squat or pendulum squat",g:"Legs",t:"legs",eq:"gym",d:2,q:"hack squat machine form",steps:["Shoulders under the pads, lower back pressed flat into the sled, feet shoulder-width.","Release the safeties and lower over 2 seconds until hips are below the knees.","Drive back up through mid-foot without snapping the knees at lockout.","Back support removes spinal fatigue so you can safely push quad hypertrophy."]},
+  pistol:{n:"Assisted or full pistol squat",g:"Legs",t:"legs",eq:"body",d:3,q:"pistol squat progression tutorial",steps:["Stand on one leg with the other leg extended forward; hold a doorframe or pole for light balance if learning.","Sit down slowly on the working leg while keeping the heel planted flat.","Pause at the bottom, then drive through the whole foot to stand tall.","Advanced single-leg strength, balance, and ankle mobility test."]}
 };
 
 /* v8: difficulty level per exercise. 1 = Beginner (learn the pattern, low skill), 2 = Intermediate (needs control and a base of strength), 3 = Advanced (high strength or skill demand). Same data for every person. */
@@ -451,7 +521,7 @@ const DEFAULT_SESSIONS = {
 };
 const DEFAULT_NOTIF = {enabled:false,rest:true,morning:true,morningHour:9,evening:true,eveningHour:20};
 const DEFAULT_BIO = {age:28,heightCm:180,sex:"M",bodyFat:"",shortcutReady:true,_scV2:1};
-const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF,health:{},bio:DEFAULT_BIO};
+const DEFAULT_PLAN = {v:2,track:"gym",goal:"gain",legs:false,ups:2,expLevel:2,sports:{s1:"football",s2:"padel"},week:{Mon:"A",Tue:"rest",Wed:"football",Thu:"B",Fri:"rest",Sat:"sport",Sun:"football"},overrides:{},sessions:DEFAULT_SESSIONS,blockStart:null,bodyweight:85,daily:{},weightLog:[],notif:DEFAULT_NOTIF,health:{},bio:DEFAULT_BIO};
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const clone = o => JSON.parse(JSON.stringify(o));
 const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -466,8 +536,8 @@ const repLabel = u => u==="s"?"sec":"reps";
 
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
-const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null,sub:{today:"all",health:"all",log:"all",plan:"all"}};
+const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",exp:"2",s1:"football",s2:"padel",fb:[],sp:[]});
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null,sub:{today:"all",health:"all",log:"all",plan:"all",guide:"all"},aiMode:"optimal",openPlanSwap:{},blueprintOpen:null};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -525,6 +595,8 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   });
   out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
   if(!out.bio._scV2){ out.bio.shortcutReady=true; out.bio._scV2=1; }
+  out.sports=Object.assign({s1:"football",s2:"padel"},(p.sports&&typeof p.sports==="object")?p.sports:{});
+  out.expLevel=[1,2,3].includes(+p.expLevel)?+p.expLevel:2;
   return out; }
 function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",sub:{today:"all",health:"all",log:"all",plan:"all"},pending:{plan:false,sessions:{}}}); }
 
@@ -994,6 +1066,15 @@ async function createProfile(name,pin,bw,setup){ name=String(name||"").trim(); c
   state.login=LOGIN0();
   await enterProfile(pid);
   const su=setup||{}; state.plan.bodyweight=+bw||DEFAULT_PLAN.bodyweight; state.plan.track=TRACK_NAMES[su.where]?su.where:"gym"; state.plan.goal=GOALS[su.goal]?su.goal:"gain"; state.plan.legs=!!su.legs; state.plan.ups=+su.ups===3?3:2;
+  state.plan.expLevel=[1,2,3].includes(+su.exp)?+su.exp:2;
+  state.plan.sports={s1:SPORT_CATALOG[su.s1]?su.s1:"football", s2:SPORT_CATALOG[su.s2]?su.s2:"padel"};
+  if(state.plan.expLevel===1){
+    const begGym=WORKOUT_LIBRARY.find(w=>w.id==="beg_gym"), begBody=WORKOUT_LIBRARY.find(w=>w.id==="beg_body");
+    if(begGym&&begBody) state.plan.sessions={gym:clone(begGym.sessions),body:clone(begBody.sessions)};
+  } else if(state.plan.expLevel===3){
+    const advGym=WORKOUT_LIBRARY.find(w=>w.id==="adv_gym"), advBody=WORKOUT_LIBRARY.find(w=>w.id==="adv_body");
+    if(advGym&&advBody) state.plan.sessions={gym:clone(advGym.sessions),body:clone(advBody.sessions)};
+  }
   state.plan.week=buildWeek({ups:state.plan.ups,legs:state.plan.legs,football:su.fb||[],sport:su.sp||[]}); savePlan(); render(); toast("Welcome, "+name+". Your week is set: "+DAYS.filter(d=>liftOf(state.plan.week[d])).map(d=>d+" "+liftOf(state.plan.week[d])).join(", ")+". Change anything in Plan."); return pid; }
 function updateProfile(patch){ const p=curProfile(); if(!p) return; Object.assign(p,patch); lsSet(LS.profiles,state.profiles); if(!state.db) return; const doc={name:p.name,pinHash:p.pinHash||null,created:p.created||new Date().toISOString()}; const ref=profDoc(p.id); queueWrite(()=>ref.set(doc)); }
 async function doOpen(){ const p=state.profiles.find(x=>x.id===state.login.pid); if(!p) return; if(p.pinHash&&!state.user.isOwner){ const h=await pinHash(state.login.pin||""); if(h!==p.pinHash){ toast("Wrong PIN"); return false; } } state.login=LOGIN0(); await enterProfile(p.id); return true; }
@@ -1106,8 +1187,203 @@ const EX_MUSCLES = {
   slhipthrust:{p:["glutes"],s:["hamstrings"],comp:false,swap:["hipthrust","rdl"]},
   nordic:{p:["hamstrings"],s:["glutes"],comp:true,swap:["rdl","legcurl"]},
   slcalf:{p:["calves"],s:[],comp:false,swap:["calf"]},
-  wallsit:{p:["quads"],s:["glutes","calves"],comp:false,swap:["airsquat","bss"]}
+  wallsit:{p:["quads"],s:["glutes","calves"],comp:false,swap:["airsquat","bss"]},
+  kneepushup:{p:["chest"],s:["front_delt","triceps"],comp:false,swap:["pushup","machchest","dbbench"]},
+  cablefly:{p:["chest"],s:["front_delt"],comp:false,swap:["pecdeck","dbbench","pushup"]},
+  pecdeck:{p:["chest"],s:["front_delt"],comp:false,swap:["cablefly","machchest","pushup"]},
+  inclinebench:{p:["chest","front_delt"],s:["triceps"],comp:true,swap:["incdb","bench","declinepushup"]},
+  declinepushup:{p:["chest","front_delt"],s:["triceps","core"],comp:true,swap:["defpushup","wpushup","incdb"]},
+  diamondpushup:{p:["triceps","chest"],s:["front_delt"],comp:false,swap:["chairdips","pushup","closegripbench"]},
+  pseudoplanche:{p:["chest","front_delt"],s:["triceps","core"],comp:true,swap:["archer","wpushup","bench"]},
+  ringdip:{p:["chest","triceps"],s:["front_delt","core"],comp:true,swap:["dips","chairdips","defpushup"]},
+  deadhang:{p:["lats","traps"],s:["biceps"],comp:false,swap:["scappull","negpullup","latpull"]},
+  asspullup:{p:["lats"],s:["biceps","traps"],comp:true,swap:["latpull","bandpullup","negpullup"]},
+  closegrip_pulldown:{p:["lats"],s:["biceps","traps"],comp:true,swap:["latpull","chinup","cablerow"]},
+  tbarrow:{p:["traps","lats"],s:["rear_delt","biceps"],comp:true,swap:["csrow","pendlay","sarow"]},
+  pendlay:{p:["traps","lats"],s:["rear_delt","biceps"],comp:true,swap:["csrow","tbarrow","bodbrow"]},
+  meadows:{p:["lats","traps"],s:["biceps","core"],comp:true,swap:["pullup","chinup","latpull"]},
+  frontlever_tuck:{p:["lats","traps"],s:["core","biceps"],comp:true,swap:["invrow","pullup","cablerow"]},
+  dbfly_rear:{p:["rear_delt","traps"],s:[],comp:false,swap:["facepull","bandfacepull","scappull"]},
+  cablelatraise:{p:["side_delt"],s:["traps"],comp:false,swap:["latraise","machshoulder","dbohp"]},
+  bb_ohp:{p:["front_delt","side_delt"],s:["triceps","core"],comp:true,swap:["dbohp","stdbohp","landminepress"]},
+  landminepress:{p:["front_delt","side_delt"],s:["triceps","chest"],comp:true,swap:["dbohp","machshoulder","pike"]},
+  handstand_hold:{p:["front_delt","side_delt"],s:["triceps","core"],comp:false,swap:["pike","elevpike","hspu"]},
+  preacher:{p:["biceps"],s:[],comp:false,swap:["curl","ezcurl","hammer"]},
+  ezcurl:{p:["biceps"],s:[],comp:false,swap:["curl","preacher","hammer"]},
+  inclinecurl:{p:["biceps"],s:[],comp:false,swap:["curl","ezcurl","chinup"]},
+  closegripbench:{p:["triceps","chest"],s:["front_delt"],comp:true,swap:["dips","pushdown","skull"]},
+  deadbug:{p:["core"],s:[],comp:false,swap:["plank","hollow","kneeraise"]},
+  plank:{p:["core"],s:["front_delt"],comp:false,swap:["deadbug","hollow","plankpush"]},
+  cablecrunch:{p:["core"],s:[],comp:false,swap:["kneeraise","abwheel","plank"]},
+  abwheel:{p:["core"],s:["lats"],comp:false,swap:["hollow","plankpush","kneeraise"]},
+  toestobar:{p:["core"],s:["lats"],comp:true,swap:["kneeraise","abwheel","hollow"]},
+  gobletsquat:{p:["quads","glutes"],s:["core"],comp:true,swap:["legpress","squat","airsquat"]},
+  legext:{p:["quads"],s:[],comp:false,swap:["gobletsquat","legpress","lunge"]},
+  glute_bridge:{p:["glutes"],s:["hamstrings"],comp:false,swap:["slhipthrust","hipthrust","rdl"]},
+  hack_squat:{p:["quads","glutes"],s:["hamstrings"],comp:true,swap:["squat","legpress","gobletsquat"]},
+  pistol:{p:["quads","glutes"],s:["hamstrings","calves"],comp:true,swap:["bss","revlunge","squat"]}
 };
+
+/* ---------- v14 Universal Sport Catalog, AI Personal Trainer, Exercise Coaching & Smart Swaps ---------- */
+const SPORT_CATALOG = {
+  football:{n:"Football",g:"&#9917;",load:"legs",tip:"Heavy lower-body sprint load. Keep heavy leg sessions 48h before kick-off; upper body is fine."},
+  padel:{n:"Padel / Racket Sport",g:"&#127934;",load:"shoulder",tip:"High shoulder & forearm volume. Keep face pulls and scapular rows in every session."},
+  running:{n:"Running / Jogging",g:"&#127939;",load:"legs",tip:"Impact cardio load. Space hard interval runs away from heavy squats/RDLs and hydrate well."},
+  cycling:{n:"Cycling / Spin",g:"&#128692;",load:"legs",tip:"Concentric quad endurance. Great low-impact cardio partner alongside upper-body lifting."},
+  swimming:{n:"Swimming",g:"&#127946;",load:"upper",tip:"High lat and shoulder endurance demand. Tick Hold on pressing/pulling if swimming hard the same day."},
+  basketball:{n:"Basketball",g:"&#127936;",load:"legs",tip:"High jump & change-of-direction load. Protect knees and Achilles with controlled eccentric reps."},
+  combat:{n:"Boxing / Martial Arts",g:"&#129354;",load:"upper",tip:"High shoulder & rotational core fatigue. Keep lifting sets 1-2 reps shy of failure on sparring weeks."},
+  hiit:{n:"HIIT / CrossFit / Circuit",g:"&#9889;",load:"full",tip:"High systemic CNS & metabolic demand. Leave a recovery day before heavy compound PR attempts."},
+  yoga:{n:"Yoga / Pilates / Mobility",g:"&#129496;",load:"recovery",tip:"Active recovery & mobility. Pairs well with any lifting or rest day."},
+  sport:{n:"Padel / other sport",g:"&#127934;",load:"mixed",tip:"Keep hydrated and adjust lifting load with the Hold box if tired."}
+};
+function getUserSports(p){
+  p=p||state.plan||DEFAULT_PLAN;
+  const s=p.sports||{};
+  return {s1:SPORT_CATALOG[s.s1]?s.s1:"football", s2:SPORT_CATALOG[s.s2]?s.s2:"padel"};
+}
+function sportLabelFor(kind, shortMode){
+  const sp=getUserSports();
+  if(kind==="football"){
+    const k=sp.s1;
+    if(k==="football") return "Football";
+    return SPORT_CATALOG[k]?SPORT_CATALOG[k].n:"Football";
+  }
+  if(kind==="sport"){
+    const k=sp.s2;
+    if(k==="padel"||k==="sport") return shortMode?"Padel / sport":"Padel / other sport";
+    return SPORT_CATALOG[k]?SPORT_CATALOG[k].n:"Padel / sport";
+  }
+  return kind;
+}
+function sportGlyphFor(kind){
+  const sp=getUserSports();
+  const k = kind==="football" ? sp.s1 : sp.s2;
+  return (SPORT_CATALOG[k]&&SPORT_CATALOG[k].g) || (kind==="football"?"&#9917;":"&#127934;");
+}
+
+/* AI Starter Weight Estimator for first-time exercises (so beginners never guess) */
+const STARTER_BW_RATIOS = {
+  bench:0.55, inclinebench:0.45, closegripbench:0.45, dbbench:0.20, incdb:0.18, floorpress:0.18,
+  machchest:0.45, cablefly:0.15, pecdeck:0.35,
+  csrow:0.45, latpull:0.50, closegrip_pulldown:0.50, asspullup:0.25, sarow:0.22, bodbrow:0.18,
+  cablerow:0.45, tbarrow:0.45, pendlay:0.50, sapull:0.22, pullover:0.18,
+  dbohp:0.16, stdbohp:0.14, arnold:0.14, machshoulder:0.35, bb_ohp:0.38, landminepress:0.25,
+  latraise:0.08, cablelatraise:0.07, facepull:0.18, dbfly_rear:0.07,
+  pushdown:0.20, ohtri:0.16, skull:0.10, curl:0.12, hammer:0.12, preacher:0.18, ezcurl:0.22, inclinecurl:0.10,
+  cablecrunch:0.35,
+  squat:0.65, legpress:1.10, hack_squat:0.75, gobletsquat:0.22, rdl:0.55, lunge:0.14, legcurl:0.35, legext:0.40, hipthrust:0.65, calf:0.50
+};
+function estimateStarterWeights(exKey){
+  const bw=+state.plan.bodyweight||80;
+  const ratio=STARTER_BW_RATIOS[exKey]||0.25;
+  const base=Math.max(2.5, rnd(bw*ratio));
+  const light=Math.max(2.5, rnd(base*0.8));
+  const exp=Math.max(5, rnd(base*1.2));
+  const perHand=/dbbench|incdb|floorpress|sarow|bodbrow|dbohp|stdbohp|arnold|latraise|dbfly_rear|curl|hammer|inclinecurl|skull|lunge/.test(exKey);
+  return {light, base, exp, perHand};
+}
+
+/* Categorized Smart Swaps: 1) Easier / Beginner Regression, 2) Harder / Next Progression, 3) Joint-Friendly, 4) Equipment / Busy-Station */
+const SMART_SWAPS = {
+  bench:{easier:["dbbench","machchest","pushup"],harder:["inclinebench","wpushup"],joint:["dbbench","floorpress","machchest"],equip:["dbbench","machchest","pushup"]},
+  dbbench:{easier:["machchest","kneepushup","pushup"],harder:["bench","incdb"],joint:["floorpress","machchest"],equip:["bench","machchest","pushup"]},
+  incdb:{easier:["machchest","dbbench","pushup"],harder:["inclinebench","declinepushup"],joint:["landminepress","machchest"],equip:["inclinebench","cablefly","declinepushup"]},
+  machchest:{easier:["kneepushup","pushup"],harder:["dbbench","bench"],joint:["floorpress","pecdeck"],equip:["dbbench","bench","pushup"]},
+  pushup:{easier:["kneepushup","machchest"],harder:["defpushup","declinepushup","wpushup"],joint:["kneepushup","floorpress"],equip:["dbbench","machchest","chairdips"]},
+  kneepushup:{easier:["wallslide"],harder:["pushup","slowpushup"],joint:["machchest"],equip:["pushup","machchest"]},
+  defpushup:{easier:["pushup","kneepushup"],harder:["declinepushup","wpushup","archer"],joint:["pushup"],equip:["incdb","dbbench"]},
+  wpushup:{easier:["pushup","defpushup"],harder:["archer","pseudoplanche","ringdip"],joint:["pushup"],equip:["bench","dbbench"]},
+  archer:{easier:["wpushup","defpushup","pushup"],harder:["pseudoplanche"],joint:["defpushup","pushup"],equip:["dbbench","bench"]},
+  dips:{easier:["chairdips","pushdown","pushup"],harder:["ringdip","closegripbench"],joint:["pushdown","floorpress"],equip:["chairdips","closegripbench","pushdown"]},
+  chairdips:{easier:["kneepushup","pushup"],harder:["dips","diamondpushup"],joint:["pushup"],equip:["pushdown","dips"]},
+  pullup:{easier:["chinup","bandpullup","negpullup","asspullup"],harder:["meadows","frontlever_tuck"],joint:["chinup","closegrip_pulldown","latpull"],equip:["latpull","chinup","invrow"]},
+  chinup:{easier:["bandpullup","negpullup","invrow"],harder:["pullup","meadows"],joint:["closegrip_pulldown","bandpullup"],equip:["latpull","closegrip_pulldown","invrow"]},
+  negpullup:{easier:["deadhang","invrow","towelrow"],harder:["bandpullup","chinup","pullup"],joint:["invrow","latpull"],equip:["asspullup","latpull","invrow"]},
+  bandpullup:{easier:["negpullup","invrow","asspullup"],harder:["chinup","pullup"],joint:["closegrip_pulldown","invrow"],equip:["asspullup","latpull","negpullup"]},
+  invrow:{easier:["towelrow","deadhang"],harder:["chinup","negpullup","frontlever_tuck"],joint:["csrow","cablerow"],equip:["towelrow","csrow","cablerow"]},
+  csrow:{easier:["cablerow","invrow"],harder:["tbarrow","pendlay","sarow"],joint:["cablerow","invrow"],equip:["cablerow","sarow","bodbrow"]},
+  latpull:{easier:["asspullup","sapull"],harder:["closegrip_pulldown","chinup","pullup"],joint:["closegrip_pulldown","cablerow"],equip:["closegrip_pulldown","asspullup","pullup"]},
+  sarow:{easier:["cablerow","csrow"],harder:["tbarrow","pendlay"],joint:["csrow","cablerow"],equip:["csrow","cablerow","bodbrow"]},
+  dbohp:{easier:["machshoulder","landminepress","pike"],harder:["bb_ohp","stdbohp","elevpike"],joint:["landminepress","machshoulder","latraise"],equip:["machshoulder","arnold","stdbohp"]},
+  pike:{easier:["pushup","machshoulder"],harder:["elevpike","handstand_hold","hspu"],joint:["landminepress","latraise"],equip:["dbohp","machshoulder"]},
+  elevpike:{easier:["pike","dbohp"],harder:["handstand_hold","hspu"],joint:["pike","landminepress"],equip:["dbohp","bb_ohp"]},
+  hspu:{easier:["elevpike","handstand_hold","pike"],harder:["bb_ohp"],joint:["pike","dbohp"],equip:["bb_ohp","dbohp"]},
+  latraise:{easier:["bandpullapart","facepull"],harder:["cablelatraise","dbohp"],joint:["cablelatraise","facepull"],equip:["cablelatraise","arnold"]},
+  facepull:{easier:["bandpullapart","bandfacepull"],harder:["dbfly_rear","scappull"],joint:["bandfacepull","bandpullapart"],equip:["bandfacepull","dbfly_rear","scappull"]},
+  pushdown:{easier:["chairdips"],harder:["ohtri","skull","closegripbench","dips"],joint:["ohtri"],equip:["ohtri","skull","chairdips"]},
+  curl:{easier:["hammer","preacher"],harder:["ezcurl","inclinecurl","chinup"],joint:["hammer","ezcurl"],equip:["ezcurl","preacher","hammer"]},
+  squat:{easier:["gobletsquat","legpress","airsquat"],harder:["hack_squat","bss","pistol"],joint:["legpress","hack_squat","gobletsquat"],equip:["legpress","hack_squat","gobletsquat"]},
+  rdl:{easier:["legcurl","glute_bridge"],harder:["hipthrust","nordic"],joint:["legcurl","hipthrust","glute_bridge"],equip:["legcurl","hipthrust","slhipthrust"]},
+  bss:{easier:["revlunge","stepup","airsquat"],harder:["squat","pistol"],joint:["revlunge","stepup","glute_bridge"],equip:["lunge","legpress","gobletsquat"]},
+  kneeraise:{easier:["deadbug","plank","hollow"],harder:["toestobar","abwheel"],joint:["deadbug","plank"],equip:["cablecrunch","hollow","abwheel"]}
+};
+function getSmartSwaps(k){
+  const e=EX[k]; if(!e) return {easier:[],harder:[],joint:[],equip:[],flat:[]};
+  const custom=SMART_SWAPS[k];
+  const metaSwaps=(exMeta(k).swap||[]).filter(x=>EX[x]);
+  const sameGroup=Object.keys(EX).filter(x=>x!==k && EX[x].g===e.g && !/Warm-up|Stretch/.test(EX[x].g));
+  const easier = (custom&&custom.easier ? custom.easier : sameGroup.filter(x=>levelOf(x)<levelOf(k)).concat(sameGroup.filter(x=>levelOf(x)===1))).filter(x=>EX[x]&&x!==k).slice(0,3);
+  const harder = (custom&&custom.harder ? custom.harder : sameGroup.filter(x=>levelOf(x)>levelOf(k)).concat(sameGroup.filter(x=>levelOf(x)>=levelOf(k)))).filter(x=>EX[x]&&x!==k).slice(0,3);
+  const joint = (custom&&custom.joint ? custom.joint : sameGroup.filter(x=>EX[x].eq==="gym"||EX[x].d===1)).filter(x=>EX[x]&&x!==k).slice(0,3);
+  const equip = (custom&&custom.equip ? custom.equip : metaSwaps.concat(sameGroup)).filter(x=>EX[x]&&x!==k).slice(0,3);
+  const flat = Array.from(new Set(metaSwaps.concat(easier,harder,joint,equip))).filter(x=>EX[x]&&x!==k);
+  return {easier, harder, joint, equip, flat};
+}
+function getExerciseCoach(k){
+  const e=EX[k]; if(!e) return null;
+  const d=levelOf(k), m=exMeta(k);
+  const sw=getSmartSwaps(k);
+  const easierNames=sw.easier.map(x=>EX[x].n).slice(0,2).join(" or ");
+  const harderNames=sw.harder.map(x=>EX[x].n).slice(0,2).join(" or ");
+  const mistake = e.t==="push"
+    ? "Flaring elbows to 90 degrees or bouncing out of the bottom — keep elbows tucked ~45 degrees and own a 1-second pause or smooth turnaround."
+    : e.t==="pull"
+    ? "Shrugging shoulders toward the ears and pulling with only the wrists/biceps — depress shoulder blades first and drive through the elbows."
+    : e.t==="legs"
+    ? "Letting heels lift or knees cave inward — tripod your whole foot into the floor and brace your core before descending."
+    : "Letting the lower back arch as fatigue builds — keep ribs tucked toward the pelvis and stop the set the moment posture slips.";
+  const improve = m.comp
+    ? "Film 1 working set from a 45-degree side angle to check depth and bar/body path. Focus on a controlled 2-second lowering phase and explosive drive up."
+    : "Focus on peak muscular contraction rather than ego weight: pause for 1 full second at the squeeze point of every rep.";
+  const progress = (e.eq==="body")
+    ? "Add 1 clean rep per session across your sets. Once you hit the top of the rep target on all sets, level up to "+(harderNames||"the next rung on the ladder")+(easierNames?" (or regress to "+easierNames+" if you cannot hit minimum reps with strict form).":".")
+    : "Double progression: keep the weight fixed until every set hits the top of the rep range with 1-2 reps in reserve, then add 2.5-5 kg next session"+(easierNames?" (swap to "+easierNames+" if joints feel pinchy).":".");
+  return {improve, mistake, tempo:"2 sec controlled eccentric (inhale) · 1 sec squeeze · 1 sec concentric drive (exhale)", progress};
+}
+
+/* Curated Beginner -> Intermediate -> Advanced Programmes for Library & 1-Tap Plan Presets */
+const WORKOUT_LIBRARY = [
+  {id:"beg_gym", tier:1, track:"gym", title:"Beginner Gym Foundation (Machine & DB Friendly)", dur:"35-40 min", tag:"Level 1 · Zero Experience Needed", desc:"Low-skill, high-stability movements that teach pushing, pulling, and bracing safely without complex barbell balance.",
+   sessions:{
+     A:[it("dbbench",3,8,12,{note:"Beginner friendly main press. 2 seconds down."}),it("csrow",3,10,12,{note:"Chest on pad removes lower-back strain."}),it("machshoulder",3,10,12,{note:"Guided overhead path."}),it("latpull",3,10,12,{note:"Pull to upper chest."}),it("pushdown",2,12,15)],
+     B:[it("asspullup",3,8,12,{note:"Assisted pull-up or lat pulldown."}),it("machchest",3,10,12,{note:"Controlled chest press."}),it("cablerow",3,10,12,{note:"Sit tall, squeeze shoulder blades."}),it("facepull",3,15,20,{note:"Shoulder posture & health."}),it("curl",2,10,15)],
+     L:[it("gobletsquat",3,8,12,{note:"Hold dumbbell at chest; teaches upright squat."}),it("legpress",3,10,12,{inc:10}),it("legcurl",3,10,15),it("glute_bridge",3,12,15,{unit:"reps"}),it("calf",3,12,15)]
+   }},
+  {id:"beg_body", tier:1, track:"body", title:"Beginner Calisthenics (Zero-to-Pull-Up Blueprint)", dur:"35 min", tag:"Level 1 · Home / Park Bar", desc:"Step-by-step bodyweight regressions so anyone can build up to strict push-ups, chin-ups, and pull-ups from scratch.",
+   sessions:{
+     A:[it("kneepushup",3,8,15,{unit:"reps",note:"Hands on bench/table or knees down. Move to floor push-up at 3x15."}),it("invrow",3,8,12,{unit:"reps",note:"Bar at waist height or towel row."}),it("scappull",3,8,12,{unit:"reps",note:"Builds the shoulder base for pull-ups."}),it("chairdips",3,8,12,{unit:"reps"}),it("deadbug",3,10,12,{unit:"reps"})],
+     B:[it("negpullup",3,4,6,{unit:"reps",note:"5-second slow lowers from top of bar."}),it("pushup",3,6,12,{unit:"reps",note:"Full floor push-up or slow-tempo push-up."}),it("bandpullup",3,6,10,{unit:"reps",note:"Or towel row if no band."}),it("deadhang",3,20,40,{unit:"s",note:"Grip & shoulder decompression."}),it("plank",3,30,45,{unit:"s"})],
+     L:[it("airsquat",3,12,20,{unit:"reps"}),it("revlunge",3,8,12,{unit:"reps",side:true}),it("glute_bridge",3,12,20,{unit:"reps"}),it("stepup",3,10,12,{unit:"reps",side:true}),it("wallsit",3,30,45,{unit:"s"})]
+   }},
+  {id:"int_gym", tier:2, track:"gym", title:"Intermediate Hypertrophy & Strength (Signature Programme)", dur:"45-50 min", tag:"Level 2 · Balanced Push/Pull", desc:"The gold-standard 2-to-3 day upper/lower split pairing heavy compound lifts with targeted shoulder and arm work.",
+   sessions:DEFAULT_SESSIONS.gym},
+  {id:"int_body", tier:2, track:"body", title:"Intermediate Calisthenics Bar & Bodyweight", dur:"45 min", tag:"Level 2 · Pull-Up Bar Mastery", desc:"Full push-ups, chin-ups, pull-ups, pike presses, and split squats using progressive calisthenics leverage.",
+   sessions:DEFAULT_SESSIONS.body},
+  {id:"adv_gym", tier:3, track:"gym", title:"Advanced Strength & Athletic Power", dur:"50-55 min", tag:"Level 3 · High Load & Weighted Bar", desc:"Barbell compounds, weighted pull-ups/dips, and high-tension accessories for experienced lifters chasing elite relative strength.",
+   sessions:{
+     A:[it("bench",4,6,10,{inc:5,note:"Heavy primary press."}),it("pendlay",4,8,10,{inc:5,note:"Strict barbell row."}),it("bb_ohp",3,6,10,{note:"Standing overhead press."}),it("closegrip_pulldown",3,10,12),it("cablelatraise",3,12,15),it("closegripbench",3,8,12)],
+     B:[it("meadows",4,5,8,{unit:"bw",note:"Weighted pull-up on dip belt."}),it("inclinebench",3,8,10,{inc:5}),it("tbarrow",3,8,12),it("dips",3,8,12,{unit:"bw",note:"Add belt weight when 3x12 is clean."}),it("dbfly_rear",3,15,20),it("inclinecurl",3,10,12)],
+     L:[it("squat",4,5,8,{inc:5}),it("rdl",3,8,10,{inc:5}),it("hack_squat",3,10,12,{inc:10}),it("bss",3,8,12,{side:true}),it("nordic",3,4,8,{unit:"reps"}),it("calf",4,12,15)]
+   }},
+  {id:"adv_body", tier:3, track:"body", title:"Advanced Calisthenics Skills (Archer, HSPU & Lever)", dur:"50 min", tag:"Level 3 · High Skill Leverage", desc:"Unilateral pushing, vertical handstand pressing, weighted calisthenics, and pistol/Nordic lower-body mastery.",
+   sessions:{
+     A:[it("archer",3,6,10,{unit:"reps",side:true,note:"Unilateral push progression."}),it("pullup",4,8,12,{unit:"bw",note:"Add backpack weight once at 10 reps."}),it("hspu",3,4,8,{unit:"reps",note:"Wall handstand push-up or elevated pike."}),it("frontlever_tuck",3,6,10,{unit:"reps"}),it("ringdip",3,8,12,{unit:"reps"}),it("toestobar",3,8,12,{unit:"reps"})],
+     B:[it("pullup",4,8,12,{unit:"bw"}),it("pseudoplanche",3,6,10,{unit:"reps",note:"Lean shoulders past wrists."}),it("chinup",3,8,12,{unit:"bw"}),it("elevpike",3,8,12,{unit:"reps"}),it("diamondpushup",3,10,15,{unit:"reps"}),it("abwheel",3,8,15,{unit:"reps"})],
+     L:[it("pistol",3,5,8,{unit:"reps",side:true}),it("nordic",3,5,8,{unit:"reps"}),it("bss",3,10,15,{unit:"reps",side:true}),it("slhipthrust",3,12,15,{unit:"reps",side:true}),it("slcalf",3,15,20,{unit:"reps",side:true})]
+   }}
+];
+
 function exMeta(k){ return EX_MUSCLES[k]||{p:["chest"],s:[],comp:false,swap:[]}; }
 function restSecsFor(k){ return exMeta(k).comp?120:75; }
 
@@ -2485,11 +2761,11 @@ function buildWeek(o){ const ups=+o.ups===3?3:2, legs=!!o.legs, fb=new Set(o.foo
 function withKind(v,k,on){ const ks=dayKinds(v).filter(x=>x!==k); if(on) ks.push(k); return joinKinds(ks); }
 function applyPart(v,part,val){ return part==="lift"?withLift(v,val):withKind(v,part,!!val); }
 function dayLabel(v){ const ks=dayKinds(v); return ks.length?ks.map(sessionLabel).join(" + "):"Rest"; }
-const kindGlyph = k => k==="football"?"&#9917;":k==="sport"?"&#127934;":esc(k);
+const kindGlyph = k => k==="football"?sportGlyphFor("football"):k==="sport"?sportGlyphFor("sport"):esc(k);
 function dayGlyph(v){ const ks=dayKinds(v); return ks.length?ks.map(kindGlyph).join(""):"&ndash;"; }
 function dayEditor(d,label,v,attr){ const l=liftOf(v)||"rest", pre=attr==="data-day"?"wk":"ov";
   return '<div class="dayedit"><label class="f">'+label+'<select '+attr+'="'+d+'" data-part="lift" id="'+pre+d+'">'+["rest","A","B"].concat(state.plan.legs||l==="L"?["L"]:[]).map(k=>'<option value="'+k+'"'+(l===k?" selected":"")+'>'+(k==="rest"?"No lift":sessionTitle(k))+'</option>').join("")+'</select></label>'+
-    '<label class="f inl"><input type="checkbox" '+attr+'="'+d+'" data-part="football" id="'+pre+'f'+d+'"'+(hasKind(v,"football")?" checked":"")+'> Football</label><label class="f inl"><input type="checkbox" '+attr+'="'+d+'" data-part="sport" id="'+pre+'s'+d+'"'+(hasKind(v,"sport")?" checked":"")+'> Padel / sport</label></div>'; }
+    '<label class="f inl"><input type="checkbox" '+attr+'="'+d+'" data-part="football" id="'+pre+'f'+d+'"'+(hasKind(v,"football")?" checked":"")+'> '+esc(sportLabelFor("football",true))+'</label><label class="f inl"><input type="checkbox" '+attr+'="'+d+'" data-part="sport" id="'+pre+'s'+d+'"'+(hasKind(v,"sport")?" checked":"")+'> '+esc(sportLabelFor("sport",true))+'</label></div>'; }
 function viewedWeekStart(){ return addDays(weekStart(isoToday()),7*(state.weekOffset||0)); }
 /* Missed-session rule: count planned A/B days strictly after sinceIso and before today that have no logged session, week by week. */
 function missedSince(sinceIso){
@@ -2571,9 +2847,21 @@ function recommend(e, item, f){
 function recHtml(e,i,rec){
   const u=rec.u, big = rec.loaded ? (rec.w==null?'<span class="u">pick a weight, </span>'+rec.r+'<span class="u"> '+repLabel(u)+'</span>':rec.w+'<span class="u"> '+(u==="bw"?"+kg":"kg")+'</span> &times; '+rec.r+'<span class="u"> '+repLabel(u)+'</span>') : rec.r+'<span class="u"> '+repLabel(u)+'</span>';
   const feel=['easy','ok','hard'].map(v=>'<button class="btn sm ghost '+v+(e.feel===v?" on":"")+'" data-act="feel" data-i="'+i+'" data-v="'+v+'">'+(v==="ok"?"About right":v==="easy"?"Easy":"Hard")+'</button>').join("");
-  return '<div class="top"><div><span class="eyebrow">Recommended now</span><div class="big">'+big+'<span class="u">, '+rec.sets+' sets</span></div></div><div class="feel" role="group" aria-label="How does it feel">'+feel+'</div></div>'+
+  let starterHtml="";
+  if(rec.loaded && rec.w==null && u==="kg"){
+    const est=estimateStarterWeights(e.ex);
+    const unitNote=est.perHand?" kg/hand":" kg";
+    starterHtml='<div class="starter-cal"><div class="row between"><span class="eyebrow" style="color:var(--accent)">&#10024; AI First-Time Weight Calibration ('+(+state.plan.bodyweight||80)+' kg BW)</span><span class="small muted">Tap to pre-fill sets</span></div>'+
+      '<div class="row" style="gap:6px"><button class="btn sm sec" data-act="setstartw" data-i="'+i+'" data-w="'+est.light+'">Light (Form): '+est.light+unitNote+'</button>'+
+      '<button class="btn sm" data-act="setstartw" data-i="'+i+'" data-w="'+est.base+'">AI Recommended: '+est.base+unitNote+'</button>'+
+      '<button class="btn sm sec" data-act="setstartw" data-i="'+i+'" data-w="'+est.exp+'">Experienced: '+est.exp+unitNote+'</button></div></div>';
+  }
+  const nextEmptyIdx = (e.sets||[]).findIndex(s=>!(+s.r>0));
+  const quickLogBtn = nextEmptyIdx>=0 ? '<button class="btn sm sec" data-act="setdone" data-i="'+i+'" data-j="'+nextEmptyIdx+'">&#10003; Log Set '+(nextEmptyIdx+1)+' Now</button>' : '';
+  return '<div class="top"><div><div class="row" style="gap:6px;margin-bottom:2px"><span class="ai-badge">&#10024; AI Coach</span><span class="eyebrow">Recommended now</span></div><div class="big">'+big+'<span class="u">, '+rec.sets+' sets</span></div></div><div class="feel" role="group" aria-label="How does it feel">'+feel+'</div></div>'+
     '<div class="why">'+esc(rec.why.join(" "))+'</div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm ghost" data-act="usesug" data-i="'+i+'">Use as next time</button><button class="btn sm ghost" data-act="fillrec" data-i="'+i+'">Fill the empty sets</button></div>';
+    starterHtml+
+    '<div class="row" style="gap:6px">'+quickLogBtn+'<button class="btn sm ghost" data-act="usesug" data-i="'+i+'">Use as next time</button><button class="btn sm ghost" data-act="fillrec" data-i="'+i+'">Fill the empty sets</button></div>';
 }
 function rcText(rec,j){ const p=rec.per[j]; if(!p) return ""; return (rec.loaded&&p.w!=null&&p.w!==""?'<b>'+p.w+'</b>&times;':'')+'<b>'+p.r+'</b>'; }
 /* Live refresh of one exercise's recommendation without re-rendering the form (keeps the focus in the input). */
@@ -2603,7 +2891,8 @@ function renderLogin(){
   const cards=ps.length?'<div class="people">'+ps.map(p=>'<button class="person'+(L.pid===p.id?" on":"")+'" data-act="pick" data-id="'+esc(p.id)+'"><span class="av">'+esc(initials(p.name))+'</span><span class="nm">'+esc(p.name)+'</span><span class="small muted">'+(p.pinHash?"PIN":"no PIN")+'</span></button>').join("")+'</div>':'<div class="empty">Nobody yet. Add the first person below.</div>';
   let pinBox=''; if(L.pid){ const p=ps.find(x=>x.id===L.pid); if(p){ const need=!!p.pinHash&&!state.user.isOwner;
     pinBox='<div class="card stack" id="pinbox"><span class="eyebrow">'+esc(p.name)+'</span>'+(need?'<label class="f">PIN<input type="text" class="pin" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="lpin" data-l="pin" value="'+esc(L.pin)+'" placeholder="Your PIN"></label>':'<p class="small muted">No PIN needed.</p>')+'<div class="row"><button class="btn" data-act="open">Open</button><button class="btn ghost" data-act="pickno">Back</button></div></div>'; } }
-  const add=L.add?'<div class="card stack"><span class="eyebrow">New person</span><div class="grid2"><label class="f">Name<input type="text" id="lname" data-l="name" value="'+esc(L.name||"")+'" maxlength="40" autocomplete="off" autocapitalize="words"></label><label class="f">Bodyweight (kg)<input type="number" inputmode="decimal" id="lbw" data-l="bw" value="'+esc(L.bw||"")+'" placeholder="e.g. 80"></label></div><div class="grid2"><label class="f">Where do you train?<select id="lwhere" data-l="where">'+selOpts(TRACK_NAMES,L.where||"gym")+'</select></label><label class="f">Goal<select id="lgoal" data-l="goal">'+selOpts(GOALS,L.goal||"gain")+'</select></label></div><div class="grid2"><label class="f">Upper sessions a week<select id="lups" data-l="ups"><option value="2"'+(String(L.ups)!=="3"?" selected":"")+'>2 (A and B)</option><option value="3"'+(String(L.ups)==="3"?" selected":"")+'>3 (A, B, A)</option></select></label><label class="f inl" style="padding-top:18px"><input type="checkbox" id="llegs" data-l="legs"'+(L.legs?" checked":"")+'> Add a Legs day</label></div><label class="f">Football days, if any'+dayPick("fb",L.fb)+'</label><label class="f">Padel or other sport days, if any'+dayPick("sp",L.sp)+'</label><p class="small muted">The lifting days are placed around the sport days, with a day between upper sessions. Calisthenics means bodyweight and a pull-up bar, no dumbbells. Everything can be changed later in Plan.</p><label class="f">PIN, optional (4 to 6 digits)<input type="text" class="pin" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="lnewpin" data-l="newpin" value="'+esc(L.newpin||"")+'" placeholder="Leave empty for no PIN"></label><p class="small muted">The PIN only stops someone else on this link opening your log by accident. It is not a password.</p><div class="row"><button class="btn" data-act="create">Create and open</button><button class="btn ghost" data-act="addno">Cancel</button></div></div>':'<div class="row"><button class="btn sec" data-act="addyes">+ Add a person</button></div>';
+  const sportOpts = selKey => Object.keys(SPORT_CATALOG).filter(k=>k!=="sport").map(k=>'<option value="'+k+'"'+(selKey===k?" selected":"")+'>'+esc(SPORT_CATALOG[k].n)+'</option>').join("");
+  const add=L.add?'<div class="card stack"><span class="eyebrow">New person &middot; Digital Personal Trainer Setup</span><div class="grid2"><label class="f">Name<input type="text" id="lname" data-l="name" value="'+esc(L.name||"")+'" maxlength="40" autocomplete="off" autocapitalize="words"></label><label class="f">Bodyweight (kg)<input type="number" inputmode="decimal" id="lbw" data-l="bw" value="'+esc(L.bw||"")+'" placeholder="e.g. 80"></label></div><div class="grid2"><label class="f">Where do you train?<select id="lwhere" data-l="where">'+selOpts(TRACK_NAMES,L.where||"gym")+'</select></label><label class="f">Goal<select id="lgoal" data-l="goal">'+selOpts(GOALS,L.goal||"gain")+'</select></label></div><div class="grid2"><label class="f">Experience level<select id="lexp" data-l="exp"><option value="1"'+(String(L.exp)==="1"?" selected":"")+'>Beginner (guided starter plan)</option><option value="2"'+(String(L.exp||"2")==="2"?" selected":"")+'>Intermediate (standard progression)</option><option value="3"'+(String(L.exp)==="3"?" selected":"")+'>Advanced (high load &amp; skill)</option></select></label><label class="f">Upper sessions a week<select id="lups" data-l="ups"><option value="2"'+(String(L.ups)!=="3"?" selected":"")+'>2 (A and B)</option><option value="3"'+(String(L.ups)==="3"?" selected":"")+'>3 (A, B, A)</option></select></label></div><label class="f inl"><input type="checkbox" id="llegs" data-l="legs"'+(L.legs?" checked":"")+'> Add a dedicated Legs day</label><div class="grid2"><label class="f">Primary sport / cardio type<select id="ls1" data-l="s1">'+sportOpts(L.s1||"football")+'</select></label><label class="f">Secondary sport / activity<select id="ls2" data-l="s2">'+sportOpts(L.s2||"padel")+'</select></label></div><label class="f">Primary sport / Football days, if any (leave blank for Lifting Only)'+dayPick("fb",L.fb)+'</label><label class="f">Secondary sport / Padel or other sport days, if any'+dayPick("sp",L.sp)+'</label><p class="small muted">The lifting days are placed around the sport days, with a day between upper sessions. Calisthenics means bodyweight and a pull-up bar, no dumbbells. Everything can be changed later in Plan.</p><label class="f">PIN, optional (4 to 6 digits)<input type="text" class="pin" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="lnewpin" data-l="newpin" value="'+esc(L.newpin||"")+'" placeholder="Leave empty for no PIN"></label><p class="small muted">The PIN only stops someone else on this link opening your log by accident. It is not a password.</p><div class="row"><button class="btn" data-act="create">Create and open</button><button class="btn ghost" data-act="addno">Cancel</button></div></div>':'<div class="row"><button class="btn sec" data-act="addyes">+ Add a person</button></div>';
   const note=state.mode==="local"?" This browser is not signed in to the cloud, so everything stays on this device.":(state.mode==="cloud"&&state.user.canWrite===false?" This link lets you view the cloud but not save to it, so your log stays on this device.":"");
   return '<div class="card hero stack"><span class="eyebrow">Who is training?</span><h2>Pick your name</h2><p class="muted">Each person has their own log, plan and recommendations.'+esc(note)+'</p></div>'+installCard()+'<div class="card stack">'+cards+add+'</div>'+pinBox;
 }
@@ -2613,7 +2902,7 @@ function isStandalone(){ try{ return !!((typeof window!=="undefined"&&window.mat
 function installCard(){ if(isStandalone()||lsGet("ubp.installhint")) return ""; const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||""); const ios=/iPhone|iPad|iPod/.test(ua)&&!/CriOS|FxiOS/.test(ua); if(!installEvt&&!ios) return "";
   return '<div class="card stack"><span class="eyebrow">Use it like an app</span><p class="small muted">'+(installEvt?"Install it on your home screen: it opens full screen, keeps the screen on during a session and works offline.":"On iPhone: tap Share, then <b>Add to Home Screen</b>. It opens full screen and works offline.")+'</p><div class="row">'+(installEvt?'<button class="btn sm" data-act="install">Install</button>':"")+'<button class="btn sm ghost" data-act="installno">Not now</button></div></div>'; }
 function dayPick(l,sel){ sel=sel||[]; return '<div class="dayspick">'+DAYS.map(d=>'<label class="dp'+(sel.includes(d)?" on":"")+'"><input type="checkbox" data-l="'+l+'" data-day="'+d+'"'+(sel.includes(d)?" checked":"")+'><span>'+d+'</span></label>').join("")+'</div>'; }
-function sessionLabel(k){ return k==="football"?"Football":k==="sport"?"Padel / other sport":k==="rest"?"Rest":sessionTitle(k); }
+function sessionLabel(k){ return k==="football"?sportLabelFor("football"):k==="sport"?sportLabelFor("sport"):k==="rest"?"Rest":sessionTitle(k); }
 function renderWeekStrip(ws){
   const today=isoToday(), wp=weekPlan(ws), ov=(state.plan.overrides||{})[ws]||{};
   return '<div class="week"><button class="icon-btn" data-act="wk" data-d="-1" aria-label="Previous week"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>'+DAYS.map((d,i)=>{ const iso=addDays(ws,i); const k=wp[d]||"rest", ks=dayKinds(k), extra=ks.filter(x=>x==="football"||x==="sport").map(kindGlyph).join(""); const done=state.sessions.filter(s=>s.date===iso); const doneK=done.length?done.map(s=>s.session).join("+"):null; const missed=!done.length&&iso<today&&!!liftOf(k);
@@ -2632,9 +2921,77 @@ function renderWeekCard(){
     :'<div class="row"><button class="btn sm sec" data-act="weekedit">Edit this week</button></div>';
   return '<div class="card stack">'+nav+renderWeekStrip(ws)+editor+'</div>';
 }
+function renderAICoachCard(){
+  const today=isoToday(), planned=plannedOn(today), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport"), doneToday=state.sessions.filter(s=>s.date===today);
+  const rd=computeReadiness(), mf=computeMetabolicFuel(today), ms=computeMuscleStatus(), wk=blockWeek();
+  const last=sortedSessions()[0], missedNow=last?missedSince(last.date):0;
+  const freshMuscles=Object.values(ms).filter(m=>m.recovery>=90).map(m=>m.name).slice(0,4).join(", ");
+  const recovMuscles=Object.values(ms).filter(m=>m.recovery<90).map(m=>m.name).slice(0,3).join(", ");
+  const targetLift = lift || "A";
+  const items = (state.plan.sessions[state.plan.track]&&state.plan.sessions[state.plan.track][targetLift])||[];
+  let upCount=0, holdCount=0, newCount=0;
+  const dummyForm={id:"preview",date:today,session:targetLift,track:state.plan.track,sleep:"",hold:false};
+  items.forEach(it=>{
+    const l=lastLogOf(it.ex);
+    const s=suggestion(it,l,missedNow);
+    if(s.k==="up") upCount++; else if(s.k==="new") newCount++; else holdCount++;
+  });
+  const d1Title = doneToday.length ? "Session Completed & Logged" : lift ? "Today's AI Prescription: "+sessionTitle(lift) : (fb||sp) ? "Active Sport & Recovery Protocol" : "Restorative Growth & Mobility Day";
+  const d1Body = doneToday.length
+    ? "Great work finishing "+doneToday.map(s=>sessionTitle(s.session)).join(", ")+". Prioritise "+mf.protG+"g protein and "+mf.waterLitresTarget+"L water to lock in muscle synthesis."
+    : lift
+    ? (newCount===items.length
+        ? "First time running "+sessionTitle(lift)+": the AI Coach will auto-calibrate your starter weights from your "+(+state.plan.bodyweight||80)+" kg bodyweight so you never have to guess."
+        : upCount+" exercise"+(upCount===1?"":"s")+" ready for a weight/rep jump today, "+holdCount+" building reps"+(missedNow?" (repeating last session's load after "+missedNow+" missed session"+(missedNow>1?"s":"")+")":"")+".")
+    : (fb||sp)
+    ? "Scheduled for "+[fb?sportLabelFor("football"):null,sp?sportLabelFor("sport"):null].filter(Boolean).join(" & ")+". Keep heavy legs 48h away and run the 5-min post-activity mobility flow."
+    : "No lift scheduled. Fresh muscle groups ("+(freshMuscles||"all upper body")+") are super-compensating for your next session.";
+  const d2Title = rd.score>=82 ? "Biometric Green Light ("+rd.score+"% Readiness)" : rd.score>=65 ? "Steady Pacing ("+rd.score+"% Readiness)" : "Autonomic Protection Active ("+rd.score+"% Readiness)";
+  const d2Body = rd.ans.cnsHold
+    ? "CNS fatigue detected ("+rd.ans.reasons.slice(0,2).join(", ")+"). AI Coach automatically holds weight jumps today so you stimulate muscle safely."
+    : rd.score>=82
+    ? "Sleep and recovery vitals are primed. Attack the top of your rep range on "+esc(EX[items[0]?items[0].ex:"bench"].n)+" today."
+    : (recovMuscles ? "Recovering tissues: "+recovMuscles+". Leave 2 reps in the tank on every set today." : "Maintain strict 2-second lowering tempo and stop 1-2 reps shy of failure.");
+  const d3Title = "Smart Fuel & Experience Mode ("+(LEVELS[state.plan.expLevel||2])+")";
+  const d3Body = "Daily target: "+mf.targetKcal.toLocaleString()+" kcal &middot; "+mf.protG+"g protein &middot; "+mf.waterLitresTarget+"L water. "+(wk?("Block Week "+wk+" of 12."):"Your 12-week block starts on your first logged session.");
+
+  return '<div class="ai-coach-card">'+
+    '<div class="row between"><div class="row" style="gap:8px"><span class="ai-badge">&#10024; AI Personal Trainer</span><span class="chip '+(rd.score>=80?"good":rd.score>=65?"sh":"warn")+'">Readiness '+rd.score+'%</span></div>'+
+    '<div class="row" style="gap:6px"><button class="btn sm ghost" data-act="bptog">'+(state.blueprintOpen||(state.blueprintOpen===null&&!state.sessions.length)?"Hide Beginner Guide":"How to Train (No Trainer Needed)")+'</button></div></div>'+
+    '<div class="ai-grid">'+
+      '<div class="ai-directive '+(upCount>0?"good":"")+'"><b>1. '+esc(d1Title)+'</b><span>'+d1Body+'</span></div>'+
+      '<div class="ai-directive '+(rd.score>=80?"good":rd.score<65?"warn":"")+'"><b>2. '+esc(d2Title)+'</b><span>'+d2Body+'</span></div>'+
+      '<div class="ai-directive"><b>3. '+esc(d3Title)+'</b><span>'+d3Body+'</span></div>'+
+    '</div>'+
+    (!doneToday.length?'<div class="row between" style="padding-top:2px"><span class="small muted"><b>1-Tap AI Launch:</b> pick how much time &amp; guidance you want today</span>'+
+      '<div class="row" style="gap:6px">'+
+        '<button class="btn sm" data-act="aistart" data-s="'+targetLift+'" data-m="optimal">&#10024; Start Optimal '+sessionTitle(targetLift)+'</button>'+
+        '<button class="btn sm sec" data-act="aistart" data-s="'+targetLift+'" data-m="express">&#9889; 30-Min Express</button>'+
+        '<button class="btn sm sec" data-act="aistart" data-s="'+targetLift+'" data-m="guided">&#127793; Beginner Guided</button>'+
+      '</div></div>':'')+
+  '</div>';
+}
+
+function renderTrainerBlueprint(){
+  const open = state.blueprintOpen!==null ? state.blueprintOpen : (state.sessions.length===0);
+  if(!open) return '';
+  return '<div class="card stack"><div class="row between"><div><span class="eyebrow" style="color:var(--accent)">Complete Beginner Blueprint &middot; Zero Experience Required</span><h3>How to Train Confidently Without a Private Trainer</h3></div><button class="btn sm ghost" data-act="bptog">Got it, hide</button></div>'+
+    '<div class="bp-steps">'+
+      '<div class="bp-step"><span class="bp-n">Step 1 &middot; Warm Up</span><b>5-Min Pre-Flight</b><span class="small muted">Open your session and tick the 3 warm-up drills + 2 light ramp-up sets. Never lift cold.</span></div>'+
+      '<div class="bp-step"><span class="bp-n">Step 2 &middot; Pick Weight</span><b>1-Tap AI Calibration</b><span class="small muted">On your first day, tap <b>AI Recommended Weight</b> on each exercise. Aim to finish with 1-2 reps left in the tank.</span></div>'+
+      '<div class="bp-step"><span class="bp-n">Step 3 &middot; Log &amp; Rest</span><b>Tap &#10003; After Each Set</b><span class="small muted">Tap &#10003; to log the set and auto-start your rest timer. Tap <b>Easy / About right / Hard</b> and the AI adapts your next set live.</span></div>'+
+      '<div class="bp-step"><span class="bp-n">Step 4 &middot; Swap Anytime</span><b>Busy or Hurts? 1-Tap Swap</b><span class="small muted">Machine taken or exercise feels too hard? Tap <b>Swap</b> on any exercise to pick an Easier, Harder, or Joint-Friendly movement.</span></div>'+
+    '</div>'+
+    '<div class="row between"><span class="small muted">Want a gentler starting workout? Switch your programme tier in 1 tap:</span>'+
+      '<div class="row" style="gap:6px"><button class="btn sm sec" data-act="applytier" data-tier="1">&#127793; Use Beginner Foundation Plan</button><button class="btn sm ghost" data-act="tab" data-tab="library">Browse Exercise Library &rarr;</button></div></div></div>';
+}
+
 function renderToday(){
   const today=isoToday(), planned=plannedOn(today), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport"), doneToday=state.sessions.filter(s=>s.date===today);
-  const also=(fb||sp)?'<p class="small muted">Also today: '+(fb&&sp?"football and padel":fb?"football":"padel / other sport")+'. '+(fb?"Lift in the morning or at least 4 hours before kick-off, and tick Hold if you are tired. ":"Lift first if you can; a light session after padel is fine too. ")+(fb?'<button class="btn sm ghost" data-act="offday" data-k="football">No football today</button> ':"")+(sp?'<button class="btn sm ghost" data-act="offday" data-k="sport">No padel today</button>':"")+'</p>':"";
+  const us=getUserSports(), s1Name=sportLabelFor("football"), s2Name=sportLabelFor("sport");
+  const s1Short=(us.s1==="football"?"football":sportLabelFor("football",true).toLowerCase());
+  const s2Short=(us.s2==="padel"||us.s2==="sport"?"padel":sportLabelFor("sport",true).toLowerCase());
+  const also=(fb||sp)?'<p class="small muted">Also today: '+(fb&&sp?esc(s1Short+" and "+s2Short):fb?esc(s1Short):esc(s2Name.toLowerCase()))+'. '+(fb?"Lift in the morning or at least 4 hours before kick-off, and tick Hold if you are tired. ":"Lift first if you can; a light session after "+esc(s2Short)+" is fine too. ")+(fb?'<button class="btn sm ghost" data-act="offday" data-k="football">No '+esc(s1Short)+' today</button> ':"")+(sp?'<button class="btn sm ghost" data-act="offday" data-k="sport">No '+esc(s2Short)+' today</button>':"")+'</p>':"";
   const wk=blockWeek();
   const last=sortedSessions()[0];
   const missedNow=last?missedSince(last.date):0;
@@ -2642,9 +2999,9 @@ function renderToday(){
   let hero;
   if(doneToday.length){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Done: '+esc(doneToday.map(s=>sessionTitle(s.session)).join(", "))+'</h2><p class="muted">Logged. Stretch, eat protein, sleep.'+(state.plan.goal==="lose"?" Ten to fifteen minutes of easy cardio if it is not done yet.":"")+' Next session is in the strip below.</p>'+also+'<div class="row"><button class="btn sec" data-act="tab" data-tab="log">See the log</button></div></div>'; }
   else if(lift){ const items=state.plan.sessions[state.plan.track][lift]||[]; hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>'+esc(SESSION_NAMES[lift])+'</h2><p class="muted">'+items.length+' exercises, 40 to 50 minutes. Warm up first (5 to 8 min), then two ramp-up sets on '+esc(EX[items[0]?items[0].ex:"bench"].n.toLowerCase())+'.'+(state.plan.goal==="lose"?" Finish with 10 to 15 minutes of easy cardio: incline walk or bike.":"")+'</p>'+also+repeatNote+'<div class="row"><button class="btn" data-act="start" data-s="'+lift+'">Start session '+(lift==="L"?"Legs":lift)+'</button>'+(state.plan.track!=="body"?'<button class="btn sec" data-act="start" data-s="'+lift+'" data-t="body">Do '+(lift==="L"?"Legs":lift)+' as calisthenics</button>':'<button class="btn sec" data-act="start" data-s="'+lift+'" data-t="gym">Do '+(lift==="L"?"Legs":lift)+' at the gym</button>')+'<button class="btn ghost" data-act="tab" data-tab="library">Warm-up steps</button></div></div>'; }
-  else if(fb&&sp){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Football and padel day</h2><p class="muted">Two games, no lifting. Eat and drink well between them. After: hip flexor and hamstring stretch.</p>'+repeatNote+'<div class="row"><button class="btn ghost" data-act="offday" data-k="football">No football today</button><button class="btn ghost" data-act="offday" data-k="sport">No padel today</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button></div></div>'; }
-  else if(sp){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Padel or other sport day</h2><p class="muted">Kept free for padel and whatever else comes up. No lifting planned today.</p>'+repeatNote+'<div class="row"><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button><button class="btn ghost" data-act="offday" data-k="sport">No padel today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button></div></div>'; }
-  else if(fb){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Football day</h2><p class="muted">No upper session. Do not lift within 4 hours of kick-off. After the match: hip flexor and hamstring stretch, doorway chest stretch.</p>'+repeatNote+'<div class="row"><button class="btn ghost" data-act="offday" data-k="football">No football today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button></div></div>'; }
+  else if(fb&&sp){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>'+esc(s1Name)+' and '+esc(s2Short)+' day</h2><p class="muted">Two games, no lifting. Eat and drink well between them. After: hip flexor and hamstring stretch.</p>'+repeatNote+'<div class="row"><button class="btn ghost" data-act="offday" data-k="football">No '+esc(s1Short)+' today</button><button class="btn ghost" data-act="offday" data-k="sport">No '+esc(s2Short)+' today</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button></div></div>'; }
+  else if(sp){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>'+esc(us.s2==="padel"||us.s2==="sport"?"Padel or other sport":s2Name)+' day</h2><p class="muted">Kept free for '+esc(s2Short)+' and whatever else comes up. No lifting planned today.</p>'+repeatNote+'<div class="row"><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button><button class="btn ghost" data-act="offday" data-k="sport">No '+esc(s2Short)+' today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button></div></div>'; }
+  else if(fb){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>'+esc(s1Name)+' day</h2><p class="muted">No upper session. Do not lift within 4 hours of kick-off. After the match: hip flexor and hamstring stretch, doorway chest stretch.</p>'+repeatNote+'<div class="row"><button class="btn ghost" data-act="offday" data-k="football">No '+esc(s1Short)+' today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button></div></div>'; }
   else { hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Rest day</h2><p class="muted">Muscle is built between sessions. A walk and 7 to 8 hours of sleep do more than an extra set would.</p>'+repeatNote+'<div class="row"><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button><button class="btn ghost" data-act="weekedit">Change this week</button></div></div>'; }
   const summaryTiles='<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
   let block;
@@ -2656,7 +3013,7 @@ function renderToday(){
   if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+last.session+'">'+sessionTitle(last.session)+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
   const sub=(state.sub&&state.sub.today)||"all";
   const subBar=renderSubNav("today",[{k:"all",n:"All Today"},{k:"week",n:"Workout & Week"},{k:"checkin",n:"Health & Check-In"},{k:"recovery",n:"Muscles & Mobility"}]);
-  const secWeek = hero + renderTodayNotifBanner() + renderWeekCard() + lastCard;
+  const secWeek = hero + renderAICoachCard() + renderTrainerBlueprint() + renderTodayNotifBanner() + renderWeekCard() + lastCard;
   const secCheckin = (sub==="all"?secHdr("Daily Check-In, Fuel & Apple Health"):"") + renderDailyHub();
   const secRec = (sub==="all"?secHdr("Mobility, Muscle Recovery & 12-Week Block"):"") + renderMobilityCard() + renderBodyMapCard() + block;
   if(sub==="week") return subBar + secWeek;
@@ -2733,26 +3090,54 @@ function renderForm(){
     const cuesOpen = !!state.openCues[i];
     const platesOpen = !!state.openPlates[i];
     const swapOpen = !!state.openSwap[i];
-    const stepsHtml = cuesOpen && EX[e.ex] ? '<div class="tile stack"><span class="eyebrow">Step-by-step Form Cues</span><ol style="margin:0;padding-left:18px;font-size:13px">'+EX[e.ex].steps.map(st=>'<li>'+esc(st)+'</li>').join("")+'</ol></div>' : '';
+    const coach = getExerciseCoach(e.ex);
+    const stepsHtml = cuesOpen && EX[e.ex] ? '<div class="tile stack"><span class="eyebrow">Step-by-step Form Cues &amp; How to Improve</span><ol style="margin:0;padding-left:18px;font-size:13px">'+EX[e.ex].steps.map(st=>'<li>'+esc(st)+'</li>').join("")+'</ol>'+
+      (coach?'<div class="coach-box"><div><b>&#127919; How to Improve:</b> '+esc(coach.improve)+'</div><div><b>&#9888;&#65039; Mistake to Avoid:</b> '+esc(coach.mistake)+'</div><div><b>&#9201;&#65039; Tempo &amp; Breathing:</b> '+esc(coach.tempo)+'</div><div><b>&#128200; When to Progress:</b> '+esc(coach.progress)+'</div></div>':'')+'</div>' : '';
     const sampleW = (e.sets[0]&&+e.sets[0].w) || (rec.w||60);
     const platesHtml = platesOpen && u==="kg" ? renderPlateCalc(sampleW) : '';
-    const swapOpts = (meta.swap||[]).filter(k=>EX[k]);
-    const swapHtml = swapOpen && swapOpts.length ? '<div class="tile row between"><span class="small muted">Machine busy? Swap to a matched movement:</span><div class="row" style="gap:6px">'+swapOpts.map(k=>'<button class="btn sm sec" data-act="swapex" data-i="'+i+'" data-ex="'+k+'">'+esc(EX[k].n)+'</button>').join("")+'</div></div>' : '';
+    const sw = getSmartSwaps(e.ex);
+    const swapOpts = sw.flat;
+    const renderSwapCat = (title, list) => list.length ? '<div class="swap-cat"><span class="sc-hdr">'+title+'</span><div class="row" style="gap:5px">'+list.map(k=>'<button class="btn sm sec" data-act="swapex" data-i="'+i+'" data-ex="'+k+'">'+esc(EX[k].n)+' ('+levelName(k)+')</button>').join("")+'</div></div>' : '';
+    const swapHtml = swapOpen && swapOpts.length ? '<div class="tile stack"><div class="row between"><span class="small muted"><b>Smart Exercise Adaptation</b> &middot; Machine busy? Swap to a matched movement:</span><span class="small muted">Tap to swap for today</span></div>'+
+      '<div class="swap-grid">'+
+        renderSwapCat("&#128994; Easier / Regression (Learn Form)", sw.easier)+
+        renderSwapCat("&#128293; Harder / Next Progression", sw.harder)+
+        renderSwapCat("&#128737;&#65039; Joint-Friendly / Pain-Free", sw.joint)+
+        renderSwapCat("&#128260; Busy Station / Equipment Swap", sw.equip)+
+      '</div></div>' : '';
     const focusNav = state.focusMode ? '<div class="row between" style="padding-top:6px"><button class="btn sm sec" data-act="focusgo" data-i="'+Math.max(0,i-1)+'"'+(i===0?" disabled":"")+'>&larr; Prev Exercise</button><span class="small muted">Exercise '+(i+1)+' of '+f.exercises.length+'</span><button class="btn sm" data-act="focusgo" data-i="'+Math.min(f.exercises.length-1,i+1)+'"'+(i===f.exercises.length-1?" disabled":"")+'>Next Exercise &rarr;</button></div>' : '';
 
-    return '<div class="exrow"'+(hiddenInFocus?' style="display:none"':'')+'><div class="row between"><div><span class="exname">'+esc(e.name)+'</span>'+(e.side?' <span class="small muted">each side</span>':'')+'</div><div class="row" style="gap:6px">'+levelChip(e.ex)+'<span class="chip '+(t==="pull"?"pull":t==="push"?"push":t==="legs"?"legs":"")+'">'+t+'</span><span class="chip">'+esc(e.target)+(u==="s"?" s":" reps")+'</span></div></div>'+
+    return '<div class="exrow"'+(hiddenInFocus?' style="display:none"':'')+'><div class="row between"><div><span class="ex-num">'+(i+1)+'</span><span class="exname">'+esc(e.name)+'</span>'+(e.side?' <span class="small muted">each side</span>':'')+'</div><div class="row" style="gap:6px">'+levelChip(e.ex)+'<span class="chip '+(t==="pull"?"pull":t==="push"?"push":t==="legs"?"legs":"")+'">'+t+'</span><span class="chip">'+esc(e.target)+(u==="s"?" s":" reps")+'</span></div></div>'+
       '<div class="rec" id="rec'+i+'">'+recHtml(e,i,rec)+'</div>'+
       '<div class="sets"><div class="h">Set</div><div class="h">'+(u==="kg"?"kg":u==="bw"?"+kg (belt / band)":"")+'</div><div class="h">'+repLabel(u)+'</div><div class="h">Rec.</div><div class="h">Done</div><div></div>'+rows+'</div>'+
-      '<div class="row between"><div class="row" style="gap:6px"><button class="btn sm sec" data-act="addset" data-i="'+i+'">+ set</button><button class="btn sm ghost" data-act="togcues" data-i="'+i+'">'+(cuesOpen?"Hide cues":"Form cues")+'</button>'+(u==="kg"?'<button class="btn sm ghost" data-act="togplates" data-i="'+i+'">Plates</button>':'')+(swapOpts.length?'<button class="btn sm ghost" data-act="togswap" data-i="'+i+'">Swap</button>':'')+'<button class="btn sm ghost" data-act="reststart" data-s="'+restSecsFor(e.ex)+'" data-l="'+esc(e.name)+'">Rest '+restSecsFor(e.ex)+'s</button></div><a class="small" href="'+yt(EX[e.ex]?EX[e.ex].q:e.name)+'" target="_blank" rel="noopener">Watch form video</a></div>'+
+      '<div class="row between"><div class="row" style="gap:6px"><button class="btn sm sec" data-act="addset" data-i="'+i+'">+ set</button><button class="btn sm ghost" data-act="togcues" data-i="'+i+'">'+(cuesOpen?"Hide coaching":"Form &amp; tips")+'</button>'+(u==="kg"?'<button class="btn sm ghost" data-act="togplates" data-i="'+i+'">Plates</button>':'')+(swapOpts.length?'<button class="btn sm ghost" data-act="togswap" data-i="'+i+'">'+(swapOpen?"Hide swaps":"Smart Swap")+'</button>':'')+'<button class="btn sm ghost" data-act="reststart" data-s="'+restSecsFor(e.ex)+'" data-l="'+esc(e.name)+'">Rest '+restSecsFor(e.ex)+'s</button></div><a class="small" href="'+yt(EX[e.ex]?EX[e.ex].q:e.name)+'" target="_blank" rel="noopener">Watch form video</a></div>'+
       stepsHtml+platesHtml+swapHtml+
-      '<label class="f">Next time<input type="text" id="next'+i+'" data-i="'+i+'" data-f="next" value="'+esc(e.next)+'" placeholder="e.g. stay at 60, aim 3 x 10"></label>'+focusNav+'</div>'; }).join("");
+      '<label class="f">Next time note<input type="text" id="next'+i+'" data-i="'+i+'" data-f="next" value="'+esc(e.next)+'" placeholder="e.g. stay at 60, aim 3 x 10"></label>'+focusNav+'</div>'; }).join("");
+
+  const aiMode = state.aiMode||"optimal";
+  const hasUnfilledKg = f.exercises.some(e=>e.unit==="kg"&&e.sets.some(s=>s.w===""||s.w==null));
+  const aiSessionBar = '<div class="ai-coach-card"><div class="row between"><div class="row" style="gap:8px"><span class="ai-badge">&#10024; AI Session Co-Pilot</span><span class="small muted">Adapt today&#39;s workout in 1 tap:</span></div>'+
+    (hasUnfilledKg?'<button class="btn sm" data-act="aicalall">&#10024; Auto-Fill Starter Weights ('+(+state.plan.bodyweight||80)+' kg BW)</button>':'')+
+    '</div><div class="filters">'+
+      '<button data-act="aimode" data-m="optimal" class="'+(aiMode==="optimal"?"on":"")+'">&#10024; Optimal Progression</button>'+
+      '<button data-act="aimode" data-m="express" class="'+(aiMode==="express"?"on":"")+'">&#9889; 30-Min Express (2 Sets)</button>'+
+      '<button data-act="aimode" data-m="guided" class="'+(aiMode==="guided"?"on":"")+'">&#127793; Beginner Guided (Form Cues On)</button>'+
+      '<button data-act="aimode" data-m="recovery" class="'+(aiMode==="recovery"||f.hold?"on":"")+'">&#128737;&#65039; Recovery Hold (No Weight Jumps)</button>'+
+    '</div></div>';
+
+  const sessSelect = '<label class="f">Session<select id="fsession" data-f="session"><option value="A"'+(f.session==="A"?" selected":"")+'>Upper A</option><option value="B"'+(f.session==="B"?" selected":"")+'>Upper B</option>'+(state.plan.legs||f.session==="L"?'<option value="L"'+(f.session==="L"?" selected":"")+'>Legs</option>':'')+'</select></label>';
+  const topFields = f.existing
+    ? '<div class="grid2"><label class="f">Date<input type="date" id="fdate" data-f="date" value="'+esc(f.date)+'"></label>'+sessSelect+'</div>'+
+      '<div class="grid2"><label class="f">Sleep last night (hours)<input type="number" step="0.5" inputmode="decimal" id="fsleep" data-f="sleep" value="'+esc(f.sleep)+'" placeholder="e.g. 7.5"></label><div></div></div>'
+    : '<div class="grid2"><label class="f">Where<select id="fwhere" data-f="where">'+Object.keys(TRACK_NAMES).map(k=>'<option value="'+k+'"'+(f.track===k?" selected":"")+'>'+esc(TRACK_NAMES[k])+'</option>').join("")+'</select></label>'+sessSelect+'</div>'+
+      '<div class="grid2"><label class="f">Date<input type="date" id="fdate" data-f="date" value="'+esc(f.date)+'"></label><label class="f">Sleep last night (hours)<input type="number" step="0.5" inputmode="decimal" id="fsleep" data-f="sleep" value="'+esc(f.sleep)+'" placeholder="e.g. 7.5"></label></div>';
+
   return '<div class="card stack"><div class="row between"><div><span class="eyebrow">'+(f.existing?"Edit session":"New session")+'</span><h2>'+esc(SESSION_NAMES[f.session]||"Session")+'</h2></div><span class="chip">'+esc(TRACK_NAMES[f.track]||f.track)+'</span></div>'+
-    (f.existing?'':'<label class="f">Where<select id="fwhere" data-f="where">'+Object.keys(TRACK_NAMES).map(k=>'<option value="'+k+'"'+(f.track===k?" selected":"")+'>'+esc(TRACK_NAMES[k])+'</option>').join("")+'</select></label>')+
-    '<div class="grid2"><label class="f">Date<input type="date" id="fdate" data-f="date" value="'+esc(f.date)+'"></label><label class="f">Session<select id="fsession" data-f="session"><option value="A"'+(f.session==="A"?" selected":"")+'>Upper A</option><option value="B"'+(f.session==="B"?" selected":"")+'>Upper B</option>'+(state.plan.legs||f.session==="L"?'<option value="L"'+(f.session==="L"?" selected":"")+'>Legs</option>':'')+'</select></label></div>'+
-    '<div class="grid2"><label class="f">Sleep last night (hours)<input type="number" step="0.5" inputmode="decimal" id="fsleep" data-f="sleep" value="'+esc(f.sleep)+'"></label><label class="f inl" style="grid-column:1/-1"><input type="checkbox" id="fhold" data-f="hold"'+((f.hold||f.football)?" checked":"")+'> Hold the weight today <span class="muted small">(tired, football, short on time: reps only, no weight jump)</span></label></div>'+
+    topFields+
+    '<label class="f inl hold-banner"><input type="checkbox" id="fhold" data-f="hold"'+((f.hold||f.football)?" checked":"")+'><div><b>Hold the weight today</b> <span class="muted small" style="display:block">(tired, football / sport, or short on time: reps only, no weight jump)</span></div></label>'+
     '<p class="small muted">Each exercise shows a recommended weight and reps worked out from your last log, the block week, sleep and the hold box. Tap &#10003; on any set to auto-fill and start your rest timer, or type the reps you actually did. Write the Next time line before you leave the gym.</p></div>'+
-    warmupCard+hud+
-    '<div class="card" id="exlist">'+ex+'<div class="row" style="padding-top:10px"><select id="addex" aria-label="Add an exercise"><option value="">Add an exercise to this session only</option>'+Object.keys(EX).filter(k=>!/Warm-up|Stretch/.test(EX[k].g)).sort((a,b)=>EX[a].n.localeCompare(EX[b].n)).map(k=>'<option value="'+k+'">'+esc(EX[k].n+" ("+levelName(k)+")")+'</option>').join("")+'</select></div></div>'+
+    aiSessionBar+warmupCard+hud+
+    '<div class="card stack" id="exlist">'+ex+'<div class="row" style="padding-top:6px"><select id="addex" aria-label="Add an exercise"><option value="">+ Add an exercise to this session only (sorted Beginner &rarr; Advanced)</option>'+Object.keys(EX).filter(k=>!/Warm-up|Stretch/.test(EX[k].g)).sort((a,b)=>levelOf(a)-levelOf(b)||EX[a].n.localeCompare(EX[b].n)).map(k=>'<option value="'+k+'">'+esc(EX[k].n+" ("+levelName(k)+")")+'</option>').join("")+'</select></div></div>'+
     '<div class="card stack"><label class="f">Notes (energy, any pain, anything to change)<textarea id="fnotes" data-f="notes">'+esc(f.notes)+'</textarea></label><div class="row between"><button class="btn '+(state.confirmCancel&&Date.now()-state.confirmCancel<6000?"danger":"ghost")+'" data-act="cancel">'+(state.confirmCancel&&Date.now()-state.confirmCancel<6000?"Discard session":"Cancel")+'</button><button class="btn" data-act="save">Save session</button></div></div>';
 }
 function onFormInput(e){ const t=e.target, f=state.form; if(!f||!t.dataset) return; const fl=t.dataset.f; if(!fl) return; clearTimeout(draftTimer); draftTimer=setTimeout(persistDraft,300);
@@ -3022,21 +3407,46 @@ function renderBackupCard(){
 
 function renderPlan(){
   const p=state.plan, tr=state.planTrack||p.track;
+  const s1Name=sportLabelFor("football"), s2Name=sportLabelFor("sport",true);
   const weekSel=DAYS.map(d=>dayEditor(d,d,p.week[d],"data-day")).join("");
   const ups=DAYS.filter(d=>liftOf(p.week[d])), rests=DAYS.filter(d=>!dayKinds(p.week[d]).length), fb=DAYS.filter(d=>hasKind(p.week[d],"football")), sp=DAYS.filter(d=>hasKind(p.week[d],"sport"));
-  const warn=[]; if(rests.length<1) warn.push("No full rest day. "+(fb.length||sp.length?"Football, padel and lifting add up fast.":"Muscle is built on the days off.")); if(ups.length>4||(ups.length>3&&fb.length)) warn.push(fb.length?"More than three lifting days a week slows recovery for football.":"More than four lifting days a week is more than this programme needs."); if(ups.length<2) warn.push("Fewer than two sessions a week will not build much. Two done every week beats three done sometimes.");
+  const warn=[]; if(rests.length<1) warn.push("No full rest day. "+(fb.length||sp.length?s1Name+", "+s2Name.toLowerCase()+" and lifting add up fast.":"Muscle is built on the days off.")); if(ups.length>4||(ups.length>3&&fb.length)) warn.push(fb.length?"More than three lifting days a week slows recovery for "+s1Name.toLowerCase()+".":"More than four lifting days a week is more than this programme needs."); if(ups.length<2) warn.push("Fewer than two sessions a week will not build much. Two done every week beats three done sometimes.");
   if(p.legs&&!DAYS.some(d=>liftOf(p.week[d])==="L")) warn.push("Legs is on but has no day. Pick Legs on a day below, or press Place the lifts for me.");
   const isUp=v=>{ const l=liftOf(v); return l&&l!=="L"; };
-  for(let i=0;i<7;i++){ const d=DAYS[i],n=DAYS[(i+1)%7]; if(isUp(p.week[d])&&isUp(p.week[n])) warn.push(d+" and "+n+" are back-to-back upper sessions. Fine occasionally, better with a day between."); if(liftOf(p.week[d])&&hasKind(p.week[d],"football")) warn.push(d+": lifting and football on the same day. Lift in the morning or at least 4 hours before kick-off."); if(liftOf(p.week[d])==="L"&&hasKind(p.week[n],"football")) warn.push(d+": Legs the day before football leaves the legs heavy for the match. Move it two days out, or halve the sets that week."); }
-  const options=Object.keys(EX).filter(k=>!/Warm-up|Stretch/.test(EX[k].g)).sort((a,b)=>EX[a].g.localeCompare(EX[b].g)||EX[a].n.localeCompare(EX[b].n));
-  const sess=["A","B"].concat(p.legs?["L"]:[]).map(k=>{ const items=p.sessions[tr][k]||[];
-    return '<div class="card stack"><div class="row between"><h3><span class="chip '+k+'">'+sessionTitle(k)+'</span> '+esc(k==="L"?"squat, hinge, lunge, calves":SESSION_NAMES[k].replace(/^Upper [AB], /,""))+'</h3><button class="btn sm ghost" data-act="resetsess" data-s="'+k+'">Reset to programme</button></div><div>'+items.map((item,i)=>'<div class="plan-ex"><div class="row between"><select data-pi="'+i+'" data-ps="'+k+'" data-pf="ex" id="pex'+k+i+'" style="flex:1" aria-label="Exercise">'+options.map(o=>'<option value="'+o+'"'+(o===item.ex?" selected":"")+'>'+esc(EX[o].g+": "+EX[o].n+" ("+levelName(o)+")")+'</option>').join("")+'</select>'+levelChip(item.ex)+'</div>'+
-      '<div class="nums"><label class="f">Sets<input type="number" min="1" max="8" data-pi="'+i+'" data-ps="'+k+'" data-pf="sets" id="pst'+k+i+'" value="'+item.sets+'"></label><label class="f">Reps from<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="min" id="pmn'+k+i+'" value="'+item.min+'"></label><label class="f">Reps to<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="max" id="pmx'+k+i+'" value="'+item.max+'"></label><label class="f">Add (kg)<input type="number" step="0.5" data-pi="'+i+'" data-ps="'+k+'" data-pf="inc" id="pin'+k+i+'" value="'+item.inc+'"></label></div>'+
-      '<div class="row" style="gap:8px"><label class="f" style="flex:1">Load type<select data-pi="'+i+'" data-ps="'+k+'" data-pf="unit" id="pun'+k+i+'"><option value="kg"'+(item.unit==="kg"?" selected":"")+'>Weight in kg</option><option value="bw"'+(item.unit==="bw"?" selected":"")+'>Bodyweight + kg</option><option value="reps"'+(item.unit==="reps"?" selected":"")+'>Reps only</option><option value="s"'+(item.unit==="s"?" selected":"")+'>Seconds (hold)</option></select></label><label class="f inl" style="padding-top:16px"><input type="checkbox" data-pi="'+i+'" data-ps="'+k+'" data-pf="side" id="psd'+k+i+'"'+(item.side?" checked":"")+'> each side</label></div>'+
-      '<label class="f">Coaching note<input type="text" data-pi="'+i+'" data-ps="'+k+'" data-pf="note" id="pno'+k+i+'" value="'+esc(item.note||"")+'"></label>'+
-      '<div class="tools"><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt(EX[item.ex].q)+'" target="_blank" rel="noopener">Video</a></div></div>').join("")+'</div><button class="btn sm sec" data-act="addplan" data-s="'+k+'">+ Add exercise</button></div>'; }).join("");
-  const whereCard='<div class="card stack"><span class="eyebrow">Where you train</span><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing only. Make it the default if most sessions happen here.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>';
-  const weekLayoutCard='<div class="card stack"><span class="eyebrow">Week layout</span><div class="weekedit">'+weekSel+'</div>'+(warn.length?'<div class="banner">'+warn.map(esc).join("<br>")+'</div>':'<p class="small muted">'+ups.length+' upper sessions, '+fb.length+' football, '+sp.length+' sport, '+rests.length+' rest. Looks right.</p>')+'<p class="small muted">A and B are the two upper sessions'+(p.legs?", Legs has its own day":"")+'; keep a day between upper sessions. Football, padel and rest days are yours to set, and a day can hold more than one thing: tick football or padel next to a lift. This is the default week. To change one week only (a football night or padel game that is off), use Edit this week on Today; every other week stays as set here.</p></div>';
+  for(let i=0;i<7;i++){ const d=DAYS[i],n=DAYS[(i+1)%7]; if(isUp(p.week[d])&&isUp(p.week[n])) warn.push(d+" and "+n+" are back-to-back upper sessions. Fine occasionally, better with a day between."); if(liftOf(p.week[d])&&hasKind(p.week[d],"football")) warn.push(d+": lifting and "+s1Name.toLowerCase()+" on the same day. Lift in the morning or at least 4 hours before kick-off."); if(liftOf(p.week[d])==="L"&&hasKind(p.week[n],"football")) warn.push(d+": Legs the day before "+s1Name.toLowerCase()+" leaves the legs heavy for the match. Move it two days out, or halve the sets that week."); }
+  const options=Object.keys(EX).filter(k=>!/Warm-up|Stretch/.test(EX[k].g)).sort((a,b)=>EX[a].g.localeCompare(EX[b].g)||levelOf(a)-levelOf(b)||EX[a].n.localeCompare(EX[b].n));
+  const sess=["A","B"].concat(p.legs?["L"]:[]).map(k=>{
+    const items=p.sessions[tr][k]||[];
+    const totSets=items.reduce((a,it)=>a+(+it.sets||3),0);
+    const estMin=Math.round(8 + totSets*2.2);
+    const pushSets=items.filter(it=>EX[it.ex]&&EX[it.ex].t==="push").reduce((a,it)=>a+(+it.sets||3),0);
+    const pullSets=items.filter(it=>EX[it.ex]&&EX[it.ex].t==="pull").reduce((a,it)=>a+(+it.sets||3),0);
+    const balChip = k==="L" ? '<span class="chip good">Lower Body Complete</span>' : pullSets>=pushSets ? '<span class="chip good">Shoulder-Safe Pull:Push ('+pullSets+':'+pushSets+' sets)</span>' : '<span class="chip warn">Push-heavy ('+pushSets+' push vs '+pullSets+' pull sets)</span>';
+    const auditStrip = '<div class="audit-strip"><div class="row" style="gap:6px"><span class="ai-badge">&#10024; AI Session Audit</span><span class="chip">'+items.length+' exercises &middot; '+totSets+' sets</span><span class="chip">~'+estMin+' min</span>'+balChip+'</div></div>';
+
+    return '<div class="card stack"><div class="row between"><h3><span class="chip '+k+'">'+sessionTitle(k)+'</span> '+esc(k==="L"?"squat, hinge, lunge, calves":SESSION_NAMES[k].replace(/^Upper [AB], /,""))+'</h3><button class="btn sm ghost" data-act="resetsess" data-s="'+k+'">Reset to programme</button></div>'+
+      auditStrip+
+      '<div>'+items.map((item,i)=>{
+        const pSwapKey=k+"_"+i, pSwapOpen=!!(state.openPlanSwap&&state.openPlanSwap[pSwapKey]);
+        const sw=getSmartSwaps(item.ex), coach=getExerciseCoach(item.ex);
+        const renderPSwapCat=(title,list)=>list.length?'<div class="swap-cat"><span class="sc-hdr">'+title+'</span><div class="row" style="gap:5px">'+list.map(ox=>'<button class="btn sm sec" data-act="pswapex" data-s="'+k+'" data-i="'+i+'" data-ex="'+ox+'">'+esc(EX[ox].n)+' ('+levelName(ox)+')</button>').join("")+'</div></div>':'';
+        const pSwapDrawer=pSwapOpen?'<div class="coach-box"><div class="row between"><b>&#10024; AI Smart Swap &amp; Coaching for '+esc(EX[item.ex]?EX[item.ex].n:item.ex)+'</b><span class="small muted">Tap any movement to replace in plan</span></div>'+
+          (coach?'<p class="small muted"><b>Tip:</b> '+esc(coach.improve)+' <b>Progression:</b> '+esc(coach.progress)+'</p>':'')+
+          '<div class="swap-grid">'+
+            renderPSwapCat("&#128994; Easier / Beginner Regression",sw.easier)+
+            renderPSwapCat("&#128293; Harder / Next Progression",sw.harder)+
+            renderPSwapCat("&#128737;&#65039; Joint-Friendly Alternative",sw.joint)+
+            renderPSwapCat("&#128260; Equipment / Station Swap",sw.equip)+
+          '</div></div>':'';
+        return '<div class="plan-ex"><div class="row between"><select data-pi="'+i+'" data-ps="'+k+'" data-pf="ex" id="pex'+k+i+'" style="flex:1" aria-label="Exercise">'+options.map(o=>'<option value="'+o+'"'+(o===item.ex?" selected":"")+'>'+esc(EX[o].g+": "+EX[o].n+" ("+levelName(o)+")")+'</option>').join("")+'</select>'+levelChip(item.ex)+'</div>'+
+          '<div class="nums"><label class="f">Sets<input type="number" min="1" max="8" data-pi="'+i+'" data-ps="'+k+'" data-pf="sets" id="pst'+k+i+'" value="'+item.sets+'"></label><label class="f">Reps from<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="min" id="pmn'+k+i+'" value="'+item.min+'"></label><label class="f">Reps to<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="max" id="pmx'+k+i+'" value="'+item.max+'"></label><label class="f">Add (kg)<input type="number" step="0.5" data-pi="'+i+'" data-ps="'+k+'" data-pf="inc" id="pin'+k+i+'" value="'+item.inc+'"></label></div>'+
+          '<div class="row" style="gap:8px"><label class="f" style="flex:1">Load type<select data-pi="'+i+'" data-ps="'+k+'" data-pf="unit" id="pun'+k+i+'"><option value="kg"'+(item.unit==="kg"?" selected":"")+'>Weight in kg</option><option value="bw"'+(item.unit==="bw"?" selected":"")+'>Bodyweight + kg</option><option value="reps"'+(item.unit==="reps"?" selected":"")+'>Reps only</option><option value="s"'+(item.unit==="s"?" selected":"")+'>Seconds (hold)</option></select></label><label class="f inl" style="padding-top:16px"><input type="checkbox" data-pi="'+i+'" data-ps="'+k+'" data-pf="side" id="psd'+k+i+'"'+(item.side?" checked":"")+'> each side</label></div>'+
+          '<label class="f">Coaching note<input type="text" data-pi="'+i+'" data-ps="'+k+'" data-pf="note" id="pno'+k+i+'" value="'+esc(item.note||"")+'"></label>'+
+          '<div class="tools"><button class="icon-btn" data-act="ptogswap" data-s="'+k+'" data-i="'+i+'">'+(pSwapOpen?"Hide AI Swaps":"&#128161; AI Swap / Progress")+'</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt(EX[item.ex].q)+'" target="_blank" rel="noopener">Video</a></div>'+
+          pSwapDrawer+'</div>';
+      }).join("")+'</div><button class="btn sm sec" data-act="addplan" data-s="'+k+'">+ Add exercise</button></div>'; }).join("");
+  const whereCard='<div class="card stack"><div class="row between"><span class="eyebrow">Where you train</span><span class="chip good">Active Default: '+esc(TRACK_NAMES[p.track])+'</span></div><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing "+esc(TRACK_NAMES[tr])+" templates. Tap below to make "+esc(TRACK_NAMES[tr])+" your default training track.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>';
+  const weekLayoutCard='<div class="card stack"><div class="row between"><span class="eyebrow">Week layout &amp; Smart Scheduler</span><div class="row" style="gap:6px"><button class="btn sm sec" data-act="buildweek">&#10024; Auto-Place Lifts Around Sports</button>'+(fb.length||sp.length?'<button class="btn sm ghost" data-act="clearsports">Lifting Only (Clear Sports)</button>':'')+'</div></div><div class="weekedit">'+weekSel+'</div>'+(warn.length?'<div class="banner">'+warn.map(esc).join("<br>")+'</div>':'<p class="small muted">'+ups.length+' upper sessions, '+fb.length+' '+esc(s1Name.toLowerCase())+', '+sp.length+' sport, '+rests.length+' rest. Looks right.</p>')+'<p class="small muted">A and B are the two upper sessions'+(p.legs?", Legs has its own day":"")+'; keep a day between upper sessions. Sport and rest days are yours to set, and a day can hold more than one thing: tick your sport next to a lift. To change one week only, use Edit this week on Today; every other week stays as set here.</p></div>';
   const sub=(state.sub&&state.sub.plan)||"all";
   const subBar=renderSubNav("plan",[{k:"all",n:"All Plan"},{k:"sched",n:"Setup & Schedule"},{k:"ex",n:"Session Exercises"},{k:"account",n:"Profile & Settings"}]);
   if(sub==="sched") return subBar + whereCard + renderSetupCard() + weekLayoutCard;
@@ -3047,10 +3457,20 @@ function renderPlan(){
 /* v9: goal, upper sessions a week, the Legs day, and the week builder. Football / padel days come from the week layout itself. */
 function goalText(g){ return g==="lose"?"Losing weight: eat 300 to 500 kcal under maintenance, protein 2 g per kg. The lifts hold or climb slowly and a rep more is progress; each session ends with 10 to 15 minutes of easy cardio.":g==="keep"?"Staying the same: eat at maintenance and keep adding reps and weight. Strength climbs for a long time without the scale moving.":"Gaining muscle: eat 200 to 300 kcal over maintenance, protein 1.6 to 2 g per kg, and add a rep or 2.5 kg somewhere each week."; }
 function renderSetupCard(){ const p=state.plan, fb=DAYS.filter(d=>hasKind(p.week[d],"football")), sp=DAYS.filter(d=>hasKind(p.week[d],"sport"));
-  return '<div class="card stack"><span class="eyebrow">Your set-up</span><div class="grid2"><label class="f">Goal<select id="psgoal">'+selOpts(GOALS,GOALS[p.goal]?p.goal:"gain")+'</select></label><label class="f">Upper sessions a week<select id="psups"><option value="2"'+(p.ups!==3?" selected":"")+'>2 (A and B)</option><option value="3"'+(p.ups===3?" selected":"")+'>3 (A, B, A)</option></select></label></div>'+
+  const us=getUserSports(p), s1Label=sportLabelFor("football"), s2Label=sportLabelFor("sport",true);
+  const sportOpts = selKey => Object.keys(SPORT_CATALOG).filter(k=>k!=="sport").map(k=>'<option value="'+k+'"'+(selKey===k?" selected":"")+'>'+esc(SPORT_CATALOG[k].n)+'</option>').join("");
+  const tier=p.expLevel||2;
+  return '<div class="card stack"><div class="row between"><span class="eyebrow">Your set-up &amp; AI Programme Architect</span><span class="chip d'+tier+'">'+LEVELS[tier]+' Programme</span></div>'+
+    '<div class="grid2"><label class="f">Goal<select id="psgoal">'+selOpts(GOALS,GOALS[p.goal]?p.goal:"gain")+'</select></label><label class="f">Upper sessions a week<select id="psups"><option value="2"'+(p.ups!==3?" selected":"")+'>2 (A and B)</option><option value="3"'+(p.ups===3?" selected":"")+'>3 (A, B, A)</option></select></label></div>'+
     '<label class="f inl"><input type="checkbox" id="pslegs"'+(p.legs?" checked":"")+'> Train legs too (adds a Legs session you can put on any day)</label>'+
+    '<div class="tile stack"><span class="eyebrow">1-Tap Experience Tier Presets (Updates Gym &amp; Calisthenics Templates)</span><div class="filters">'+
+      '<button data-act="applytier" data-tier="1" class="'+(tier===1?"on":"")+'">&#127793; Beginner Foundation (Low Skill, Guided)</button>'+
+      '<button data-act="applytier" data-tier="2" class="'+(tier===2?"on":"")+'">&#128170; Intermediate Hypertrophy (Signature)</button>'+
+      '<button data-act="applytier" data-tier="3" class="'+(tier===3?"on":"")+'">&#128293; Advanced Strength &amp; Mastery</button>'+
+    '</div></div>'+
+    '<div class="grid2"><label class="f">Primary sport / cardio activity<select id="pssport1">'+sportOpts(us.s1)+'</select></label><label class="f">Secondary sport / activity<select id="pssport2">'+sportOpts(us.s2)+'</select></label></div>'+
     '<p class="small muted">'+esc(goalText(p.goal))+'</p>'+
-    '<div class="row between"><span class="small muted">'+esc((fb.length?"Football "+fb.join(", ")+". ":"No football days. ")+(sp.length?"Padel / sport "+sp.join(", ")+". ":"")+"Tick those in the week layout below; the button puts the lifts on the days around them.")+'</span><button class="btn sm sec" data-act="buildweek">Place the lifts for me</button></div></div>'; }
+    '<div class="row between"><span class="small muted">'+esc((fb.length?s1Label+" "+fb.join(", ")+". ":"No "+s1Label.toLowerCase()+" days. ")+(sp.length?s2Label+" "+sp.join(", ")+". ":"")+"Tick those in the week layout below; the button puts the lifts on the days around them.")+'</span><div class="row" style="gap:6px"><button class="btn sm sec" data-act="buildweek">Place the lifts for me</button>'+(fb.length||sp.length?'<button class="btn sm ghost" data-act="clearsports">Lifting Only</button>':'')+'</div></div></div>'; }
 function renderProfileCard(){ const me=curProfile(), p=state.plan;
   return '<div class="card stack"><span class="eyebrow">Your profile</span><div class="grid2"><label class="f">Name<input type="text" id="pname" value="'+esc(me?me.name:"")+'" maxlength="40" autocomplete="off" autocapitalize="words"></label><label class="f">Bodyweight (kg), used for pull-up and dip estimates<input type="number" inputmode="decimal" id="pbw" value="'+esc(p.bodyweight)+'"></label></div>'+
     (state.pinEdit?'<label class="f">New PIN, 4 to 6 digits (empty = no PIN)<input type="text" class="pin" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="npin"></label><div class="row"><button class="btn sm" data-act="pinsave">Save PIN</button><button class="btn sm ghost" data-act="pincancel">Cancel</button></div>'
@@ -3060,6 +3480,7 @@ function onPlanInput(e){ const t=e.target; if(state.tab==="plan"){ const tr=stat
   if(t.dataset.day){ const d=t.dataset.day; state.plan.week[d]=applyPart(state.plan.week[d],t.dataset.part||"lift",t.type==="checkbox"?t.checked:t.value); savePlan(); render(); return; }
   if(t.id==="pname"){ const v=String(t.value||"").trim(); const me=curProfile(); if(v&&me&&me.name!==v) updateProfile({name:v}); render(); return; }
   if(t.id==="pbw"){ state.plan.bodyweight=+t.value||85; savePlan(); return; }
+  if(t.id==="pssport1"||t.id==="pssport2"){ state.plan.sports=Object.assign({s1:"football",s2:"padel"},state.plan.sports||{}); state.plan.sports[t.id==="pssport1"?"s1":"s2"]=SPORT_CATALOG[t.value]?t.value:"football"; savePlan(); render(); toast("Sport preference updated"); return; }
   if(t.id==="psgoal"){ state.plan.goal=GOALS[t.value]?t.value:"gain"; savePlan(); render(); return; }
   if(t.id==="psups"){ state.plan.ups=+t.value===3?3:2; savePlan(); render(); toast(state.plan.ups===3?"Three upper sessions: press Place the lifts for me, or add the third A in the week layout.":"Two upper sessions a week."); return; }
   if(t.id==="pslegs"){ state.plan.legs=!!t.checked; if(!state.plan.legs){ DAYS.forEach(d=>{ if(liftOf(state.plan.week[d])==="L") state.plan.week[d]=withLift(state.plan.week[d],null); }); Object.keys(state.plan.overrides||{}).forEach(ws=>{ DAYS.forEach(d=>{ if(liftOf(state.plan.overrides[ws][d])==="L") state.plan.overrides[ws][d]=withLift(state.plan.overrides[ws][d],null); }); }); } savePlan(); render(); toast(state.plan.legs?"Legs is on. Pick Legs on a day in the week layout, or press Place the lifts for me.":"Legs day removed from the week"); return; }
@@ -3067,22 +3488,54 @@ function onPlanInput(e){ const t=e.target; if(state.tab==="plan"){ const tr=stat
   if(t.dataset.pf){ const item=state.plan.sessions[tr][t.dataset.ps][+t.dataset.pi]; const f=t.dataset.pf; if(f==="side") item.side=t.checked; else if(f==="ex"||f==="note"||f==="unit") item[f]=t.value; else item[f]=+t.value; savePlan(); if(f==="ex") render(); } } }
 
 /* --- Library --- */
-const GROUPS=["all","Chest","Back","Shoulders","Arms","Legs","Core","Warm-up","Stretch","Ladders"];
+const GROUPS=["all","Workouts","Chest","Back","Shoulders","Arms","Legs","Core","Warm-up","Stretch","Ladders"];
 function renderLibrary(){
   const {f,q}=state.lib; const d=state.lib.d||0;
-  return '<div class="card stack"><span class="eyebrow">Exercise library</span><input type="text" id="libq" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search an exercise" value="'+esc(q)+'"><div class="filters">'+GROUPS.map(g=>'<button data-act="libf" data-g="'+g+'" class="'+(f===g?"on":"")+'">'+(g==="all"?"All":g)+'</button>').join("")+'<div class="filters">'+[0,1,2,3].map(l=>'<button data-act="libd" data-d="'+l+'" class="'+(d===l?"on":"")+'">'+(l?'<i class="dot d'+l+'" style="margin:0 6px 0 0"></i>'+LEVELS[l]:"Any level")+'</button>').join("")+'</div>'+
-    '<p class="small muted">Level: <span class="chip d1">Beginner</span> learn the pattern, low skill. <span class="chip d2">Intermediate</span> needs control and a base of strength. <span class="chip d3">Advanced</span> high strength or skill demand, work up the ladder first. The level is the same for everyone; your own numbers decide the weight.</p>'+
-    '<p class="small muted">Each card is the step-by-step cue list plus a video link. Links open a YouTube search for that exact movement, so you always get current videos. Good channels to pick from the results: Jeff Nippard, Renaissance Periodization, Calisthenicmovement.</p></div><div id="libres" class="stack" style="gap:16px">'+libResults()+'</div>';
+  const totalEx = Object.keys(EX).length;
+  return '<div class="card stack"><div class="row between"><span class="eyebrow">Exercise &amp; Workout Library ('+totalEx+' Movements &middot; Sorted Beginner &rarr; Advanced)</span><span class="chip sh">Curated Coaching</span></div><input type="text" id="libq" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="Search '+totalEx+' exercises, muscles, or level..." value="'+esc(q)+'"><div class="filters">'+GROUPS.map(g=>'<button data-act="libf" data-g="'+g+'" class="'+(f===g?"on":"")+'">'+(g==="all"?"All":g)+'</button>').join("")+'</div><div class="filters">'+[0,1,2,3].map(l=>'<button data-act="libd" data-d="'+l+'" class="'+(d===l?"on":"")+'">'+(l?'<i class="dot d'+l+'" style="margin:0 6px 0 0"></i>'+LEVELS[l]:"Any level (Beginner → Advanced)")+'</button>').join("")+'</div>'+
+    '<p class="small muted">Level: <span class="chip d1">Beginner</span> learn the pattern, low skill. <span class="chip d2">Intermediate</span> needs control and a base of strength. <span class="chip d3">Advanced</span> high strength or skill demand, work up the ladder first. Exercises are sorted from <b>Beginner &rarr; Intermediate &rarr; Advanced</b> so you can build up safely.</p>'+
+    '<p class="small muted">Each card includes step-by-step form cues, how to improve, mistakes to avoid, smart regressions/progressions, and a video tutorial link.</p></div><div id="libres" class="stack" style="gap:16px">'+libResults()+'</div>';
+}
+function renderWorkoutCatalog(){
+  return '<div class="card stack"><div class="row between"><div><span class="eyebrow">Curated Programme Templates (Beginner &rarr; Advanced)</span><h3>Ready-to-Run Workouts</h3></div><span class="chip good">1-Tap Load</span></div>'+
+    '<p class="small muted">Pick any complete workout template below to start a session immediately or apply it as your active programme in Plan.</p>'+
+    '<div class="prog-grid">'+WORKOUT_LIBRARY.map(w=>{
+      const exList=(w.sessions.A||[]).map(it=>EX[it.ex]?EX[it.ex].n:it.ex).join(" &middot; ");
+      return '<div class="prog-card"><div class="stack" style="gap:4px"><div class="row between"><span class="chip">'+esc(w.tag)+'</span><span class="small muted">'+esc(w.dur)+'</span></div><h4>'+esc(w.title)+'</h4><p class="small muted">'+esc(w.desc)+'</p><p class="small"><b>Session A preview:</b> '+exList+'</p></div>'+
+        '<div class="row" style="gap:6px"><button class="btn sm" data-act="libstartprog" data-id="'+w.id+'">Start Workout A</button><button class="btn sm sec" data-act="libapplyprog" data-id="'+w.id+'">Apply to My Plan</button></div></div>';
+    }).join("")+'</div></div>';
 }
 function libResults(){
   const {f,q}=state.lib; const ql=q.trim().toLowerCase(); const d=state.lib.d||0;
-  const keys=Object.keys(EX).filter(k=>(f==="all"||EX[k].g===f)&&(!d||levelOf(k)===d)&&(!ql||EX[k].n.toLowerCase().includes(ql)||EX[k].g.toLowerCase().includes(ql)||levelName(k).toLowerCase().includes(ql)));
+  if(f==="Workouts"&&!d) return renderWorkoutCatalog();
+  const groupOrder={Chest:1,Back:2,Shoulders:3,Arms:4,Legs:5,Core:6,"Warm-up":7,Stretch:8};
+  const keys=Object.keys(EX).filter(k=>(f==="all"||EX[k].g===f)&&(!d||levelOf(k)===d)&&(!ql||EX[k].n.toLowerCase().includes(ql)||EX[k].g.toLowerCase().includes(ql)||levelName(k).toLowerCase().includes(ql)))
+    .sort((a,b)=>(levelOf(a)-levelOf(b)) || ((groupOrder[EX[a].g]||9)-(groupOrder[EX[b].g]||9)) || EX[a].n.localeCompare(EX[b].n));
   const vid='<svg viewBox="0 0 24 24"><path d="M21.6 7.2a2.7 2.7 0 0 0-1.9-1.9C18 4.8 12 4.8 12 4.8s-6 0-7.7.5A2.7 2.7 0 0 0 2.4 7.2 28 28 0 0 0 2 12a28 28 0 0 0 .4 4.8 2.7 2.7 0 0 0 1.9 1.9c1.7.5 7.7.5 7.7.5s6 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.8zM10 15V9l5.2 3z"/></svg>';
-  const ladders='<div class="card stack"><h3>Calisthenics ladders</h3><p class="small muted">Move one rung up when you hit the top of the rep range on every set with clean form.</p>'+
-    [["Push","pushup","defpushup","wpushup","archer","hspu"],["Dip","chairdips","dips"],["Pull","invrow","negpullup","bandpullup","pullup","chinup"],["Overhead","pike","elevpike","hspu"],["Legs","airsquat","revlunge","bss","nordic"]].map(l=>'<div><span class="eyebrow">'+l[0]+'</span><div class="ladder">'+l.slice(1).map((k,i)=>(i?'<i>&rarr;</i>':'')+'<span>'+esc(EX[k].n)+levelDot(k)+'</span>').join("")+'</div></div>').join("")+
-    '<p class="small">Full push ladder: push-up, deficit push-up, feet-elevated push-up, archer push-up, pseudo-planche push-up, one-arm push-up negatives. Full pull ladder: inverted row, feet-elevated row, negative pull-up, band-assisted pull-up, pull-up, weighted pull-up.</p></div>';
-  const cards=keys.map(k=>{ const e=EX[k], hb=historicalBest(k), meta=exMeta(k); const prTag=hb.count>0?'<span class="chip good">Best: '+(e.unit==="reps"||e.eq==="body"?hb.maxR+" reps":hb.maxW+" kg (1RM "+hb.max1RM+" kg)")+'</span>':''; const mus=meta.p.map(m=>MUSCLES[m]?MUSCLES[m].n:m).join(", "); return '<div class="lib-card"><div class="row between"><h3>'+esc(e.n)+'</h3><div class="row" style="gap:6px">'+levelChip(k)+'<span class="chip '+(e.t==="pull"?"pull":e.t==="push"?"push":e.t==="legs"?"legs":"")+'">'+esc(e.g)+'</span><span class="chip">'+esc(EQ_NAMES[e.eq]||e.eq)+'</span>'+prTag+'</div></div>'+(!/Warm-up|Stretch/.test(e.g)?'<div class="small muted">Primary: <b>'+esc(mus)+'</b> &middot; Rest: <b>'+restSecsFor(k)+'s</b> &middot; Tempo: <b>2-0-1</b></div>':'')+'<ol>'+e.steps.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol><a class="vid" href="'+yt(e.q)+'" target="_blank" rel="noopener">'+vid+' Watch: '+esc(e.q)+'</a></div>'; }).join("");
-  return ((f==="Ladders"||f==="all")&&!d?ladders:"")+(f==="Ladders"?"":cards||'<div class="empty">Nothing matches.</div>');
+  const ladders='<div class="card stack"><h3>Calisthenics ladders (Beginner &rarr; Advanced Progression)</h3><p class="small muted">Move one rung up when you hit the top of the rep range on every set with clean form.</p>'+
+    [["Push","kneepushup","pushup","defpushup","wpushup","archer","pseudoplanche"],["Dip","chairdips","dips","ringdip"],["Pull","deadhang","invrow","negpullup","bandpullup","chinup","pullup","meadows"],["Overhead","pike","elevpike","handstand_hold","hspu"],["Core","deadbug","plank","kneeraise","hollow","abwheel","toestobar"],["Legs","airsquat","revlunge","bss","nordic","pistol"]].map(l=>'<div><span class="eyebrow">'+l[0]+'</span><div class="ladder">'+l.slice(1).map((k,i)=>(i?'<i>&rarr;</i>':'')+'<span>'+esc(EX[k].n)+levelDot(k)+'</span>').join("")+'</div></div>').join("")+
+    '<p class="small">Full push ladder: incline/knee push-up, push-up, deficit push-up, feet-elevated push-up, archer push-up, pseudo-planche push-up. Full pull ladder: active hang, inverted row, negative pull-up, band-assisted pull-up, chin-up, pull-up, weighted pull-up.</p></div>';
+  const cards=keys.map(k=>{
+    const e=EX[k], hb=historicalBest(k), meta=exMeta(k);
+    const prTag=hb.count>0?'<span class="chip good">Best: '+(e.unit==="reps"||e.eq==="body"?hb.maxR+" reps":hb.maxW+" kg (1RM "+hb.max1RM+" kg)")+'</span>':'';
+    const mus=meta.p.map(m=>MUSCLES[m]?MUSCLES[m].n:m).join(", ");
+    const coachOpen = !!(state.libCoachOpen&&state.libCoachOpen[k]);
+    const coach = (!/Warm-up|Stretch/.test(e.g) && coachOpen) ? getExerciseCoach(k) : null;
+    const sw = (!/Warm-up|Stretch/.test(e.g) && coachOpen) ? getSmartSwaps(k) : null;
+    const coachHtml = !/Warm-up|Stretch/.test(e.g) ? '<div class="coach-drawer"><button class="btn sm ghost" data-act="libcoach" data-k="'+k+'">'+(coachOpen?"Hide Coaching &amp; Smart Swaps":"&#128161; How to Improve, Fix Mistakes &amp; Smart Swaps")+'</button>'+
+      (coachOpen&&coach ? '<div class="coach-box">'+
+        '<div><b>&#127919; Technique &amp; Mind-Muscle Cue:</b> '+esc(coach.improve)+'</div>'+
+        '<div><b>&#9888;&#65039; Common Mistake to Avoid:</b> '+esc(coach.mistake)+'</div>'+
+        '<div><b>&#128200; When &amp; How to Level Up:</b> '+esc(coach.progress)+'</div>'+
+        (sw&&(sw.easier.length||sw.harder.length||sw.joint.length)?'<div class="small muted" style="border-top:1px solid var(--line);padding-top:6px">'+
+          (sw.easier.length?'<div><b>&#128994; Easier Regression:</b> '+sw.easier.map(x=>esc(EX[x].n)).join(", ")+'</div>':'')+
+          (sw.harder.length?'<div><b>&#128293; Harder Progression:</b> '+sw.harder.map(x=>esc(EX[x].n)).join(", ")+'</div>':'')+
+          (sw.joint.length?'<div><b>&#128737;&#65039; Joint-Friendly Swap:</b> '+sw.joint.map(x=>esc(EX[x].n)).join(", ")+'</div>':'')+
+        '</div>':'')+
+      '</div>':'')+'</div>' : '';
+    return '<div class="lib-card"><div class="row between"><h3>'+esc(e.n)+'</h3><div class="row" style="gap:6px">'+levelChip(k)+'<span class="chip '+(e.t==="pull"?"pull":e.t==="push"?"push":e.t==="legs"?"legs":"")+'">'+esc(e.g)+'</span><span class="chip">'+esc(EQ_NAMES[e.eq]||e.eq)+'</span>'+prTag+'</div></div>'+(!/Warm-up|Stretch/.test(e.g)?'<div class="small muted">Primary: <b>'+esc(mus)+'</b> &middot; Rest: <b>'+restSecsFor(k)+'s</b> &middot; Tempo: <b>2-0-1</b></div>':'')+'<ol>'+e.steps.map(s=>'<li>'+esc(s)+'</li>').join("")+'</ol>'+coachHtml+'<a class="vid" href="'+yt(e.q)+'" target="_blank" rel="noopener">'+vid+' Watch: '+esc(e.q)+'</a></div>';
+  }).join("");
+  return ((f==="all")&&!d&&!ql?renderWorkoutCatalog():"")+((f==="Ladders"||f==="all")&&!d?ladders:"")+(f==="Ladders"?"":cards||'<div class="empty">Nothing matches.</div>');
 }
 
 /* --- Guide --- */
@@ -3100,12 +3553,18 @@ function guideRecovery(){ const p=state.plan, bw=+p.bodyweight||85, g=GOALS[p.go
   li.push('<b>Sleep:</b> 7 to 8 hours. The sleep field in the log is there so you can see the pattern.'); li.push('<b>Shoulders:</b> sharp joint pain (not muscle burn) means stop that press, keep rows and face pulls, see a physio.');
   return '<div class="card stack rules"><h2>'+(sportOn?"Sport, food and recovery":"Food and recovery")+' <span class="chip sh">'+esc(GOALS[g])+'</span></h2><ol>'+li.map(x=>'<li>'+x+'</li>').join("")+'</ol></div>'; }
 function renderGuide(){
-  return '<div class="card stack rules"><h2>How to use this</h2><ol>'+guideWeekLi()+'<li><b>Today</b> tells you what is on. Press Start session and the log opens with last time’s weights filled in. No gym today? Press <b>Do A as calisthenics</b> (or B): the same session runs on bodyweight and the pull-up bar, push-ups, pike push-ups, chin-ups, dips. The week still counts it as done.</li><li>Do the set, type what you actually did. Finish with the <b>Next time</b> line before you leave the gym.</li><li><b>Plan</b> is where you set the default week, swap exercises or change sets and rep ranges. It saves by itself.</li><li><b>One week only:</b> on Today, use the arrows to see any week and <b>Edit this week</b> to take football or padel off, move A and B, or put a lift and a game on the same day, for that week alone. The default week is untouched. A and B stay in every week.</li><li><b>Library</b> has the step-by-step cues and a video link for every movement, warm-up drill and stretch.</li></ol></div>'+
-  '<div class="card stack rules"><h2>The rules that make it work</h2><ol><li><b>Progressive overload.</b> Three sets per exercise, 8 to 12 reps on the main lifts, 10 to 15 on the smaller ones. Start a weight where the bottom of the rep range leaves 1 or 2 reps in the tank. Each session try to add a rep. At the top of the range on all sets, add 2.5 kg (dumbbells) or 5 kg (barbell) and drop back to the bottom of the range. Bodyweight moves: add reps, then move up the ladder. The log applies this rule for you and shows a recommended weight and reps per set. It also reads the block week (learning, push, deload), your sleep, the Hold box (tick it when you are tired, played football, or are short on time: reps only, no weight jump that day), how last time felt, and the reps you type as you go: over the range and the next set goes up, under it and the next set comes down. Easy / About right / Hard on each exercise nudges it on the spot.</li><li><b>Pull as much as you push.</b> Every push exercise has a pull partner in the same session. Non-negotiable for shoulder health.</li><li><b>Stop 1 to 2 reps short of failure</b> on most sets. Failure only on the last set of an isolation move.</li><li><b>Rest 2 minutes</b> between sets of press, row and pull-up; 60 to 90 seconds on isolation moves.</li><li><b>Log every session.</b> Without the log you cannot apply rule 1.</li><li><b>Form before load.</b> Full range, 2 seconds down, no bouncing. If you cheat the last rep, the weight is too heavy.</li><li><b>Deload every 6 to 8 weeks.</b> Week 7 of the block: half the sets, about 70 percent of the weight.</li><li><b>Missed a session, repeat the week.</b> If a planned A or B did not happen, the next session opens with the same sets, reps and weights as last time instead of the progression. That way a few weeks off never hands you a workout you are not ready for. Progress resumes once a full week is done.</li></ol></div>'+
-  '<div class="card stack rules"><h2>Warm-up, every session, 5 to 8 minutes</h2><ol><li>2 to 3 minutes easy movement: rowing machine, skipping, or arm circles and jumping jacks. <a href="'+yt(EX.cardio.q)+'" target="_blank" rel="noopener">video</a></li><li>Band pull-aparts or scapular wall slides, 2 x 15. <a href="'+yt(EX.bandpullapart.q)+'" target="_blank" rel="noopener">video</a></li><li>Shoulder dislocates with a band or towel, 2 x 10. <a href="'+yt(EX.dislocate.q)+'" target="_blank" rel="noopener">video</a></li><li>First exercise of the day: two light ramp-up sets, about 50 then 75 percent of the working weight. Not logged.</li></ol></div>'+
-  '<div class="card stack rules"><h2>Cool-down and stretching, 5 minutes</h2><ol><li>Doorway chest stretch, 30 s each side. <a href="'+yt(EX.doorway.q)+'" target="_blank" rel="noopener">video</a></li><li>Lat stretch, hang from the bar or hold a post, 2 x 30 s. <a href="'+yt(EX.latstretch.q)+'" target="_blank" rel="noopener">video</a></li><li>Cross-body shoulder and overhead triceps stretch, 30 s each side.</li><li>Cat-cow and thoracic rotations, 10 each, then child’s pose 45 s. <a href="'+yt(EX.catcow.q)+'" target="_blank" rel="noopener">video</a></li><li>After football: hip flexor and hamstring stretch, foam roll if sore. <a href="'+yt(EX.hipflex.q)+'" target="_blank" rel="noopener">video</a></li></ol><p class="small muted">Stretch after, not before heavy sets. Static stretching before pressing lowers force output for a while.</p></div>'+
-  guideRecovery()+
-  '<div class="card stack rules"><h2>The first 12 weeks</h2><ol><li><b>Weeks 1 to 2:</b> learn the movements, weights lighter than you think. Film bench, row and press once and compare to the video.</li><li><b>Weeks 3 to 6:</b> apply rule 1 every session. A rep or 2.5 kg somewhere each week.</li><li><b>Week 7:</b> deload.</li><li><b>Weeks 8 to 12:</b> keep progressing. Expect bench up 15 to 25 kg from the start and unassisted pull-ups.</li><li>After week 12: swap a few exercises in Plan (bench to dumbbell bench, lat pulldown to cable row), press Start a new block on Today, same rules.</li></ol></div>';
+  const sub=(state.sub&&state.sub.guide)||"all";
+  const subBar=renderSubNav("guide",[{k:"all",n:"All Guide"},{k:"start",n:"Beginner Quick-Start"},{k:"rules",n:"AI & Overload Rules"},{k:"warm",n:"Warm-Up & Mobility"},{k:"food",n:"Nutrition & Recovery"}]);
+  const cHow = '<div class="card stack rules"><h2>How to use this (Your Digital Personal Trainer)</h2><ol>'+guideWeekLi()+'<li><b>Today</b> gives you your daily AI Coach briefing and tells you what is on. Press Start session and the log opens with last time’s weights filled in (or 1-tap AI starter weight buttons on your first day). No gym today? Press <b>Do A as calisthenics</b> (or B): the same session runs on bodyweight and the pull-up bar, push-ups, pike push-ups, chin-ups, dips. The week still counts it as done.</li><li>Do the set, type what you actually did (or tap &#10003; to auto-fill and start the rest timer). Use <b>Smart Swap</b> on any exercise to make it easier, harder, or joint-friendly on the spot.</li><li><b>Plan</b> is where you pick your Experience Tier (Beginner, Intermediate, Advanced), set your personal sports or Lifting Only schedule, and audit your sessions. It saves by itself.</li><li><b>One week only:</b> on Today, use the arrows to see any week and <b>Edit this week</b> to take a sport day off, move A and B, or put a lift and a game on the same day, for that week alone. The default week is untouched. A and B stay in every week.</li><li><b>Library</b> has 90+ exercises sorted from Beginner to Advanced, ready-to-run workout templates, coaching tips, and video links.</li></ol></div>';
+  const cRules = '<div class="card stack rules"><h2>The rules that make it work</h2><ol><li><b>Progressive overload.</b> Three sets per exercise, 8 to 12 reps on the main lifts, 10 to 15 on the smaller ones. Start a weight where the bottom of the rep range leaves 1 or 2 reps in the tank. Each session try to add a rep. At the top of the range on all sets, add 2.5 kg (dumbbells) or 5 kg (barbell) and drop back to the bottom of the range. Bodyweight moves: add reps, then move up the ladder. The log applies this rule for you and shows a recommended weight and reps per set. It also reads the block week (learning, push, deload), your sleep, the Hold box (tick it when you are tired, played football, or are short on time: reps only, no weight jump that day), how last time felt, and the reps you type as you go: over the range and the next set goes up, under it and the next set comes down. Easy / About right / Hard on each exercise nudges it on the spot.</li><li><b>Pull as much as you push.</b> Every push exercise has a pull partner in the same session. Non-negotiable for shoulder health.</li><li><b>Stop 1 to 2 reps short of failure</b> on most sets. Failure only on the last set of an isolation move.</li><li><b>Rest 2 minutes</b> between sets of press, row and pull-up; 60 to 90 seconds on isolation moves.</li><li><b>Log every session.</b> Without the log you cannot apply rule 1.</li><li><b>Form before load.</b> Full range, 2 seconds down, no bouncing. If you cheat the last rep, the weight is too heavy.</li><li><b>Deload every 6 to 8 weeks.</b> Week 7 of the block: half the sets, about 70 percent of the weight.</li><li><b>Missed a session, repeat the week.</b> If a planned A or B did not happen, the next session opens with the same sets, reps and weights as last time instead of the progression. That way a few weeks off never hands you a workout you are not ready for. Progress resumes once a full week is done.</li></ol></div>';
+  const cWarm = '<div class="card stack rules"><h2>Warm-up, every session, 5 to 8 minutes</h2><ol><li>2 to 3 minutes easy movement: rowing machine, skipping, or arm circles and jumping jacks. <a href="'+yt(EX.cardio.q)+'" target="_blank" rel="noopener">video</a></li><li>Band pull-aparts or scapular wall slides, 2 x 15. <a href="'+yt(EX.bandpullapart.q)+'" target="_blank" rel="noopener">video</a></li><li>Shoulder dislocates with a band or towel, 2 x 10. <a href="'+yt(EX.dislocate.q)+'" target="_blank" rel="noopener">video</a></li><li>First exercise of the day: two light ramp-up sets, about 50 then 75 percent of the working weight. Not logged.</li></ol></div>'+
+    '<div class="card stack rules"><h2>Cool-down and stretching, 5 minutes</h2><ol><li>Doorway chest stretch, 30 s each side. <a href="'+yt(EX.doorway.q)+'" target="_blank" rel="noopener">video</a></li><li>Lat stretch, hang from the bar or hold a post, 2 x 30 s. <a href="'+yt(EX.latstretch.q)+'" target="_blank" rel="noopener">video</a></li><li>Cross-body shoulder and overhead triceps stretch, 30 s each side.</li><li>Cat-cow and thoracic rotations, 10 each, then child’s pose 45 s. <a href="'+yt(EX.catcow.q)+'" target="_blank" rel="noopener">video</a></li><li>After football / sport: hip flexor and hamstring stretch, foam roll if sore. <a href="'+yt(EX.hipflex.q)+'" target="_blank" rel="noopener">video</a></li></ol><p class="small muted">Stretch after, not before heavy sets. Static stretching before pressing lowers force output for a while.</p></div>';
+  const c12 = '<div class="card stack rules"><h2>The first 12 weeks</h2><ol><li><b>Weeks 1 to 2:</b> learn the movements, weights lighter than you think. Film bench, row and press once and compare to the video.</li><li><b>Weeks 3 to 6:</b> apply rule 1 every session. A rep or 2.5 kg somewhere each week.</li><li><b>Week 7:</b> deload.</li><li><b>Weeks 8 to 12:</b> keep progressing. Expect bench up 15 to 25 kg from the start and unassisted pull-ups.</li><li>After week 12: swap a few exercises in Plan (bench to dumbbell bench, lat pulldown to cable row), press Start a new block on Today, same rules.</li></ol></div>';
+  if(sub==="start") return subBar + renderTrainerBlueprint() + cHow + c12;
+  if(sub==="rules") return subBar + cRules + c12;
+  if(sub==="warm") return subBar + cWarm;
+  if(sub==="food") return subBar + guideRecovery();
+  return subBar + cHow + cRules + cWarm + guideRecovery() + c12;
 }
 
 /* ---------- Events ---------- */
@@ -3188,6 +3647,113 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
       f.exercises[i]=ne; state.openSwap[i]=false; render(); toast("Swapped to "+EX[nk].n);
     }
   }
+  else if(a==="setstartw"){
+    const i=+b.dataset.i, w=+b.dataset.w, ex=f&&f.exercises[i];
+    if(ex&&w>0){
+      ex.sets.forEach(s=>{ if(s.r===""||s.r==null){ s.w=w; s.auto=false; } });
+      render(); toast("Starter weight set to "+w+" kg on "+ex.name);
+    }
+  }
+  else if(a==="aicalall"){
+    if(f){
+      f.exercises.forEach(ex=>{
+        if(ex.unit==="kg"){
+          const est=estimateStarterWeights(ex.ex);
+          ex.sets.forEach(s=>{ if((s.w===""||s.w==null)&&(s.r===""||s.r==null)){ s.w=est.base; s.auto=false; } });
+        }
+      });
+      render(); toast("AI calibrated starter weights for all empty exercises!");
+    }
+  }
+  else if(a==="aimode"){
+    const m=b.dataset.m||"optimal";
+    state.aiMode=m;
+    if(f){
+      if(m==="express"){
+        f.exercises.forEach(ex=>{ if(ex.sets.length>2 && !ex.sets[ex.sets.length-1].r) ex.sets=ex.sets.slice(0,2); });
+        toast("30-Min Express Mode: trimmed to 2 high-focus working sets per exercise.");
+      } else if(m==="guided"){
+        state.openCues[0]=true; f.hold=true;
+        toast("Beginner Guided Mode: step-by-step form coaching opened & weights held steady.");
+      } else if(m==="recovery"){
+        f.hold=!f.hold;
+        toast(f.hold?"Recovery Hold active: focusing on clean reps without weight jumps today.":"Recovery Hold turned off.");
+      } else {
+        f.hold=false;
+        toast("Optimal AI Progression active.");
+      }
+      render();
+    }
+  }
+  else if(a==="aistart"){
+    ensureAudio();
+    const sKey=b.dataset.s||"A", m=b.dataset.m||"optimal";
+    state.aiMode=m;
+    openForm(sKey,null,null);
+    if(state.form){
+      if(m==="express"){ state.form.exercises.forEach(ex=>{ if(ex.sets.length>2) ex.sets=ex.sets.slice(0,2); }); }
+      else if(m==="guided"){ state.openCues[0]=true; state.form.hold=true; }
+      render();
+    }
+    pushNav();
+  }
+  else if(a==="bptog"){
+    const cur = state.blueprintOpen!==null ? state.blueprintOpen : (state.sessions.length===0);
+    state.blueprintOpen = !cur; render();
+  }
+  else if(a==="ptogswap"){
+    state.openPlanSwap=state.openPlanSwap||{};
+    const key=b.dataset.s+"_"+b.dataset.i;
+    state.openPlanSwap[key]=!state.openPlanSwap[key];
+    render();
+  }
+  else if(a==="pswapex"){
+    const sKey=b.dataset.s, idx=+b.dataset.i, nk=b.dataset.ex;
+    if(EX[nk] && state.plan.sessions[tr] && state.plan.sessions[tr][sKey] && state.plan.sessions[tr][sKey][idx]){
+      const cur=state.plan.sessions[tr][sKey][idx];
+      cur.ex=nk; cur.unit=EX[nk].eq==="body"?"reps":"kg";
+      state.openPlanSwap[sKey+"_"+idx]=false;
+      savePlan(); render(); toast("Replaced with "+EX[nk].n+" in "+sessionTitle(sKey));
+    }
+  }
+  else if(a==="applytier"){
+    const tier=+b.dataset.tier||2;
+    state.plan.expLevel=tier;
+    const gProg=WORKOUT_LIBRARY.find(w=>w.tier===tier&&w.track==="gym");
+    const bProg=WORKOUT_LIBRARY.find(w=>w.tier===tier&&w.track==="body");
+    if(gProg) state.plan.sessions.gym=clone(gProg.sessions);
+    if(bProg) state.plan.sessions.body=clone(bProg.sessions);
+    savePlan(); render(); toast(LEVELS[tier]+" programme templates applied to Gym & Calisthenics!");
+  }
+  else if(a==="clearsports"){
+    DAYS.forEach(d=>{ state.plan.week[d]=liftOf(state.plan.week[d])||"rest"; });
+    state.plan.week=buildWeek({ups:state.plan.ups,legs:state.plan.legs,football:[],sport:[]});
+    savePlan(); render(); toast("Cleared sport days — schedule set to Lifting Only.");
+  }
+  else if(a==="libstartprog"){
+    const w=WORKOUT_LIBRARY.find(x=>x.id===b.dataset.id);
+    if(w){
+      state.plan.sessions[w.track]=clone(w.sessions);
+      state.plan.expLevel=w.tier;
+      savePlan();
+      ensureAudio();
+      openForm("A",null,w.track);
+      pushNav();
+      toast("Started "+w.title);
+    }
+  }
+  else if(a==="libapplyprog"){
+    const w=WORKOUT_LIBRARY.find(x=>x.id===b.dataset.id);
+    if(w){
+      state.plan.sessions[w.track]=clone(w.sessions);
+      state.plan.track=w.track;
+      state.plan.expLevel=w.tier;
+      savePlan();
+      state.tab="plan";
+      render();
+      toast("Applied "+w.title+" to your Plan!");
+    }
+  }
   else if(a==="reststart"){ ensureAudio(); startRestTimer(+b.dataset.s||90, b.dataset.l||""); }
   else if(a==="msel"){ state.muscleSel=b.dataset.m; render(); }
   else if(a==="bmmode"){ state.bodyMapMode=b.dataset.m; render(); }
@@ -3244,6 +3810,7 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="addplan"){ state.plan.sessions[tr][b.dataset.s].push(it("latraise",3,10,12)); savePlan(); render(); }
   else if(a==="libf"){ state.lib.f=b.dataset.g; render(); }
   else if(a==="libd"){ state.lib.d=+b.dataset.d||0; render(); }
+  else if(a==="libcoach"){ state.libCoachOpen=state.libCoachOpen||{}; state.libCoachOpen[b.dataset.k]=!state.libCoachOpen[b.dataset.k]; render(); }
   else if(a==="setpin"){ state.pinEdit=true; render(); const el=document.getElementById("npin"); if(el) el.focus(); }
   else if(a==="pincancel"){ state.pinEdit=false; render(); }
   else if(a==="pinsave"){ const el=document.getElementById("npin"); const v=el?String(el.value||"").trim():""; if(v&&!/^\d{4,6}$/.test(v)){ toast("The PIN is 4 to 6 digits"); return; } updateProfile({pinHash:v?await pinHash(v):null}); state.pinEdit=false; render(); toast(v?"PIN saved":"PIN removed"); }
