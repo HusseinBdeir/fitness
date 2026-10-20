@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=13.9">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.9">
-<link rel="apple-touch-icon" href="icon-180.png?v=13.9">
+<link rel="manifest" href="manifest.json?v=13.10">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.10">
+<link rel="apple-touch-icon" href="icon-180.png?v=13.10">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +43,7 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{height:100%}
+html,body{min-height:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button,.day,.okbtn,.person,.dp{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
@@ -58,8 +58,8 @@ h2{font-size:22px;font-weight:700}
 h3{font-size:18px;font-weight:600}
 p{margin:0}
 a{color:var(--accent)}
-.wrap{max-width:760px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:14px 92px}
-body.hasrest .wrap{padding-bottom:180px}
+.wrap{max-width:760px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:14px calc(110px + env(safe-area-inset-bottom,0px))}
+body.hasrest .wrap{padding-bottom:calc(190px + env(safe-area-inset-bottom,0px))}
 header.top{position:sticky;top:0;padding-top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
 header.top .in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .brand{display:flex;flex-direction:column;min-width:0}
@@ -82,6 +82,7 @@ nav.tabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2p
   .wrap{padding-block:20px 40px}
 }
 section.view{display:flex;flex-direction:column;gap:16px}
+@media (max-width:759px){section.view::after{content:"";display:block;height:calc(16px + env(safe-area-inset-bottom,0px));flex-shrink:0}}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .card.hero{border-color:var(--accent);background:linear-gradient(135deg,var(--accent-soft),var(--surface) 70%)}
 .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
@@ -91,10 +92,10 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:420px){.grid3{grid-template-columns:repeat(3,1fr)}}
-.tile{background:var(--sunk);border-radius:8px;padding:10px 12px;min-width:0}
-.tile>b{font-family:var(--display);font-size:26px;font-weight:700;display:block;line-height:1;font-variant-numeric:tabular-nums}
-.tile span{font-size:12px;color:var(--muted)}
-.tile>b.txt{font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+.tile{background:var(--sunk);border-radius:8px;padding:12px;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
+.tile>b{font-family:var(--display);font-size:26px;font-weight:700;display:block;line-height:1.05;font-variant-numeric:tabular-nums}
+.tile span{font-size:12px;color:var(--muted);line-height:1.25}
+.tile>b.txt{font-size:22px;line-height:1.1;overflow-wrap:anywhere}
 .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:10px 16px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
 .btn.sec{background:var(--sunk);color:var(--fg)}
 .btn.ghost{background:none;border:1px solid var(--line);color:var(--fg)}
@@ -2645,19 +2646,19 @@ function renderToday(){
   else if(sp){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Padel or other sport day</h2><p class="muted">Kept free for padel and whatever else comes up. No lifting planned today.</p>'+repeatNote+'<div class="row"><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button><button class="btn ghost" data-act="offday" data-k="sport">No padel today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button></div></div>'; }
   else if(fb){ hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Football day</h2><p class="muted">No upper session. Do not lift within 4 hours of kick-off. After the match: hip flexor and hamstring stretch, doorway chest stretch.</p>'+repeatNote+'<div class="row"><button class="btn ghost" data-act="offday" data-k="football">No football today, make it a rest day</button><button class="btn ghost" data-act="tab" data-tab="library">Stretches</button><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button></div></div>'; }
   else { hero='<div class="card hero stack"><span class="eyebrow">Today, '+fmtDate(today)+'</span><h2>Rest day</h2><p class="muted">Muscle is built between sessions. A walk and 7 to 8 hours of sleep do more than an extra set would.</p>'+repeatNote+'<div class="row"><button class="btn sec" data-act="start" data-s="A">Log a session anyway</button><button class="btn ghost" data-act="weekedit">Change this week</button></div></div>'; }
+  const summaryTiles='<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
   let block;
-  if(!wk) block='<div class="card stack"><span class="eyebrow">12-week block</span><p class="muted">The block starts on the day of your first logged session. Weeks 1 to 2 learn the movements, 3 to 6 push, week 7 deload, 8 to 12 push again. At two sessions a week expect the bench up 10 to 20 kg by week 12.</p></div>';
+  if(!wk) block='<div class="card stack"><span class="eyebrow">12-week block</span><p class="muted">The block starts on the day of your first logged session. Weeks 1 to 2 learn the movements, 3 to 6 push, week 7 deload, 8 to 12 push again. At two sessions a week expect the bench up 10 to 20 kg by week 12.</p>'+summaryTiles+'</div>';
   else { const tl=[]; for(let i=1;i<=12;i++){ const c=i<=2?"learn":i===7?"deload":"push"; tl.push('<div class="'+c+(i===wk?" now":"")+'" title="Week '+i+'">'+i+'</div>'); }
     const note = wk===7?'<span class="chip warn">Deload week: half the sets, 70 percent of the weight</span>':wk>12?'<span class="chip good">Block complete. Swap a few exercises in Plan and start a new block.</span>':wk<=2?'<span class="chip sh">Learning weeks: lighter than you think, film the main lifts</span>':'<span class="chip good">Push: add a rep or 2.5 kg somewhere each week</span>';
-    block='<div class="card stack"><div class="row between"><span class="eyebrow">12-week block, week '+wk+'</span><button class="btn ghost sm" data-act="newblock">Start a new block today</button></div><div class="timeline">'+tl.join("")+'</div>'+note+'</div>'; }
+    block='<div class="card stack"><div class="row between"><span class="eyebrow">12-week block, week '+wk+'</span><button class="btn ghost sm" data-act="newblock">Start a new block today</button></div><div class="timeline">'+tl.join("")+'</div>'+note+summaryTiles+'</div>'; }
   let lastCard='';
   if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+last.session+'">'+sessionTitle(last.session)+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
   const sub=(state.sub&&state.sub.today)||"all";
   const subBar=renderSubNav("today",[{k:"all",n:"All Today"},{k:"week",n:"Workout & Week"},{k:"checkin",n:"Health & Check-In"},{k:"recovery",n:"Muscles & Mobility"}]);
-  const summaryTiles='<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
   const secWeek = hero + renderTodayNotifBanner() + renderWeekCard() + lastCard;
   const secCheckin = (sub==="all"?secHdr("Daily Check-In, Fuel & Apple Health"):"") + renderDailyHub();
-  const secRec = (sub==="all"?secHdr("Mobility, Muscle Recovery & 12-Week Block"):"") + renderMobilityCard() + renderBodyMapCard() + block + summaryTiles;
+  const secRec = (sub==="all"?secHdr("Mobility, Muscle Recovery & 12-Week Block"):"") + renderMobilityCard() + renderBodyMapCard() + block;
   if(sub==="week") return subBar + secWeek;
   if(sub==="checkin") return subBar + secCheckin;
   if(sub==="recovery") return subBar + secRec;
