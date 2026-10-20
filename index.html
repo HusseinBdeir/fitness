@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=13.7">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.7">
-<link rel="apple-touch-icon" href="icon-180.png?v=13.7">
+<link rel="manifest" href="manifest.json?v=13.9">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=13.9">
+<link rel="apple-touch-icon" href="icon-180.png?v=13.9">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -310,6 +310,15 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .hnotice.bad{border-left-color:var(--bad);background:rgba(239,68,68,.08)}
 .hnotice.good{border-left-color:var(--good)}
 .step-row{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12.5px;flex-wrap:wrap}
+.sc-cta{background:var(--surface);border:1.5px solid #E11D48;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 14px -6px rgba(225,29,72,.22)}
+.sc-cta.synced{border-color:var(--good);box-shadow:none;background:var(--sunk);padding:10px 12px}
+.subnav{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.subnav::-webkit-scrollbar{display:none}
+.subnav button{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;color:var(--muted);white-space:nowrap;cursor:pointer;min-height:34px}
+.subnav button.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 2px 0}
+.sec-hdr .sec-lbl{font-family:var(--display);font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.sec-hdr .sec-line{flex:1;height:1px;background:var(--line)}
 
 </style>
 </head>
@@ -456,7 +465,7 @@ const repLabel = u => u==="s"?"sec":"reps";
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
 const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null};
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null,sub:{today:"all",health:"all",log:"all",plan:"all"}};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -514,7 +523,7 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   });
   out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
   return out; }
-function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",pending:{plan:false,sessions:{}}}); }
+function resetProfileState(){ Object.assign(state,{plan:clone(DEFAULT_PLAN),sessions:[],form:null,confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pinEdit:false,tab:"today",sub:{today:"all",health:"all",log:"all",plan:"all"},pending:{plan:false,sessions:{}}}); }
 
 /* ---------- v12 Full Web Push Notifications (RFC 8291 aes128gcm + RFC 8292 VAPID ES256) ---------- */
 const _VAPID = {
@@ -941,7 +950,7 @@ function createHttpDb(){
 async function initStore(){
   captureUrlHealthParams();
   state.profiles=(lsGet(LS.profiles)||[]).filter(p=>p&&p.id); let open=ssGet(SS.open); const last=lsGet(LS.profile);
-  if(!open&&lsGet("ubp.pending_hsync")){ const defPid=last||"hussein"; const pr=state.profiles.find(x=>x.id===defPid); if(!pr||!pr.pinHash){ open=defPid; ssSet(SS.open,open); } }
+  if(!open&&(lsGet("ubp.pending_hsync")||lsGet("ubp.pending_sc_missing"))){ const defPid=last||"hussein"; const pr=state.profiles.find(x=>x.id===defPid); if(!pr||!pr.pinHash){ open=defPid; ssSet(SS.open,open); } }
   if(open) await enterProfile(open); else { if(last) state.login.pid=last; render(); }
   let db=null,user=null;
   try{ if(window.claude&&window.claude.use){ [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]); } }catch(e){ db=null; user=null; }
@@ -1270,7 +1279,7 @@ function isIOSDevice(){
   }catch(e){ return false; }
 }
 function isAuthoritativeHealthSource(src){
-  return src==="Apple Health Shortcut"||src==="Apple Health Cloud"||src==="Apple Health XML"||src==="Apple Health CSV"||src==="Manual";
+  return /^(Apple Health (Shortcut|Cloud|XML|CSV)|Manual|iOS Shortcut|export\.xml|Health CSV)$/i.test(String(src||""));
 }
 function hasAuthoritativeHealth(iso){
   const d=iso||isoToday();
@@ -1348,11 +1357,14 @@ function neverAskHealthPrompt(){
 }
 function renderHealthDailyPrompt(){
   if(!shouldShowHealthDailyPrompt()) return "";
+  const p=getHealthSyncPrefs();
+  const scReady=!!(p.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
   return '<div class="hnotice good" id="hsyncprompt">'+
-    '<div class="row between"><b>&#9829; Sync Apple Health Today?</b><span class="chip warn">Daily Sync Check</span></div>'+
-    '<span>You haven&#39;t synced Apple Health yet. Sync once (it runs the iPhone Shortcut) and Fitness pulls each new reading of steps, calories, sleep, resting HR &amp; HRV from the cloud throughout the day.</span>'+
+    '<div class="row between"><b>&#9829; Connect &amp; Sync Apple Health</b><span class="chip warn">'+(scReady?"Ready to Sync":"2-Tap iPhone Setup")+'</span></div>'+
+    '<span>'+(scReady?"Pull today&#39;s live steps, active calories, resting HR &amp; HRV from your iPhone Shortcut.":"First time on this iPhone? Tap 1. Install Shortcut once, then tap 2. Sync Apple Health.")+'</span>'+
     '<div class="row" style="gap:6px;margin-top:2px">'+
-      '<button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button>'+
+      (!scReady?'<a class="btn sm sec" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; 1. Install Shortcut</a>':'')+
+      '<button class="btn sm" data-act="hsyncnow">&#8635; '+(scReady?"Sync Apple Health":"2. Sync Apple Health")+'</button>'+
       '<button class="btn sm sec" data-act="hsync_later">Ask Tomorrow</button>'+
       '<button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>'+
     '</div>'+
@@ -1541,6 +1553,10 @@ async function syncAppleHealthNow(opts){
   opts=opts||{};
   const quiet=!!opts.quiet;
   const today=isoToday();
+  /* Launch the iOS Shortcut synchronously inside the user tap gesture on HTTPS so iPhone Safari never drops user activation */
+  if(opts.fromButton && isIOSDevice() && typeof location!=="undefined" && location.protocol==="https:"){
+    try{ window.location.href = buildShortcutSyncUrl("read"); }catch(e){}
+  }
   let cloudUpdated=false;
   try{
     if(state.db&&state.db._http&&state.profile){
@@ -1564,42 +1580,35 @@ async function syncAppleHealthNow(opts){
   }catch(e){}
   const nowStr=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   const curP=getHealthSyncPrefs();
-  const nextCount=(curP.syncCountDate===today?(curP.syncCountToday||0):0)+1;
-  /* Syncing via Sync Apple Health enables repetitive intraday autoSync even if Never Ask Again was previously pressed */
-  setHealthSyncPrefs({
-    autoSync:true,
-    everSynced:true,
-    lastPromptDate:today,
-    lastSyncAt:nowStr,
-    lastSyncMs:Date.now(),
-    syncCountToday:nextCount,
-    syncCountDate:today
-  });
   const curRaw=todayHealth(today);
   const authToday=hasAuthoritativeHealth(today);
+  const nextCount=(curP.syncCountDate===today?(curP.syncCountToday||0):0)+1;
+  /* Keep silent cloud polling armed after Sync is tapped, but only mark everSynced/lastSyncAt when an authoritative reading exists,
+     and never render Stop Syncing or a green synced badge until a real Apple Health reading is present. */
+  setHealthSyncPrefs({
+    autoSync: true,
+    everSynced: (authToday || cloudUpdated) ? true : curP.everSynced,
+    lastPromptDate: today,
+    lastSyncAt: (authToday || cloudUpdated) ? nowStr : curP.lastSyncAt,
+    lastSyncMs: Date.now(),
+    syncCountToday: nextCount,
+    syncCountDate: today
+  });
   startHealthAutoSyncLoop();
   state.lastHealthSyncTime=nowStr;
   state.healthSyncModal=null;
   state.healthScWarn=null;
-  if(opts.fromButton && isIOSDevice()){
-    const scReady=!!(curP.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
-    if(!scReady && !cloudUpdated){
-      state.healthSetupOpen=true;
-    }
+  if(opts.fromButton && !authToday && !cloudUpdated){
+    state.healthSetupOpen=true;
   }
   persistLocal();
   if(formOpen()) refreshAllRec();
   else render();
   const th=effectiveHealth(today);
-  const scReadyNow=!!(curP.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
   if(!quiet){
     if(authToday) toast("\u2713 Apple Health: "+(+th.steps).toLocaleString()+" steps ("+th.distanceKm+" km) \u00b7 "+th.activeKcal+" active kcal \u00b7 as of "+healthReadingTime(curRaw)+" via "+(curRaw.source||"Apple Health"));
-    else if(isIOSDevice()&&scReadyNow) toast("No Apple Health reading yet today \u2014 opening the Sync Apple Health Shortcut\u2026");
-    else if(isIOSDevice()) toast("No Apple Health reading yet today \u2014 tap 1. Install iOS Health Bridge once, then 2. Pull Live Steps.");
-    else toast("No Apple Health reading yet today. Run the Sync Apple Health Shortcut on your iPhone.");
-  }
-  if(opts.fromButton && isIOSDevice() && scReadyNow && !cloudUpdated){
-    try{ setTimeout(()=>{ window.location.href = buildShortcutSyncUrl("read"); }, 120); }catch(e){}
+    else if(opts.fromButton && isIOSDevice()) toast("Opening Sync Apple Health Shortcut\u2026 (First time? Tap 1. Install iOS Health Bridge at the top of the page first)");
+    else toast("No Apple Health reading yet today \u2014 tap 1. Install iOS Health Bridge at the top of the page, then 2. Sync Apple Health Now.");
   }
   return th;
 }
@@ -1616,8 +1625,7 @@ function healthSyncLabel(prefs){
     const t=healthReadingTime(raw);
     return "Apple Health reading"+(t?" "+t:"")+" via "+(raw.source==="Manual"?"manual entry":"iPhone Shortcut")+(prefs.autoSync?" \u00b7 cloud check every 5 min":"");
   }
-  if(prefs.autoSync) return "No Apple Health reading yet today \u2014 run the Shortcut"+(prefs.lastSyncAt?" (cloud checked "+prefs.lastSyncAt+")":"");
-  return prefs.everSynced?"Sync Paused":"Tap Sync Apple Health to pull today\u2019s reading";
+  return "No Apple Health reading yet today \u2014 use the Shortcut button above to sync";
 }
 function numOrEmpty(v,dec){
   if(v===undefined||v===null||v==="") return "";
@@ -1743,7 +1751,7 @@ function ingestHealthPayload(payload, sourceLabel, silentToast){
     if(mergeHealthDay(dateKey, normalizeHealthDayObj(obj), effSource)) count++;
   }
   if(count>0){
-    state.healthSyncModal=null; state.healthScWarn=null;
+    state.healthSyncModal=null; state.healthScWarn=null; state.healthSetupOpen=false;
     savePlan();
     if(formOpen()) refreshAllRec();
     render();
@@ -1936,8 +1944,10 @@ function checkUrlHealthSync(){
     captureUrlHealthParams();
     if(lsGet("ubp.pending_sc_missing")){
       lsSet("ubp.pending_sc_missing",null);
+      state.tab="health";
       state.healthSetupOpen=true;
-      setTimeout(()=>toast("Tap '1. Install iOS Health Bridge' first (1-time setup), then tap '2. Pull Live Steps'."), 250);
+      render();
+      setTimeout(()=>toast("Shortcut not installed yet \u2014 tap '1. Install iOS Health Bridge' at the top of this page first, then tap '2. Sync Apple Health Now'."), 250);
       return;
     }
     const pending=lsGet("ubp.pending_hsync");
@@ -2242,25 +2252,40 @@ function computeWellnessIntel(){
 function buildShortcutSyncUrl(mode){
   return "shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent("Sync Apple Health")+"&input=text&text=open&x-error="+encodeURIComponent("https://husseinbdeir.github.io/fitness/?health_sc_missing=1");
 }
+function renderSubNav(tab, items){
+  const cur=(state.sub&&state.sub[tab])||"all";
+  return '<div class="subnav" role="tablist" aria-label="Section filter">'+items.map(it=>'<button data-act="subnav" data-tab="'+tab+'" data-sub="'+it.k+'" class="'+(cur===it.k?"on":"")+'">'+esc(it.n)+'</button>').join("")+'</div>';
+}
+function secHdr(title, rightHtml){
+  return '<div class="sec-hdr"><span class="sec-lbl">'+esc(title)+'</span><span class="sec-line"></span>'+(rightHtml||'')+'</div>';
+}
 function renderTodayHealthStrip(){
   const today=isoToday(), th=effectiveHealth(today), wi=computeWellnessIntel(), mf=wi.mf, st=wi.st;
   const prefs=getHealthSyncPrefs();
+  const scReady=!!(prefs.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
   const stepPct=Math.min(100,Math.round((+th.steps||0)/10000*100));
   const kcalPct=Math.min(100,Math.round((+mf.activeBurn||0)/750*100));
   const slpPct=Math.min(100,Math.round((+th.sleep||0)/8*100));
   const syncLabel=healthSyncLabel(prefs);
   const rawToday=(state.plan.health&&state.plan.health[today])||{};
-  const stopBtn=prefs.autoSync
+  /* Never show Stop Syncing before a sync has actually delivered a reading */
+  const stopBtn=(prefs.autoSync && th.authoritative)
     ? '<button class="btn sm ghost" style="padding:4px 10px;font-size:12px;color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
     : '';
-  const setupBar=state.healthSetupOpen
-    ? '<div class="tile stack" style="margin:6px 0;padding:8px 10px"><div class="row between" style="gap:6px"><span class="small"><b>Live iPhone Pedometer Bridge (1-time 10s setup):</b> Install once so your iPhone pushes exact live Apple Health steps &amp; calories automatically.</span><div class="row" style="gap:6px"><a class="btn sm" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut">&#11015; 1. Install iOS Health Bridge</a><button class="btn sm sec" data-act="hrunsc">&#9654; 2. Pull Live Steps</button><button class="btn sm ghost" data-act="hsetuptog">&#10005;</button></div></div></div>'
-    : '';
+  const showPrompt = shouldShowHealthDailyPrompt();
+  const topConnectBar = !th.authoritative
+    ? '<div class="sc-cta"'+(showPrompt?' id="hsyncprompt"':'')+'><div class="row between"><span class="small"><b>'+(scReady?"Apple Health Shortcut Ready:":"Connect Apple Health (2-Step Setup):")+'</b> '+(scReady?"Tap Sync Apple Health to run your iPhone Shortcut and pull today&#39;s live steps &amp; calories.":"1. Install the iOS Shortcut once, then 2. Tap Sync Apple Health to pull today&#39;s reading.")+'</span></div>'+
+      '<div class="row" style="gap:6px">'+
+        (!scReady||state.healthSetupOpen?'<a class="btn sm" style="background:#E11D48;color:#fff;padding:5px 10px;font-size:12px" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; 1. Install iOS Health Bridge</a>':'')+
+        '<button class="btn sm" style="padding:5px 11px;font-size:12px" data-act="hsyncnow">&#9654; '+(scReady?"Sync Apple Health":"2. Sync Apple Health")+'</button>'+
+        '<button class="btn sm sec" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+
+        '<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Health Tab &rarr;</button>'+
+        (showPrompt?'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_never">Never Ask Again</button>':'')+
+      '</div></div>'
+    : '<div class="row between"'+(showPrompt?' id="hsyncprompt"':'')+'><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Strain '+st.strain+'/21</span></div>'+
+      '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 10px;font-size:12px" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Health Tab &rarr;</button>'+(showPrompt?'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hsync_never">Never Ask Again</button>':'')+'</div></div>';
   return '<div class="health-strip">'+
-    renderHealthDailyPrompt()+
-    '<div class="row between"><div class="row" style="gap:6px"><span class="apple-pill">&#9829; Apple Health &times; Fitness</span><span class="chip '+(wi.wellnessScore>=80?"good":wi.wellnessScore>=65?"sh":"warn")+'">Wellness '+wi.wellnessScore+'/100</span><span class="chip">Athletic Age '+wi.bioAge+'</span><span class="chip">Strain '+st.strain+'/21</span>'+(th.authoritative?'<span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span>':'<span class="chip warn">No reading today</span>')+'</div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm sec" style="padding:4px 10px;font-size:12px" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'<button class="btn sm ghost" style="padding:4px 9px;font-size:12px" data-act="tab" data-tab="health">Wellness Hub &rarr;</button></div></div>'+
-    setupBar+
+    topConnectBar+
     '<div class="today-health-grid">'+
       '<div class="th-card"><div class="th-top"><span>&#128095; Steps Walked</span><span>'+stepPct+'%</span></div>'+
       (state.healthEdit
@@ -2627,8 +2652,16 @@ function renderToday(){
     block='<div class="card stack"><div class="row between"><span class="eyebrow">12-week block, week '+wk+'</span><button class="btn ghost sm" data-act="newblock">Start a new block today</button></div><div class="timeline">'+tl.join("")+'</div>'+note+'</div>'; }
   let lastCard='';
   if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+last.session+'">'+sessionTitle(last.session)+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
-  return hero+renderTodayNotifBanner()+renderDailyHub()+renderWeekCard()+renderBodyMapCard()+renderMobilityCard()+block+lastCard+
-    '<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
+  const sub=(state.sub&&state.sub.today)||"all";
+  const subBar=renderSubNav("today",[{k:"all",n:"All Today"},{k:"week",n:"Workout & Week"},{k:"checkin",n:"Health & Check-In"},{k:"recovery",n:"Muscles & Mobility"}]);
+  const summaryTiles='<div class="grid3"><div class="tile"><b>'+state.sessions.length+'</b><span>sessions logged</span></div><div class="tile"><b>'+(wk||"&ndash;")+'</b><span>block week</span></div><div class="tile"><b class="txt">'+esc(TRACK_NAMES[state.plan.track]||"Gym")+'</b><span>default place</span></div></div>';
+  const secWeek = hero + renderTodayNotifBanner() + renderWeekCard() + lastCard;
+  const secCheckin = (sub==="all"?secHdr("Daily Check-In, Fuel & Apple Health"):"") + renderDailyHub();
+  const secRec = (sub==="all"?secHdr("Mobility, Muscle Recovery & 12-Week Block"):"") + renderMobilityCard() + renderBodyMapCard() + block + summaryTiles;
+  if(sub==="week") return subBar + secWeek;
+  if(sub==="checkin") return subBar + secCheckin;
+  if(sub==="recovery") return subBar + secRec;
+  return subBar + secWeek + secCheckin + secRec;
 }
 
 /* --- Log form --- */
@@ -2740,17 +2773,40 @@ function renderHealth(){
   const exPct=Math.min(100,Math.round((+th.exerciseMin||45)/45*100));
   const syncStatus=healthSyncLabel(prefs);
   const rawToday=(state.plan.health&&state.plan.health[today])||{};
-  const stopBtn=prefs.autoSync
+  const scReady=!!(prefs.shortcutReady||(state.plan&&state.plan.bio&&state.plan.bio.shortcutReady));
+  /* Never show Stop Syncing when no Apple Health reading has been synced yet */
+  const stopBtn=(prefs.autoSync && th.authoritative)
     ? '<button class="btn sm sec" style="color:var(--bad)" data-act="hstopsync">&#9632; Stop Syncing</button>'
     : '';
-  const promptBanner = renderHealthDailyPrompt() ? '<div class="card stack">'+renderHealthDailyPrompt()+'</div>' : '';
+  const showPrompt = shouldShowHealthDailyPrompt();
+  const setupDrawer = (state.healthSetupOpen || !th.authoritative)
+    ? '<div class="sc-cta'+(th.authoritative?" synced":"")+'"'+(showPrompt?' id="hsyncprompt"':'')+'>'+
+        '<div class="row between"><div><span class="eyebrow" style="color:'+(th.authoritative?"var(--good)":"#E11D48")+'">'+(th.authoritative?"Apple Health iPhone Shortcut Connected":"Step-by-Step iPhone Setup &amp; Live Sync")+'</span>'+
+        '<h3 style="margin-top:2px">'+(th.authoritative?"Synced Today at "+esc(healthReadingTime(rawToday)||"Latest"):(scReady?"Tap Below to Pull Today&#39;s Apple Health":"Connect Apple Health in 2 Quick Steps"))+'</h3></div>'+
+        '<span class="chip '+(th.authoritative?"good":"warn")+'">'+(th.authoritative?"Connected":(scReady?"Shortcut Ready":"Setup First"))+'</span></div>'+
+        '<p class="small muted">'+(th.authoritative
+          ? "Your iPhone Shortcut is linked. Tap <b>Sync Apple Health</b> anytime to pull fresh Steps, Calories, Heart Rate &amp; HRV, or set a Shortcuts <b>Personal Automation</b> (Time of Day, Run Immediately) for background updates."
+          : "Apple sandboxes HealthKit from web browsers. <b>Step 1 (one-time):</b> Tap <b>1. Install iOS Health Bridge</b> and press <b>Add Shortcut</b>. <b>Step 2:</b> Tap <b>2. Sync Apple Health Now</b> to run the Shortcut and pull your live readings.")+'</p>'+
+        '<div class="row" style="gap:8px">'+
+          '<a class="btn sm" style="'+(scReady&&th.authoritative?"":"background:#E11D48;color:#fff")+'" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; '+(scReady?"Reinstall iOS Health Bridge":"1. Install iOS Health Bridge")+'</a>'+
+          '<button class="btn sm" data-act="hsyncnow">&#9654; '+(scReady?"Sync Apple Health Now":"2. Sync Apple Health Now")+'</button>'+
+          '<button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+
+          '<button class="btn sm ghost" data-act="hfileopen">&#128194; Import XML/ZIP</button>'+
+          (showPrompt?'<button class="btn sm ghost" data-act="hsync_later">Ask Tomorrow</button><button class="btn sm ghost" data-act="hsync_never">Never Ask Again</button>':'')+
+          stopBtn+
+        '</div>'+
+        '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
+      '</div>'
+    : '<div class="sc-cta synced"><div class="row between"><div class="row" style="gap:8px"><span class="chip good">&#10003; Apple Health '+esc(healthReadingTime(rawToday))+'</span><span class="small muted">'+esc(syncStatus)+'</span></div>'+
+      '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'<a class="btn sm ghost" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut" data-act="hinstallsc">&#11015; iOS Shortcut</a><button class="btn sm ghost" data-act="hsetuptog">&#9881; Setup Guide</button></div></div><input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden></div>';
 
-  /* 1. Hero: Activity Rings (Steps, Calories Burned, Exercise) + Comprehensive Wellness Index */
+  /* 1. Hero: Top Shortcut & Sync Action Box FIRST + Activity Rings + Comprehensive Wellness Index */
   const hero = '<div class="card health-hero stack">'+
-    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span><span class="chip '+(prefs.autoSync?"good":"")+'">'+esc(syncStatus)+'</span></div>'+
+    '<div class="row between"><div class="row" style="gap:8px"><span class="apple-pill">&#9829; Apple Health &times; Fitness Intelligence</span><span class="chip '+(th.authoritative?"good":"warn")+'">'+(th.authoritative?esc(syncStatus):"Not synced today")+'</span></div>'+
     '<span class="chip '+(wi.ageDiff<=0?"good":"warn")+'">Physiological Age: '+wi.bioAge+' yrs ('+(wi.ageDiff<=0?wi.ageDiff+" yrs": "+"+wi.ageDiff+" yrs")+')</span></div>'+
-    '<div class="row between" style="align-items:flex-end"><div><span class="eyebrow">Integrated Wellness &amp; Readiness Index</span><h2 style="font-size:34px;line-height:1">'+wi.wellnessScore+' <span style="font-size:18px;color:var(--muted);font-weight:600">/ 100</span></h2></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><button class="btn sm sec" data-act="hedittog">'+(state.healthEdit?"&#10003; Done":"&#9998; Edit Steps")+'</button>'+stopBtn+'</div></div>'+
+    setupDrawer+
+    '<div class="row between" style="align-items:flex-end;padding-top:2px"><div><span class="eyebrow">Integrated Wellness &amp; Readiness Index</span><h2 style="font-size:34px;line-height:1">'+wi.wellnessScore+' <span style="font-size:18px;color:var(--muted);font-weight:600">/ 100</span></h2></div>'+
+    '<span class="small muted">Readiness <b>'+rd.score+'%</b> &middot; Day Strain <b>'+st.strain+'/21</b></span></div>'+
     '<div class="activity-rings-grid">'+
       '<div class="ring-card steps"><div class="row between"><span class="eyebrow">&#128095; Steps &amp; Distance Walked</span><b class="small" style="color:#10B981">'+stepPct+'% of 10k</b></div>'+
       (state.healthEdit
@@ -2814,7 +2870,9 @@ function renderHealth(){
       '<div class="tile stack"><span class="eyebrow">Carbohydrates</span><b>'+mf.carbG+' g</b><div class="meter-bar"><i style="width:100%;background:var(--accent)"></i></div><span class="small muted">'+(st.fb||st.sp||st.liftSets?"Upregulated for glycogen":"Baseline recovery fuel")+'</span></div>'+
       '<div class="tile stack"><span class="eyebrow">Dietary Fats</span><b>'+mf.fatG+' g</b><div class="meter-bar"><i style="width:100%;background:var(--warn)"></i></div><span class="small muted">Hormonal &amp; joint health</span></div>'+
       '<div class="tile stack"><span class="eyebrow">Sweat-Adjusted Water</span><b>'+(+((+d.water||0)*0.25).toFixed(2))+' / '+mf.waterLitresTarget+' L</b><div class="meter-bar"><i style="width:'+watPct+'%;background:var(--accent)"></i></div><span class="small muted">'+mf.waterGlassesTarget+' glasses today</span></div>'+
-    '</div></div>';
+    '</div>'+
+    '<div class="row between" style="padding-top:2px"><div class="row" style="gap:4px"><span class="small muted">Quick log:</span><button class="btn sm sec" style="padding:4px 8px;font-size:12px" data-act="prot" data-d="35">+35g Meal</button><button class="btn sm sec" style="padding:4px 8px;font-size:12px" data-act="prot" data-d="30">+30g Shake</button><button class="btn sm sec" style="padding:4px 8px;font-size:12px" data-act="prot" data-d="20">+20g Eggs</button></div><div class="row" style="gap:4px"><button class="btn sm sec" style="padding:4px 8px;font-size:12px" data-act="water" data-d="1">+250ml Water</button></div></div>'+
+    '</div>';
 
   /* 6. 14-Day Apple Health Trend Sparklines (Steps, Active Calories, Sleep, HRV, RHR) */
   const tMetric = state.healthTrendMetric||"steps";
@@ -2825,19 +2883,13 @@ function renderHealth(){
     '<div class="filters">'+Object.keys(tLabels).map(k=>'<button data-act="htrend" data-m="'+k+'" class="'+(tMetric===k?"on":"")+'">'+esc(tLabels[k].n)+'</button>').join("")+'</div></div>'+
     '<div class="spark">'+sparkSvg(pts)+'</div></div>';
 
-  /* 7. Live iPhone Apple Health Bridge + Optional File Import */
-  const setupHtml = state.healthSetupOpen ? '<div class="tile stack" style="margin-top:6px">'+
-    '<p class="small muted"><b>Direct iPhone Health Bridge (1-time 10-second setup):</b> Apple sandboxes HealthKit from web apps, so to let your iPhone push exact live Steps &amp; Calories automatically, tap <b>1. Install Apple Health Shortcut</b> below, tap <b>Add Shortcut</b>, then tap <b>2. Pull Live via Shortcuts</b> (or set a Personal Automation in Shortcuts to run it automatically).</p>'+
-    '<div class="row"><a class="btn sm" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut">&#11015; 1. Install Apple Health Shortcut</a><button class="btn sm sec" data-act="hrunsc">&#9654; 2. Pull Live via Shortcuts</button><button class="btn sm ghost" data-act="hfileopen">&#128194; Import export.zip / XML</button></div>'+
-  '</div>' : '';
-
-  const bridgeCard = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Apple Health &amp; Watch Connection</span><h3>iPhone Shortcut Bridge &amp; Cloud Check</h3></div>'+
-    '<div class="row" style="gap:6px"><button class="btn sm" data-act="hsyncnow">&#8635; Sync Apple Health</button><a class="btn sm sec" href="./Sync-Apple-Health.shortcut" download="Sync Apple Health.shortcut">&#11015; Install iOS Health Bridge</a><button class="btn sm sec" data-act="hrunsc">&#9654; Pull Live Steps</button>'+stopBtn+'<button class="btn sm ghost" data-act="hsetuptog">'+(state.healthSetupOpen?"Hide Setup":"Setup Guide")+'</button></div></div>'+
-    '<p class="small muted">'+(prefs.autoSync?'<b>Cloud check active</b> ('+prefs.syncCountToday+'x today'+(prefs.lastSyncAt?', last at '+prefs.lastSyncAt:'')+'). Fitness cannot read HealthKit itself: every reading comes from the <b>Sync Apple Health</b> iPhone Shortcut. Tap <b>Sync Apple Health</b> to run it now, or add a Shortcuts <b>Personal Automation</b> (Time of Day, a few times a day, Run Immediately) so it pushes fresh readings in the background.':'<b>Not syncing:</b> Tap <b>Sync Apple Health</b> to run the iPhone Shortcut and start checking the cloud every 5 minutes.')+'</p>'+
-    '<input type="file" id="hfile" accept=".zip,.xml,.json,.csv" hidden>'+
-    setupHtml+'</div>';
-
-  return promptBanner + hero + vitalsCard + insightsCard + strainCard + metabolicCard + trendCard + bridgeCard;
+  const sub=(state.sub&&state.sub.health)||"all";
+  const subBar=renderSubNav("health",[{k:"all",n:"All Health"},{k:"rings",n:"Sync & Activity"},{k:"fuel",n:"Nutrition & Macros"},{k:"vitals",n:"Vitals & 14d Trends"},{k:"strain",n:"Strain & Insights"}]);
+  if(sub==="rings") return subBar + hero;
+  if(sub==="fuel") return subBar + metabolicCard;
+  if(sub==="vitals") return subBar + vitalsCard + trendCard;
+  if(sub==="strain") return subBar + strainCard + insightsCard;
+  return subBar + hero + secHdr("Daily Nutrition & Macro Targets") + metabolicCard + secHdr("Biometric Vitals & 14-Day Trends") + vitalsCard + trendCard + secHdr("Training Load & Coaching Synthesis") + strainCard + insightsCard;
 }
 function renderHealthSyncModal(){ return ""; }
 
@@ -2933,7 +2985,13 @@ function renderLog(){
   const hist = list.length? '<div class="hist">'+list.map(s=>{ const vol=sessionVolume(s); const del=state.confirmDel===s.id;
     return '<details class="hcard"'+(state.openHist[s.id]?" open":"")+' data-hid="'+esc(s.id)+'"><summary><span class="chip '+s.session+'">'+sessionTitle(s.session)+'</span><span class="date">'+fmtDate(s.date)+'</span><span class="muted small">'+(s.exercises||[]).length+' ex'+(vol?' &middot; '+Math.round(vol).toLocaleString()+' kg':'')+(s.sleep?' &middot; '+esc(s.sleep)+' h sleep':'')+((s.hold||s.football)?' &middot; held the weight':'')+(s.track&&s.track!=="gym"?' &middot; '+(s.track==="body"?"calisthenics":"at home"):'')+'</span></summary><div class="tscroll"><table><tr><th>Exercise</th><th>Sets</th><th>Next time</th></tr>'+(s.exercises||[]).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+(e.sets||[]).filter(x=>x.r!==""&&x.r!=null).map(x=>(e.unit==="reps"||e.unit==="s"?"":(x.w===""||x.w==null?"":x.w+"x"))+x.r).join("&nbsp; ")+'</td><td class="muted">'+esc(e.next)+'</td></tr>').join("")+'</table></div>'+(s.notes?'<p class="small" style="margin-top:8px">'+esc(s.notes)+'</p>':'')+'<div class="row between" style="margin-top:10px"><button class="btn sm sec" data-act="edit" data-id="'+esc(s.id)+'">Edit</button>'+(del?'<span class="confirm">Delete this session? <button class="btn sm danger" data-act="delyes" data-id="'+esc(s.id)+'">Yes, delete</button><button class="btn sm ghost" data-act="delno">Keep</button></span>':'<button class="btn sm ghost" data-act="del" data-id="'+esc(s.id)+'">Delete</button>')+'</div></details>'; }).join("")+'</div>'
     : '<div class="empty">No sessions yet. Your first logged session starts the 12-week block.</div>';
-  return renderVictoryBanner()+start+renderHeatmapCard()+renderStrengthStandards()+renderMilestonesCard()+render1RMCard()+prog+'<h2>History</h2>'+hist;
+  const sub=(state.sub&&state.sub.log)||"all";
+  const subBar=renderSubNav("log",[{k:"all",n:"All Log"},{k:"hist",n:"Start & History"},{k:"prog",n:"Progress & Streak"},{k:"trophy",n:"Trophy & 1RM"}]);
+  const histSec = '<div class="card stack"><div class="row between"><div><span class="eyebrow">Completed Workouts</span><h2>History</h2></div><span class="chip">'+(list.length?list.length+" logged":"0 logged")+'</span></div>'+hist+'</div>';
+  if(sub==="hist") return subBar + renderVictoryBanner() + start + histSec;
+  if(sub==="prog") return subBar + prog + renderHeatmapCard();
+  if(sub==="trophy") return subBar + renderStrengthStandards() + renderMilestonesCard() + render1RMCard();
+  return subBar + renderVictoryBanner() + start + histSec + secHdr("Strength Progression & Consistency") + prog + renderHeatmapCard() + secHdr("Standards, Milestones & 1RM Calculator") + renderStrengthStandards() + renderMilestonesCard() + render1RMCard();
 }
 function renderProgress(){
   const by={}; const bw=+state.plan.bodyweight||85;
@@ -2972,9 +3030,14 @@ function renderPlan(){
       '<div class="row" style="gap:8px"><label class="f" style="flex:1">Load type<select data-pi="'+i+'" data-ps="'+k+'" data-pf="unit" id="pun'+k+i+'"><option value="kg"'+(item.unit==="kg"?" selected":"")+'>Weight in kg</option><option value="bw"'+(item.unit==="bw"?" selected":"")+'>Bodyweight + kg</option><option value="reps"'+(item.unit==="reps"?" selected":"")+'>Reps only</option><option value="s"'+(item.unit==="s"?" selected":"")+'>Seconds (hold)</option></select></label><label class="f inl" style="padding-top:16px"><input type="checkbox" data-pi="'+i+'" data-ps="'+k+'" data-pf="side" id="psd'+k+i+'"'+(item.side?" checked":"")+'> each side</label></div>'+
       '<label class="f">Coaching note<input type="text" data-pi="'+i+'" data-ps="'+k+'" data-pf="note" id="pno'+k+i+'" value="'+esc(item.note||"")+'"></label>'+
       '<div class="tools"><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt(EX[item.ex].q)+'" target="_blank" rel="noopener">Video</a></div></div>').join("")+'</div><button class="btn sm sec" data-act="addplan" data-s="'+k+'">+ Add exercise</button></div>'; }).join("");
-  return renderProfileCard()+renderSetupCard()+renderNotifCard()+'<div class="card stack"><span class="eyebrow">Where you train</span><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing only. Make it the default if most sessions happen here.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>'+
-    '<div class="card stack"><span class="eyebrow">Week layout</span><div class="weekedit">'+weekSel+'</div>'+(warn.length?'<div class="banner">'+warn.map(esc).join("<br>")+'</div>':'<p class="small muted">'+ups.length+' upper sessions, '+fb.length+' football, '+sp.length+' sport, '+rests.length+' rest. Looks right.</p>')+'<p class="small muted">A and B are the two upper sessions'+(p.legs?", Legs has its own day":"")+'; keep a day between upper sessions. Football, padel and rest days are yours to set, and a day can hold more than one thing: tick football or padel next to a lift. This is the default week. To change one week only (a football night or padel game that is off), use Edit this week on Today; every other week stays as set here.</p></div>'+
-    sess+renderBackupCard()+'<p class="small muted">Changes save automatically. The weights themselves live in the log: when you log a session, each exercise opens with your last weight and the progression rule tells you whether to add.</p>';
+  const whereCard='<div class="card stack"><span class="eyebrow">Where you train</span><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing only. Make it the default if most sessions happen here.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>';
+  const weekLayoutCard='<div class="card stack"><span class="eyebrow">Week layout</span><div class="weekedit">'+weekSel+'</div>'+(warn.length?'<div class="banner">'+warn.map(esc).join("<br>")+'</div>':'<p class="small muted">'+ups.length+' upper sessions, '+fb.length+' football, '+sp.length+' sport, '+rests.length+' rest. Looks right.</p>')+'<p class="small muted">A and B are the two upper sessions'+(p.legs?", Legs has its own day":"")+'; keep a day between upper sessions. Football, padel and rest days are yours to set, and a day can hold more than one thing: tick football or padel next to a lift. This is the default week. To change one week only (a football night or padel game that is off), use Edit this week on Today; every other week stays as set here.</p></div>';
+  const sub=(state.sub&&state.sub.plan)||"all";
+  const subBar=renderSubNav("plan",[{k:"all",n:"All Plan"},{k:"sched",n:"Setup & Schedule"},{k:"ex",n:"Session Exercises"},{k:"account",n:"Profile & Settings"}]);
+  if(sub==="sched") return subBar + whereCard + renderSetupCard() + weekLayoutCard;
+  if(sub==="ex") return subBar + whereCard + sess;
+  if(sub==="account") return subBar + renderProfileCard() + renderNotifCard() + renderBackupCard();
+  return subBar + whereCard + renderSetupCard() + weekLayoutCard + secHdr("Workout Session Templates") + sess + secHdr("Profile, Notifications & Backup") + renderProfileCard() + renderNotifCard() + renderBackupCard() + '<p class="small muted">Changes save automatically. The weights themselves live in the log: when you log a session, each exercise opens with your last weight and the progression rule tells you whether to add.</p>';
 }
 /* v9: goal, upper sessions a week, the Legs day, and the week builder. Football / padel days come from the week layout itself. */
 function goalText(g){ return g==="lose"?"Losing weight: eat 300 to 500 kcal under maintenance, protein 2 g per kg. The lifts hold or climb slowly and a rep more is progress; each session ends with 10 to 15 minutes of easy cardio.":g==="keep"?"Staying the same: eat at maintenance and keep adding reps and weight. Strength climbs for a long time without the scale moving.":"Gaining muscle: eat 200 to 300 kcal over maintenance, protein 1.6 to 2 g per kg, and add a rep or 2.5 kg somewhere each week."; }
@@ -3185,6 +3248,8 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="pushtest"){ await sendTestPush(false); }
   else if(a==="pushsync"){ toast("Refreshing 14-day notification schedule..."); await syncPushSchedule(); toast("Notification schedule synced to cloud!"); }
   else if(a==="pushhintno"){ lsSet("ubp.pushhint",1); render(); }
+  else if(a==="subnav"){ state.sub=state.sub||{}; state.sub[b.dataset.tab||state.tab]=b.dataset.sub||"all"; render(); if(state.tab==="log"||state.tab==="health") bindSparks(); }
+  else if(a==="hinstallsc"){ setHealthSyncPrefs({shortcutInstalled:true}); toast("Step 1: Tap 'Add Shortcut' when iOS opens it, then come back and tap '2. Sync Apple Health Now'."); }
   else if(a==="hedittog"){ state.healthEdit=!state.healthEdit; render(); }
   else if(a==="hsetuptog"){ state.healthSetupOpen=!state.healthSetupOpen; render(); }
   else if(a==="htrend"){ state.healthTrendMetric=b.dataset.m||"steps"; render(); bindSparks(); }
