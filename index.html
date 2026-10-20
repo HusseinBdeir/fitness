@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.0">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.0">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.0">
+<link rel="manifest" href="manifest.json?v=14.1">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.1">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.1">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -90,7 +90,7 @@ section.view{display:flex;flex-direction:column;gap:16px}
 .between{justify-content:space-between}
 .stack{display:flex;flex-direction:column;gap:10px}
 .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-@media (max-width:420px){.grid2{grid-template-columns:1fr}}
+@media (max-width:340px){.grid2{grid-template-columns:1fr}}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:420px){.grid3{grid-template-columns:repeat(3,1fr)}}
 .tile{background:var(--sunk);border-radius:8px;padding:12px;min-width:0;display:flex;flex-direction:column;justify-content:space-between;gap:4px}
@@ -1705,7 +1705,7 @@ function computeAutoHealthDay(iso){
   const hrv=Math.round(64+u3*6-(yHeavy?3:0)-(sleep<6.5?7:0));
   const vo2max=Math.round((47.5+u2*0.8)*10)/10;
   const spo2=u1>0.35?98:99;
-  const respRate=Math.round((14.0+u3*0.4)*10)/10;
+  const respRate=Math.round((14.1+u3*0.4)*10)/10;
   return {
     sleep, deepRem, deepHrs, remHrs, coreHrs,
     rhr, walkingHr, hrv,
@@ -3421,7 +3421,7 @@ function renderPlan(){
     const estMin=Math.round(8 + totSets*2.2);
     const pushSets=items.filter(it=>EX[it.ex]&&EX[it.ex].t==="push").reduce((a,it)=>a+(+it.sets||3),0);
     const pullSets=items.filter(it=>EX[it.ex]&&EX[it.ex].t==="pull").reduce((a,it)=>a+(+it.sets||3),0);
-    const balChip = k==="L" ? '<span class="chip good">Lower Body Complete</span>' : pullSets>=pushSets ? '<span class="chip good">Shoulder-Safe Pull:Push ('+pullSets+':'+pushSets+' sets)</span>' : '<span class="chip warn">Push-heavy ('+pushSets+' push vs '+pullSets+' pull sets)</span>';
+    const balChip = k==="L" ? '<span class="chip good">Lower Body Complete</span>' : pullSets>=pushSets ? '<span class="chip good">Pull-Balanced ('+pullSets+' pull : '+pushSets+' push sets)</span>' : pullSets>=6 ? '<span class="chip good">Push Focus + '+pullSets+' Pull Partner Sets</span>' : '<span class="chip warn">Low pulling ('+pullSets+' pull vs '+pushSets+' push sets)</span>';
     const auditStrip = '<div class="audit-strip"><div class="row" style="gap:6px"><span class="ai-badge">&#10024; AI Session Audit</span><span class="chip">'+items.length+' exercises &middot; '+totSets+' sets</span><span class="chip">~'+estMin+' min</span>'+balChip+'</div></div>';
 
     return '<div class="card stack"><div class="row between"><h3><span class="chip '+k+'">'+sessionTitle(k)+'</span> '+esc(k==="L"?"squat, hinge, lunge, calves":SESSION_NAMES[k].replace(/^Upper [AB], /,""))+'</h3><button class="btn sm ghost" data-act="resetsess" data-s="'+k+'">Reset to programme</button></div>'+
