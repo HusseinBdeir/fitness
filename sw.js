@@ -2,16 +2,16 @@
    App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v14.1";
+const CACHE = "ubp-pwa-v14.2";
 const SHELL = [
   "./",
   "./index.html",
-  "./manifest.json?v=14.1",
-  "./icon.svg?v=14.1",
-  "./icon-192.png?v=14.1",
-  "./icon-512.png?v=14.1",
-  "./icon-512-maskable.png?v=14.1",
-  "./icon-180.png?v=14.1"
+  "./manifest.json?v=14.2",
+  "./icon.svg?v=14.2",
+  "./icon-192.png?v=14.2",
+  "./icon-512.png?v=14.2",
+  "./icon-512-maskable.png?v=14.2",
+  "./icon-180.png?v=14.2"
 ];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
