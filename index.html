@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.4">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.4">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.4">
+<link rel="manifest" href="manifest.json?v=14.5">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.5">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.5">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,8 +43,9 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{min-height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;overscroll-behavior-y:contain;-webkit-text-size-adjust:100%}
+html,body{min-height:100%;overscroll-behavior-y:contain}
+html.notif-open,body.notif-open{overflow:hidden!important;overscroll-behavior:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-text-size-adjust:100%}
 button,input,select,textarea{font:inherit;color:inherit}
 button,.day,.okbtn,.person,.dp{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 /* phones: 16px inputs stop iOS zooming the page on focus */
@@ -68,7 +69,7 @@ header.top .in{max-width:760px;margin:0 auto;padding:12px 16px;display:flex;alig
 @media (max-width:480px){.status span{display:none}}
 .status i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
 .status.cloud i{background:var(--good)} .status.local i{background:var(--warn)}
-nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);touch-action:none;overscroll-behavior:none}
 nav.tabs .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 @media (max-width:420px){nav.tabs button{font-size:11px;padding:8px 2px 6px;letter-spacing:.02em}nav.tabs button svg{width:19px;height:19px}}
 nav.tabs button{background:none;border:0;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:var(--display);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;border-top:2px solid transparent}
@@ -229,7 +230,7 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .hud-bar{height:6px;background:var(--sunk);border-radius:999px;overflow:hidden;margin-top:6px}
 .hud-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good));border-radius:999px;transition:width .25s}
 .clock-pill{font-family:var(--display);font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;background:var(--accent-soft);color:var(--accent);padding:3px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:6px}
-.rest-dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:25;width:min(728px,calc(100vw - 24px));background:var(--fg);color:var(--bg);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,.35)}
+.rest-dock{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(68px + env(safe-area-inset-bottom,0px));z-index:25;width:min(728px,calc(100vw - 24px));background:var(--fg);color:var(--bg);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 12px 32px rgba(0,0,0,.35);touch-action:none;overscroll-behavior:none}
 @media (min-width:760px){.rest-dock{bottom:18px}}
 .rest-dock .rt-time{font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
 .rest-dock .rt-btn{background:rgba(255,255,255,.14);color:var(--bg);border:0;border-radius:6px;padding:6px 10px;font-size:12px;font-weight:600;cursor:pointer}
@@ -358,14 +359,15 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 @media (max-width:380px){.bp-steps{grid-template-columns:1fr}}
 .bp-step{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .bp-step .bp-n{font-family:var(--display);font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
-/* ---------- v14.4 Home Screen & Top-Right Notification Count Badge (#FF3B30) ---------- */
+/* ---------- v14.5 Home Screen & Top-Right Notification Count Badge + Scroll Isolation ---------- */
 .notif-btn{position:relative;padding:6px 10px;min-height:34px;display:inline-flex;align-items:center;justify-content:center}
 .notif-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .push-count-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#FF3B30;color:#FFFFFF;font-family:var(--body);font-size:10.5px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 6px rgba(255,59,48,.45);border:1.5px solid var(--bg);pointer-events:none;z-index:2;font-variant-numeric:tabular-nums}
-.notif-sheet{position:fixed;inset:0;z-index:30;background:rgba(10,14,18,.58);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:calc(56px + env(safe-area-inset-top,0px)) 14px 20px}
-.notif-box{width:100%;max-width:460px;max-height:78vh;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden}
-.notif-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:52vh;padding-right:2px}
-.notif-item{background:var(--sunk);border:1px solid var(--line);border-left:3px solid #FF3B30;border-radius:9px;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.notif-sheet{position:fixed;inset:0;width:100%;height:100%;height:100dvh;z-index:30;background:rgba(10,14,18,.58);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:max(calc(var(--hdr,68px) + 8px),calc(56px + env(safe-area-inset-top,0px))) 14px calc(24px + env(safe-area-inset-bottom,0px));overscroll-behavior:none;touch-action:none;overflow:hidden}
+.notif-box{width:100%;max-width:460px;max-height:min(74dvh,calc(100dvh - 88px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)));background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden;overscroll-behavior:contain;touch-action:none}
+.notif-head,.notif-foot{flex-shrink:0}
+.notif-list{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;max-height:min(44dvh,310px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:2px}
+.notif-item{flex-shrink:0;background:var(--sunk);border:1px solid var(--line);border-left:3px solid #FF3B30;border-radius:9px;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .notif-item.checked{border-left-color:var(--line);opacity:.62}
 </style>
 </head>
@@ -804,9 +806,34 @@ function markAllFitnessNotifsChecked(){
   updateFitnessAppBadge();
   if(state.notifOpen) renderNotifSheet();
 }
+let notifSavedScrollY=0;
+function syncNotifBodyLock(open){
+  try{
+    if(typeof document==="undefined") return;
+    const de=document.documentElement, b=document.body;
+    if(!de||!b||!de.classList||!b.classList) return;
+    if(open){
+      if(!b.classList.contains("notif-open")){
+        notifSavedScrollY=(typeof window!=="undefined"&&(window.scrollY||window.pageYOffset))||de.scrollTop||b.scrollTop||0;
+        de.classList.add("notif-open");
+        b.classList.add("notif-open");
+      }
+    }else{
+      if(b.classList.contains("notif-open")){
+        de.classList.remove("notif-open");
+        b.classList.remove("notif-open");
+        if(typeof window!=="undefined"&&typeof window.scrollTo==="function") window.scrollTo(0,notifSavedScrollY);
+      }
+    }
+  }catch(e){}
+}
 function renderNotifSheet(){
   const el=document.getElementById("notifsheet"); if(!el) return;
+  syncNotifBodyLock(!!state.notifOpen);
   if(!state.notifOpen){ el.hidden=true; return; }
+  const wasOpen=!el.hidden;
+  const prevList=wasOpen&&el.querySelector?el.querySelector(".notif-list"):null;
+  const prevScroll=prevList?(prevList.scrollTop||0):0;
   loadNotifLedger();
   const unread=computeUnreadNotifCount();
   const list=(state.notifs||[]).slice().sort((a,b)=>(Number(a.checked)-Number(b.checked))||((b.ts||0)-(a.ts||0)));
@@ -817,9 +844,13 @@ function renderNotifSheet(){
       (isChk?'<span class="chip good" style="flex-shrink:0">&#10003; Done</span>':'<button class="btn sm sec" style="padding:4px 9px;font-size:12px;flex-shrink:0" data-nact="ncheck" data-id="'+esc(n.id)+'" title="Check off notification">&#10003; Check</button>')+'</div>';
   }).join(""):'<div class="empty">All caught up! Workout, fuel &amp; timer notifications appear here.</div>';
   el.hidden=false;
-  el.innerHTML='<div class="notif-box"><div class="row between"><div><span class="eyebrow">Notification Center</span><h3>Action Reminders &amp; Alerts '+(unread?'<span class="chip bad">'+unread+' unread</span>':'<span class="chip good">All read</span>')+'</h3></div><button class="btn sm ghost" data-nact="nclose">Close</button></div>'+
+  el.innerHTML='<div class="notif-box"><div class="row between notif-head"><div><span class="eyebrow">Notification Center</span><h3>Action Reminders &amp; Alerts '+(unread?'<span class="chip bad">'+unread+' unread</span>':'<span class="chip good">All read</span>')+'</h3></div><button class="btn sm ghost" data-nact="nclose">Close</button></div>'+
     '<div class="notif-list">'+rows+'</div>'+
-    '<div class="row between" style="padding-top:4px;border-top:1px solid var(--line)"><span class="small muted">Unchecked items show on the Home Screen app icon badge</span><div class="row" style="gap:6px">'+(unread?'<button class="btn sm sec" data-nact="nall">&#10003; Check All</button>':'')+'<button class="btn sm ghost" data-nact="ntest">Test Alert</button></div></div></div>';
+    '<div class="row between notif-foot" style="padding-top:4px;border-top:1px solid var(--line)"><span class="small muted">Unchecked items show on the Home Screen app icon badge</span><div class="row" style="gap:6px">'+(unread?'<button class="btn sm sec" data-nact="nall">&#10003; Check All</button>':'')+'<button class="btn sm ghost" data-nact="ntest">Test Alert</button></div></div></div>';
+  if(wasOpen&&prevScroll>0&&el.querySelector){
+    const nextList=el.querySelector(".notif-list");
+    if(nextList) nextList.scrollTop=prevScroll;
+  }
 }
 async function checkExistingPushSub(){
   if(!pushSupported()) return null;
@@ -1222,7 +1253,7 @@ async function attachCloud(){ const db=state.db, pid=state.profile; await replay
   checkUrlHealthSync();
   if(state._pendingCloudHealthPush){ state._pendingCloudHealthPush=false; const thNow=todayHealth(isoToday()); pushHealthToCloud({date:isoToday(),steps:thNow.steps,activeKcal:thNow.activeKcal,distanceKm:thNow.distanceKm,rhr:thNow.rhr,hrv:thNow.hrv,sleep:thNow.sleep,deepRem:thNow.deepRem,source:thNow.source||"Apple Health Shortcut"}); } }
 async function detachProfile(){ if(!state.profile) return; stopHealthAutoSyncLoop(); flushAll(); await drainWrites(); state.unsub.forEach(u=>{ try{ u(); }catch(e){} }); state.unsub=[]; state.profile=null; }
-async function leaveProfile(){ await detachProfile(); resetProfileState(); lsSet(LS.profile,null); ssSet(SS.open,null); state.login=LOGIN0(); render(); window.scrollTo(0,0); }
+async function leaveProfile(){ if(state.notifOpen){ state.notifOpen=false; renderNotifSheet(); } await detachProfile(); resetProfileState(); lsSet(LS.profile,null); ssSet(SS.open,null); state.login=LOGIN0(); render(); window.scrollTo(0,0); }
 function drainWrites(){ return new Promise(res=>{ const chk=()=>{ if(!writeBusy&&!writeQ.length) res(); else setTimeout(chk,40); }; chk(); }); }
 async function createProfile(name,pin,bw,setup){ name=String(name||"").trim(); const base=slug(name)||"person"; let pid=base, n=2; while(state.profiles.some(p=>p.id===pid)) pid=base+"-"+(n++);
   const doc={name,pinHash:pin?await pinHash(pin):null,created:new Date().toISOString()}; const p=Object.assign({id:pid,local:true},doc); state.profiles.push(p); state.profiles.sort(byName); lsSet(LS.profiles,state.profiles);
@@ -3736,7 +3767,7 @@ function renderGuide(){
 /* Tabs are history entries, so the Android back button moves between tabs instead of closing the installed app. */
 const TABS=["today","health","log","plan","library","guide"];
 function pushNav(){ try{ if(typeof window!=="undefined"&&window.history&&window.history.pushState) window.history.pushState({tab:state.tab},""); }catch(e){} }
-function goTab(tab){ state.tab=TABS.includes(tab)?tab:"today"; pushNav(); render(); window.scrollTo(0,0); }
+function goTab(tab){ if(state.notifOpen){ state.notifOpen=false; renderNotifSheet(); } state.tab=TABS.includes(tab)?tab:"today"; pushNav(); render(); window.scrollTo(0,0); }
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("popstate",e=>{ if(!state.profile) return; const t=e.state&&e.state.tab; state.tab=TABS.includes(t)?t:"today"; render(); window.scrollTo(0,0); });
 document.querySelector("nav.tabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; goTab(b.dataset.tab); if(state.form && state.tab!=="log") toast("Your open session is kept under Log"); });
 view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]"); if(!b) return; const a=b.dataset.act; const f=state.form; const tr=state.planTrack||state.plan.track;
@@ -4123,6 +4154,62 @@ if(notifSheetEl) notifSheetEl.addEventListener("click",e=>{
   else if(act==="nopen"){ markFitnessNotifChecked(b.dataset.id); state.notifOpen=false; renderNotifSheet(); if(b.dataset.tab&&state.profile) goTab(b.dataset.tab); }
   else if(act==="ntest"){ sendTestPush(false); }
 });
+let notifTouchStartY=0;
+function onNotifTouchStart(e){
+  if(!state.notifOpen||!e.touches||!e.touches[0]) return;
+  notifTouchStartY=e.touches[0].clientY;
+  const list=e.target&&e.target.closest?e.target.closest(".notif-list"):null;
+  if(list&&list.scrollHeight>list.clientHeight+1){
+    if(list.scrollTop<=0) list.scrollTop=1;
+    else if(list.scrollTop+list.clientHeight>=list.scrollHeight) list.scrollTop=Math.max(0,list.scrollHeight-list.clientHeight-1);
+  }
+}
+function onNotifTouchMove(e){
+  if(!state.notifOpen) return;
+  const list=e.target&&e.target.closest?e.target.closest(".notif-list"):null;
+  if(!list||list.scrollHeight<=list.clientHeight+1){
+    if(e.cancelable) e.preventDefault();
+    return;
+  }
+  const curY=(e.touches&&e.touches[0])?e.touches[0].clientY:notifTouchStartY;
+  const dy=curY-notifTouchStartY;
+  notifTouchStartY=curY;
+  const atTop=list.scrollTop<=0&&dy>0;
+  const atBottom=(list.scrollTop+list.clientHeight>=list.scrollHeight-1)&&dy<0;
+  if(atTop||atBottom){
+    if(e.cancelable) e.preventDefault();
+  }
+}
+function onNotifWheel(e){
+  if(!state.notifOpen) return;
+  const list=e.target&&e.target.closest?e.target.closest(".notif-list"):null;
+  if(!list||list.scrollHeight<=list.clientHeight+1){
+    if(e.cancelable) e.preventDefault();
+    return;
+  }
+  const dy=e.deltaY||0;
+  const atTop=list.scrollTop<=0&&dy<0;
+  const atBottom=(list.scrollTop+list.clientHeight>=list.scrollHeight-1)&&dy>0;
+  if(atTop||atBottom){
+    if(e.cancelable) e.preventDefault();
+  }
+}
+try{
+  document.addEventListener("touchstart",onNotifTouchStart,{passive:true});
+  document.addEventListener("touchmove",onNotifTouchMove,{passive:false});
+  document.addEventListener("wheel",onNotifWheel,{passive:false});
+  if(typeof window!=="undefined"&&window.addEventListener){
+    window.addEventListener("scroll",()=>{
+      if(state.notifOpen&&typeof window.scrollTo==="function"){
+        const cur=(window.scrollY||window.pageYOffset||0);
+        if(Math.abs(cur-notifSavedScrollY)>1) window.scrollTo(0,notifSavedScrollY);
+      }
+    },{passive:true});
+  }
+  document.addEventListener("keydown",e=>{
+    if(e&&e.key==="Escape"&&state.notifOpen){ state.notifOpen=false; renderNotifSheet(); }
+  });
+}catch(e){}
 applyTheme(lsGet("ubp.theme"),false);
 if(typeof window!=="undefined"&&window.navigator&&"serviceWorker" in window.navigator&&window.location&&/^https?:/.test(window.location.protocol)){
   window.navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{ checkExistingPushSub(); updateFitnessAppBadge(); try{ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ reg.update().catch(()=>{}); updateFitnessAppBadge(); } }); }catch(e){} }).catch(()=>{});
