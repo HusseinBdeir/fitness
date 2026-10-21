@@ -1,17 +1,17 @@
-/* Fitness PWA service worker, v14.1 (2026-10-20).
+/* Fitness PWA service worker, v14.3 (2026-10-21).
    App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v14.2";
+const CACHE = "ubp-pwa-v14.3";
 const SHELL = [
   "./",
   "./index.html",
-  "./manifest.json?v=14.2",
-  "./icon.svg?v=14.2",
-  "./icon-192.png?v=14.2",
-  "./icon-512.png?v=14.2",
-  "./icon-512-maskable.png?v=14.2",
-  "./icon-180.png?v=14.2"
+  "./manifest.json?v=14.3",
+  "./icon.svg?v=14.3",
+  "./icon-192.png?v=14.3",
+  "./icon-512.png?v=14.3",
+  "./icon-512-maskable.png?v=14.3",
+  "./icon-180.png?v=14.3"
 ];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
@@ -90,10 +90,12 @@ self.addEventListener("push", e => {
   const title = d.title || "Upper Body Programme";
   const opts = buildNotifOptions(d);
   e.waitUntil(
-    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
-      list.forEach(c => { try { c.postMessage({ type: "ubp-push", payload: d }); } catch (x) {} });
-      return self.registration.showNotification(title, opts);
-    })
+    Promise.all([
+      self.registration.showNotification(title, opts),
+      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+        list.forEach(c => { try { c.postMessage({ type: "ubp-push", payload: d }); } catch (x) {} });
+      }).catch(() => {})
+    ])
   );
 });
 

@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.2">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.2">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.2">
+<link rel="manifest" href="manifest.json?v=14.3">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.3">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.3">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -702,7 +702,7 @@ async function checkExistingPushSub(){
     return state.pushSub;
   }catch(e){ return null; }
 }
-async function enablePush(){
+async function enablePush(forceFresh){
   if(state.pushBusy) return;
   const ua=String((typeof navigator!=="undefined"&&navigator.userAgent)||"");
   const ios=/iPhone|iPad|iPod/.test(ua);
@@ -723,12 +723,16 @@ async function enablePush(){
     }
     const reg=await navigator.serviceWorker.ready;
     let sub=await reg.pushManager.getSubscription();
+    if(sub && forceFresh!==false){
+      try{ await sub.unsubscribe(); sub=null; }catch(e){}
+    }
     if(!sub){
       sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64ToBytes(_VAPID.pub)});
     }
     state.pushSub=sub.toJSON();
     state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{},{enabled:true});
     lsSet("ubp.pushhint",1);
+    lsSet("ubp.armed_push",null);
     savePlan();
     await syncPushSchedule();
     toast("Push notifications enabled! Sending a confirmation banner...");
@@ -769,9 +773,10 @@ async function sendTestPush(isWelcome){
     url:"./",
     tab:"today"
   };
+  if(notifPerm()==="granted"){ swLocalNotif(msg); }
   if(!state.pushSub||!state.pushSub.endpoint){
-    if(notifPerm()==="granted"){ swLocalNotif(msg); toast("Local notification sent (enable Push to receive alerts while the app is closed)."); return; }
-    await enablePush(); return;
+    if(notifPerm()==="granted"){ toast("Local notification sent (enable Push to receive alerts while the app is closed)."); return; }
+    await enablePush(true); return;
   }
   try{
     toast("Sending push notification...");
@@ -780,14 +785,12 @@ async function sendTestPush(isWelcome){
     const res=await callCloudPush({op:"push",endpoint:state.pushSub.endpoint,vapid,bodyB64,ttl:3600});
     if(res&&res.pushStatus>=200&&res.pushStatus<300){
       if(!isWelcome) toast("Push delivered (HTTP "+res.pushStatus+")! Check your notification banner.");
-    } else if(res&&res.pushStatus===410){
-      state.pushSub=null; toast("Subscription expired on device — re-subscribing..."); await enablePush();
+    } else if(res&&(res.pushStatus===410||res.pushStatus===404)){
+      state.pushSub=null; toast("Subscription expired on device — re-subscribing..."); await enablePush(true);
     } else {
-      swLocalNotif(msg);
       if(!isWelcome) toast("Notification displayed.");
     }
   }catch(e){
-    swLocalNotif(msg);
     if(!isWelcome) toast("Offline fallback notification shown.");
   }
 }
@@ -893,6 +896,36 @@ async function syncPushSchedule(){
   const slots=await buildPushSlots(state.pushSub,14);
   const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",updatedAt:new Date().toISOString(),slots};
   await state.db.doc("push_registry").set({items:others.concat([entry]),updatedAt:new Date().toISOString()});
+  /* Also arm exact-second push_delay cloud timers for today/tomorrow morning & evening reminders so they fire at :00 sharp */
+  try{
+    const armed=Object.assign({},lsGet("ubp.armed_push")||{});
+    const today=isoToday(), nowMs=Date.now(), pid=state.profile||"default";
+    let changed=false;
+    for(let d=0;d<2;d++){
+      const iso=addDays(today,d), [Y,M,D]=iso.split("-").map(Number);
+      const checks=[
+        {k:"am",dt:new Date(Y,M-1,D,+nf.morningHour||9,0,0)},
+        {k:"pm",dt:new Date(Y,M-1,D,+nf.eveningHour||20,0,0)}
+      ];
+      for(const c of checks){
+        const slotKey=c.dt.toISOString().slice(0,13);
+        const timerKey="push_"+c.k+"/"+pid+"_d"+d;
+        const slotObj=slots[slotKey];
+        const delaySec=Math.round((c.dt.getTime()-nowMs)/1000);
+        const timerId=iso+"_"+c.k+"_"+c.dt.getTime();
+        if(slotObj && delaySec>=30 && delaySec<=36*3600){
+          if(armed[timerKey]!==timerId){
+            armed[timerKey]=timerId; changed=true;
+            callCloudPush({op:"push_delay",timerKey,timerId,delaySec,endpoint:state.pushSub.endpoint,vapid:slotObj.vapid,bodyB64:slotObj.bodyB64}).catch(()=>{});
+          }
+        } else if(!slotObj && armed[timerKey] && delaySec>0){
+          delete armed[timerKey]; changed=true;
+          callCloudPush({op:"patch",patch:{[timerKey]:{id:"cancelled",ts:Date.now()}}}).catch(()=>{});
+        }
+      }
+    }
+    if(changed) lsSet("ubp.armed_push",armed);
+  }catch(e){}
 }
 function renderTodayNotifBanner(){
   const nf=state.plan.notif||DEFAULT_NOTIF;
@@ -921,7 +954,7 @@ function renderNotifCard(){
       '<div class="row between"><label class="f inl"><input type="checkbox" id="pnam" data-nf="morning"'+(nf.morning!==false?" checked":"")+'> <b>Morning training &amp; match-day reminder</b> <span class="small muted">(silent on rest days)</span></label><select id="pnamh" data-nf="morningHour" aria-label="Morning reminder time" style="width:auto;min-width:92px">'+selOpts(amHours,String(nf.morningHour||9))+'</select></div>'+
       '<div class="row between"><label class="f inl"><input type="checkbox" id="pnpm" data-nf="evening"'+(nf.evening!==false?" checked":"")+'> <b>Evening workout &amp; protein check-in nudge</b> <span class="small muted">(silent once logged)</span></label><select id="pnpmh" data-nf="eveningHour" aria-label="Evening reminder time" style="width:auto;min-width:92px">'+selOpts(pmHours,String(nf.eveningHour||20))+'</select></div>'+
     '</div>'+
-    '<div class="row">'+(active?'<button class="btn sm" data-act="pushtest">Send Test Push</button><button class="btn sm sec" data-act="pushsync">Refresh Schedule</button><button class="btn sm ghost" data-act="pushoff">Turn Off</button>':'<button class="btn sm" data-act="pushon">'+(state.pushBusy?"Enabling...":"Enable Push Notifications")+'</button>'+(perm==="granted"?'<button class="btn sm sec" data-act="pushtest">Send Test Push</button>':''))+'</div></div>';
+    '<div class="row">'+(active?'<button class="btn sm" data-act="pushtest">Send Test Push</button><button class="btn sm sec" data-act="pushreset">'+(state.pushBusy?"Re-pairing...":"Re-Pair Push")+'</button><button class="btn sm sec" data-act="pushsync">Refresh Schedule</button><button class="btn sm ghost" data-act="pushoff">Turn Off</button>':'<button class="btn sm" data-act="pushon">'+(state.pushBusy?"Enabling...":"Enable Push Notifications")+'</button>'+(perm==="granted"?'<button class="btn sm sec" data-act="pushtest">Send Test Push</button>':''))+'</div></div>';
 }
 
 /* ---------- Standalone Website / PWA Cloud Sync (Power Automate HTTP Flow) ---------- */
@@ -1046,14 +1079,15 @@ async function enterProfile(pid){ await detachProfile(); resetProfileState(); st
   initHealthAutoSyncForProfile();
   if(state.db) await attachCloud(); }
 async function attachCloud(){ const db=state.db, pid=state.profile; await replayPending(db); if(state.profile!==pid||!state.db) return;
+  checkExistingPushSub();
   state.unsub.push(sessCol().onSnapshot(s=>{ const cloud=s.docs.map(d=>Object.assign({id:d.id},d.data())); const pend=state.pending.sessions||{}; const ids=new Set(cloud.map(x=>x.id));
     /* a session whose write has not landed yet stays visible from the local copy; a pending delete stays hidden */
     state.sessions.forEach(x=>{ if(pend[x.id]==="set"&&!ids.has(x.id)) cloud.push(x); });
-    state.sessions=cloud.filter(x=>pend[x.id]!=="del"); persistLocal(); if(!db._http&&state.profile&&state.sessions.length){ const mp={}; state.sessions.forEach(x=>{ mp["profiles/"+state.profile+"/sessions/"+x.id]=clone(x); }); mirrorToHttpCloud(mp); } if(!formOpen()) render(); }, e=>{ cloudReadFailed(db); }));
+    state.sessions=cloud.filter(x=>pend[x.id]!=="del"); persistLocal(); schedulePushSync(); if(!db._http&&state.profile&&state.sessions.length){ const mp={}; state.sessions.forEach(x=>{ mp["profiles/"+state.profile+"/sessions/"+x.id]=clone(x); }); mirrorToHttpCloud(mp); } if(!formOpen()) render(); }, e=>{ cloudReadFailed(db); }));
   state.unsub.push(planDoc().onSnapshot(s=>{ if(!s.exists) return; const d=s.data();
     /* never let a cloud echo overwrite an edit that is still being written, or an older copy overwrite a newer one */
     if(state.planDirty||state.planInflight||state.pending.plan) return; if((d.rev||0)<(state.plan.rev||0)) return;
-    state.plan=migratePlan(d); persistLocal(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{}));
+    state.plan=migratePlan(d); persistLocal(); schedulePushSync(); if(!db._http&&state.profile) mirrorToHttpCloud({["profiles/"+state.profile+"/settings/plan"]:clone(state.plan)}); if(!formOpen()) render(); }, ()=>{}));
   if(db._http){ state.unsub.push(db.doc("profiles/"+pid+"/health/latest").onSnapshot(s=>{ if(!s.exists) return; const hd=s.data(); const sig=healthPayloadSig(hd); if(hd&&typeof hd==="object"&&sig&&sig!==(state.plan._lastCloudHealthSig||"")){ state.plan._lastCloudHealthSig=sig; state.plan._lastCloudHealthTs=hd.ts||Date.now(); if(!hd.date||hd.date===isoToday()||!hasAuthoritativeHealth(hd.date)) ingestHealthPayload(hd,hd.source||"Apple Health Cloud",true); } }, ()=>{})); }
   checkUrlHealthSync();
   if(state._pendingCloudHealthPush){ state._pendingCloudHealthPush=false; const thNow=todayHealth(isoToday()); pushHealthToCloud({date:isoToday(),steps:thNow.steps,activeKcal:thNow.activeKcal,distanceKm:thNow.distanceKm,rhr:thNow.rhr,hrv:thNow.hrv,sleep:thNow.sleep,deepRem:thNow.deepRem,source:thNow.source||"Apple Health Shortcut"}); } }
@@ -1106,7 +1140,7 @@ function savePlan(){ state.plan.rev=Date.now(); state.planDirty=true; persistLoc
 function flushPlan(){ clearTimeout(planSaveTimer); planSaveTimer=null; if(!state.planDirty||!state.db||!state.profile) return; state.planDirty=false; state.planInflight=true; const snap=clone(state.plan); const ref=planDoc();
   queueWrite(()=>ref.set(snap).then(()=>{ if(state.plan.rev===snap.rev&&!state.planDirty) markPending("plan",null,false); })).then(()=>{ state.planInflight=false; if(state.planDirty) flushPlan(); }); }
 function flushAll(){ if(planSaveTimer) flushPlan(); persistDraft(); }
-document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushAll(); else if(document.visibilityState==="visible"){ onHealthAppResume(); if(state.db&&state.db._http) reconnect(); if(state.rest&&state.rest.running) tickRest(); if(state.mob&&state.mob.running) tickMob(); if(formOpen()) keepAwake(true); } });
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden") flushAll(); else if(document.visibilityState==="visible"){ onHealthAppResume(); if(state.db&&state.db._http) reconnect(); if(state.pushSub&&state.plan&&state.plan.notif&&state.plan.notif.enabled) schedulePushSync(); if(state.rest&&state.rest.running) tickRest(); if(state.mob&&state.mob.running) tickMob(); if(formOpen()) keepAwake(true); } });
 window.addEventListener("pagehide",flushAll);
 let toastT; function toast(m){ const t=document.getElementById("toast"); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>{t.hidden=true;},Math.min(7000,2200+String(m).length*35)); }
 
@@ -3815,7 +3849,7 @@ view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]");
   else if(a==="pincancel"){ state.pinEdit=false; render(); }
   else if(a==="pinsave"){ const el=document.getElementById("npin"); const v=el?String(el.value||"").trim():""; if(v&&!/^\d{4,6}$/.test(v)){ toast("The PIN is 4 to 6 digits"); return; } updateProfile({pinHash:v?await pinHash(v):null}); state.pinEdit=false; render(); toast(v?"PIN saved":"PIN removed"); }
   else if(a==="switch"){ leaveProfile(); }
-  else if(a==="pushon"){ await enablePush(); }
+  else if(a==="pushon"||a==="pushreset"){ await enablePush(true); }
   else if(a==="pushoff"){ await disablePush(); }
   else if(a==="pushtest"){ await sendTestPush(false); }
   else if(a==="pushsync"){ toast("Refreshing 14-day notification schedule..."); await syncPushSchedule(); toast("Notification schedule synced to cloud!"); }
@@ -3950,7 +3984,7 @@ if(typeof window!=="undefined"&&window.navigator&&"serviceWorker" in window.navi
   window.navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{ checkExistingPushSub(); try{ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") reg.update().catch(()=>{}); }); }catch(e){} }).catch(()=>{});
   let hadController=!!window.navigator.serviceWorker.controller, swReloading=false;
   window.navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(hadController&&!swReloading){ swReloading=true; if(typeof formOpen==="function"&&formOpen()){ toast("App updated. Reopen to load the new version."); }else{ try{ window.location.reload(); }catch(e){} } } hadController=true; });
-  window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); });
+  window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); else if(m.type==="ubp-push"&&m.payload&&m.payload.title){ playGymChime(); toast(m.payload.title+(m.payload.body?": "+String(m.payload.body).slice(0,90):"")); } });
 }
 
 initStore();
