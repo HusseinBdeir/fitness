@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.3">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.3">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.3">
+<link rel="manifest" href="manifest.json?v=14.4">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.4">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.4">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -358,12 +358,21 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 @media (max-width:380px){.bp-steps{grid-template-columns:1fr}}
 .bp-step{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .bp-step .bp-n{font-family:var(--display);font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+/* ---------- v14.4 Home Screen & Top-Right Notification Count Badge (#FF3B30) ---------- */
+.notif-btn{position:relative;padding:6px 10px;min-height:34px;display:inline-flex;align-items:center;justify-content:center}
+.notif-btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.push-count-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:#FF3B30;color:#FFFFFF;font-family:var(--body);font-size:10.5px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 2px 6px rgba(255,59,48,.45);border:1.5px solid var(--bg);pointer-events:none;z-index:2;font-variant-numeric:tabular-nums}
+.notif-sheet{position:fixed;inset:0;z-index:30;background:rgba(10,14,18,.58);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;padding:calc(56px + env(safe-area-inset-top,0px)) 14px 20px}
+.notif-box{width:100%;max-width:460px;max-height:78vh;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35);overflow:hidden}
+.notif-list{display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:52vh;padding-right:2px}
+.notif-item{background:var(--sunk);border:1px solid var(--line);border-left:3px solid #FF3B30;border-radius:9px;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.notif-item.checked{border-left-color:var(--line);opacity:.62}
 </style>
 </head>
 <body>
 <header class="top"><div class="in">
   <div class="brand"><small id="brandline">Two sessions a week, every week</small><h1 class="ttl">Upper Body Programme</h1></div>
-  <div class="row" style="gap:8px;flex-wrap:nowrap"><div class="status" id="status"><i></i><span>Connecting</span></div><button class="btn sm ghost" id="themetog" title="Light / dark" aria-label="Toggle light or dark theme">&#9790;</button><button class="btn sm ghost" id="who" hidden title="Switch person">Switch</button></div>
+  <div class="row" style="gap:8px;flex-wrap:nowrap"><div class="status" id="status"><i></i><span>Connecting</span></div><button class="btn sm ghost notif-btn" id="notifbtn" title="Notifications &amp; Action Reminders" aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="push-count-badge" id="notifbadge" hidden>0</span></button><button class="btn sm ghost" id="themetog" title="Light / dark" aria-label="Toggle light or dark theme">&#9790;</button><button class="btn sm ghost" id="who" hidden title="Switch person">Switch</button></div>
 </div></header>
 
 <nav class="tabs"><div class="in">
@@ -379,6 +388,7 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 <div class="tip" id="tip" hidden></div>
 <div class="toast" id="toast" hidden></div>
 <div class="rest-dock" id="restbar" hidden></div>
+<div class="notif-sheet" id="notifsheet" hidden></div>
 
 <script>
 /* ---------- Exercise library ---------- */
@@ -537,7 +547,7 @@ const repLabel = u => u==="s"?"sec":"reps";
 /* ---------- State and storage ---------- */
 /* v9: the new-person form also asks where, goal, upper sessions a week, a Legs day, football and padel days */
 const LOGIN0 = () => ({pid:null,pin:"",add:false,name:"",bw:"",newpin:"",where:"gym",goal:"gain",legs:false,ups:"2",exp:"2",s1:"football",s2:"padel",fb:[],sp:[]});
-const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null,sub:{today:"all",health:"all",log:"all",plan:"all",guide:"all"},aiMode:"optimal",openPlanSwap:{},blueprintOpen:null};
+const state = {tab:"today",plan:clone(DEFAULT_PLAN),sessions:[],mode:"loading",db:null,user:{isOwner:false,canWrite:null},profile:null,profiles:[],unsub:[],login:LOGIN0(),pinEdit:false,form:null,lib:{f:"all",q:"",d:0},confirmDel:null,planTrack:null,readOnly:false,weekOffset:0,weekEdit:false,planDirty:false,planInflight:false,pending:{plan:false,sessions:{}},muscleSel:"chest",bodyMapMode:"recovery",mob:{open:false,type:"upper",step:0,sec:30,running:false},rest:{sec:0,total:120,running:false,label:""},focusMode:false,focusIdx:0,openCues:{},openPlates:{},openSwap:{},warmupOpen:false,warmupDone:{},lastSavedSummary:null,rmCalc:{w:60,r:8},theme:null,confirmCancel:0,confirmEmpty:0,openHist:{},pushSub:null,pushBusy:false,healthEdit:false,healthSetupOpen:false,healthTrendMetric:"hrv",healthSyncModal:null,healthSyncTab:"quick",healthScWarn:null,sub:{today:"all",health:"all",log:"all",plan:"all",guide:"all"},aiMode:"optimal",openPlanSwap:{},blueprintOpen:null,notifs:[],checkedNotifs:{},notifOpen:false};
 /* Storage design (v4): every change is written to localStorage first (write-ahead), then to the cloud. A pending flag per document survives a closed tab and is replayed on the next open; the plan carries a rev stamp so a stale cloud echo never overwrites a newer local edit.
    People (v6): one profile per person. Cloud: profiles/<pid> (name, pinHash), profiles/<pid>/settings/plan, profiles/<pid>/sessions/<id>. Local keys carry the profile id (ubp.<pid>.plan ...) so two people on one device never mix; ubp.profile remembers who is open on this device. */
 const LS={profile:"ubp.profile",profiles:"ubp.profiles"};
@@ -685,11 +695,131 @@ async function callCloudPush(body){
 }
 function swLocalNotif(payload){
   try{
+    if(payload&&payload.title) recordFitnessNotif({id:payload.tag||("ubp-local-"+Date.now()),tag:payload.tag||"ubp-local",title:payload.title,body:payload.body||"",tab:payload.tab||"today",ts:Date.now(),checked:false});
     if(typeof navigator!=="undefined"&&navigator.serviceWorker){
       if(navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({type:"show-notification",payload});
       else navigator.serviceWorker.ready.then(reg=>{ if(reg&&reg.showNotification) reg.showNotification(payload.title||"Upper Body Programme",{body:payload.body||"",icon:"./icon-192.png",badge:"./icon-192.png",tag:payload.tag||"ubp-local",renotify:true,data:{url:payload.url||"./",tab:payload.tab||"today"}}); }).catch(()=>{});
     }
   }catch(e){}
+}
+function notifStorageKey(){ return state.profile ? lk("notifs") : "ubp.notifs"; }
+function checkedNotifStorageKey(){ return state.profile ? lk("checked_notifs") : "ubp.checked_notifs"; }
+function loadNotifLedger(){
+  const rawList=lsGet(notifStorageKey());
+  const rawChk=lsGet(checkedNotifStorageKey());
+  state.checkedNotifs=(rawChk&&typeof rawChk==="object")?rawChk:{};
+  state.notifs=Array.isArray(rawList)?rawList.filter(x=>x&&x.id):[];
+  state.notifs.forEach(n=>{ if(state.checkedNotifs[n.id]) n.checked=true; });
+  if(state.profile){
+    const today=isoToday(), planned=plannedOn(today), lift=liftOf(planned), fb=hasKind(planned,"football"), sp=hasKind(planned,"sport");
+    const doneToday=(state.sessions||[]).some(s=>s.date===today);
+    const wId="workout-"+today+"-"+(lift||"sport");
+    if((lift||fb||sp) && !doneToday){
+      const title=lift?(sessionTitle(lift)+" Scheduled Today") : (fb&&sp?"Football & Padel Day":fb?"Football Match Day":"Padel / Sport Day");
+      const body=lift?("Tap to open your workout log with AI-recommended weights for "+sessionTitle(lift)+"."):"Tap to check in your daily readiness, hydration and mobility.";
+      const ex=state.notifs.find(x=>x.id===wId);
+      if(!ex) state.notifs.unshift({id:wId,tag:wId,title,body,tab:"today",ts:Date.now(),checked:!!state.checkedNotifs[wId]});
+    } else if(doneToday){
+      state.checkedNotifs[wId]=Date.now();
+      state.notifs.forEach(x=>{ if(x.id===wId||String(x.id).startsWith("workout-"+today)) x.checked=true; });
+    }
+    const bw=+state.plan.bodyweight||85, g=state.plan.goal||"gain", protTarget=Math.round(bw*(g==="lose"?2.0:1.8));
+    const curProt=+(state.plan.daily&&state.plan.daily[today]&&state.plan.daily[today].protein)||0;
+    const fId="fuel-"+today;
+    if(curProt>=protTarget){
+      state.checkedNotifs[fId]=Date.now();
+      state.notifs.forEach(x=>{ if(x.id===fId) x.checked=true; });
+    } else if(new Date().getHours()>=14){
+      const exF=state.notifs.find(x=>x.id===fId);
+      if(!exF) state.notifs.push({id:fId,tag:fId,title:"Daily Protein & Hydration Check-In",body:curProt+" / "+protTarget+" g protein logged today. Tap to top up your daily fuel.",tab:"today",ts:Date.now(),checked:!!state.checkedNotifs[fId]});
+      else if(!exF.checked) exF.body=curProt+" / "+protTarget+" g protein logged today. Tap to top up your daily fuel.";
+    }
+    const hId="hsync-"+today;
+    if(hasAuthoritativeHealth(today) || !shouldShowHealthDailyPrompt()){
+      state.checkedNotifs[hId]=Date.now();
+      state.notifs.forEach(x=>{ if(x.id===hId) x.checked=true; });
+    }
+  }
+  state.notifs=state.notifs.slice(0,50);
+  lsSet(notifStorageKey(),state.notifs);
+  lsSet(checkedNotifStorageKey(),state.checkedNotifs);
+}
+function computeUnreadNotifCount(){
+  return (state.notifs||[]).filter(n=>n&&!n.checked&&!(state.checkedNotifs&&state.checkedNotifs[n.id])).length;
+}
+function updateFitnessAppBadge(){
+  const count=computeUnreadNotifCount();
+  const badge=document.getElementById("notifbadge");
+  if(badge){
+    badge.hidden=count<=0;
+    badge.textContent=count>99?"99+":String(count);
+  }
+  const btn=document.getElementById("notifbtn");
+  if(btn){
+    btn.title=count>0?(count+" unread notification"+(count===1?"":"s")):"Notifications & Action Reminders";
+  }
+  try{
+    if(typeof navigator!=="undefined"){
+      if(count>0 && typeof navigator.setAppBadge==="function") navigator.setAppBadge(count).catch(()=>{});
+      else if(count<=0 && typeof navigator.clearAppBadge==="function") navigator.clearAppBadge().catch(()=>{});
+    }
+  }catch(e){}
+  try{
+    if(typeof navigator!=="undefined"&&navigator.serviceWorker&&navigator.serviceWorker.controller){
+      navigator.serviceWorker.controller.postMessage({type:"sync-unread-notifs",items:(state.notifs||[]).slice(0,50)});
+    }
+  }catch(e){}
+  return count;
+}
+function recordFitnessNotif(item){
+  if(!item||!item.title) return;
+  loadNotifLedger();
+  const id=String(item.id||item.tag||("ubp-"+Date.now()));
+  delete state.checkedNotifs[id];
+  const idx=state.notifs.findIndex(x=>x&&(x.id===id||(item.tag&&x.tag===item.tag)));
+  const entry={id,tag:item.tag||id,title:String(item.title),body:String(item.body||""),tab:item.tab||"today",ts:item.ts||Date.now(),checked:false};
+  if(idx>=0) state.notifs[idx]=entry;
+  else state.notifs.unshift(entry);
+  state.notifs=state.notifs.slice(0,50);
+  lsSet(notifStorageKey(),state.notifs);
+  lsSet(checkedNotifStorageKey(),state.checkedNotifs);
+  updateFitnessAppBadge();
+  if(state.notifOpen) renderNotifSheet();
+}
+function markFitnessNotifChecked(id){
+  if(!id) return;
+  state.checkedNotifs=state.checkedNotifs||{};
+  state.checkedNotifs[id]=Date.now();
+  (state.notifs||[]).forEach(x=>{ if(x&&(x.id===id||x.tag===id)) x.checked=true; });
+  lsSet(notifStorageKey(),state.notifs);
+  lsSet(checkedNotifStorageKey(),state.checkedNotifs);
+  updateFitnessAppBadge();
+  if(state.notifOpen) renderNotifSheet();
+}
+function markAllFitnessNotifsChecked(){
+  state.checkedNotifs=state.checkedNotifs||{};
+  (state.notifs||[]).forEach(x=>{ if(x&&x.id){ x.checked=true; state.checkedNotifs[x.id]=Date.now(); } });
+  lsSet(notifStorageKey(),state.notifs);
+  lsSet(checkedNotifStorageKey(),state.checkedNotifs);
+  updateFitnessAppBadge();
+  if(state.notifOpen) renderNotifSheet();
+}
+function renderNotifSheet(){
+  const el=document.getElementById("notifsheet"); if(!el) return;
+  if(!state.notifOpen){ el.hidden=true; return; }
+  loadNotifLedger();
+  const unread=computeUnreadNotifCount();
+  const list=(state.notifs||[]).slice().sort((a,b)=>(Number(a.checked)-Number(b.checked))||((b.ts||0)-(a.ts||0)));
+  const rows=list.length?list.map(n=>{
+    const isChk=!!(n.checked||(state.checkedNotifs&&state.checkedNotifs[n.id]));
+    const timeStr=n.ts?new Date(n.ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"";
+    return '<div class="notif-item'+(isChk?' checked':'')+'"><div style="flex:1;min-width:0;cursor:pointer" data-nact="nopen" data-id="'+esc(n.id)+'" data-tab="'+esc(n.tab||'today')+'"><div class="row between" style="gap:6px"><b>'+esc(n.title)+'</b><span class="small muted">'+esc(timeStr)+'</span></div><p class="small muted" style="margin-top:2px">'+esc(n.body)+'</p></div>'+
+      (isChk?'<span class="chip good" style="flex-shrink:0">&#10003; Done</span>':'<button class="btn sm sec" style="padding:4px 9px;font-size:12px;flex-shrink:0" data-nact="ncheck" data-id="'+esc(n.id)+'" title="Check off notification">&#10003; Check</button>')+'</div>';
+  }).join(""):'<div class="empty">All caught up! Workout, fuel &amp; timer notifications appear here.</div>';
+  el.hidden=false;
+  el.innerHTML='<div class="notif-box"><div class="row between"><div><span class="eyebrow">Notification Center</span><h3>Action Reminders &amp; Alerts '+(unread?'<span class="chip bad">'+unread+' unread</span>':'<span class="chip good">All read</span>')+'</h3></div><button class="btn sm ghost" data-nact="nclose">Close</button></div>'+
+    '<div class="notif-list">'+rows+'</div>'+
+    '<div class="row between" style="padding-top:4px;border-top:1px solid var(--line)"><span class="small muted">Unchecked items show on the Home Screen app icon badge</span><div class="row" style="gap:6px">'+(unread?'<button class="btn sm sec" data-nact="nall">&#10003; Check All</button>':'')+'<button class="btn sm ghost" data-nact="ntest">Test Alert</button></div></div></div>';
 }
 async function checkExistingPushSub(){
   if(!pushSupported()) return null;
@@ -2918,7 +3048,8 @@ function render(){ setStatus(); persistDraft(); renderHeader(); document.querySe
 
 function renderHeader(){ const p=curProfile(), who=document.getElementById("who"), bl=document.getElementById("brandline"), nav=document.querySelector("nav.tabs");
   if(nav) nav.hidden=!state.profile; if(who){ who.hidden=!state.profile; who.textContent=p?p.name:"Switch"; }
-  if(bl) bl.textContent=state.profile?((p?p.name:"")+", "+(TRACK_NAMES[state.plan.track]||"")):"Two sessions a week, every week"; }
+  if(bl) bl.textContent=state.profile?((p?p.name:"")+", "+(TRACK_NAMES[state.plan.track]||"")):"Two sessions a week, every week";
+  try{ loadNotifLedger(); updateFitnessAppBadge(); if(state.notifOpen) renderNotifSheet(); }catch(e){} }
 /* --- Who is training (no profile open) --- */
 function renderLogin(){
   const L=state.login, ps=state.profiles;
@@ -3979,12 +4110,25 @@ document.getElementById("restbar").addEventListener("click",e=>{
 function effectiveTheme(){ const de=(typeof document!=="undefined")&&document.documentElement; const t=(de&&de.getAttribute)?de.getAttribute("data-theme"):null; if(t==="dark"||t==="light") return t; try{ return (typeof window!=="undefined"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light"; }catch(e){ return "light"; } }
 function applyTheme(t,save){ try{ const de=document.documentElement; if(de&&de.setAttribute){ if(t==="dark"||t==="light") de.setAttribute("data-theme",t); else de.removeAttribute("data-theme"); } }catch(e){} if(save) lsSet("ubp.theme",(t==="dark"||t==="light")?t:null); const eff=effectiveTheme(); const b=document.getElementById("themetog"); if(b) b.innerHTML=eff==="dark"?"&#9728;":"&#9790;"; try{ const m=document.querySelector('meta[name="theme-color"]'); if(m&&m.setAttribute) m.setAttribute("content",eff==="dark"?"#121618":"#1D55A3"); }catch(e){} }
 document.getElementById("themetog").addEventListener("click",()=>{ applyTheme(effectiveTheme()==="dark"?"light":"dark",true); });
+const notifBtnEl=document.getElementById("notifbtn");
+if(notifBtnEl) notifBtnEl.addEventListener("click",()=>{ state.notifOpen=!state.notifOpen; renderNotifSheet(); });
+const notifSheetEl=document.getElementById("notifsheet");
+if(notifSheetEl) notifSheetEl.addEventListener("click",e=>{
+  if(e.target===notifSheetEl){ state.notifOpen=false; renderNotifSheet(); return; }
+  const b=e.target.closest("[data-nact]"); if(!b) return;
+  const act=b.dataset.nact;
+  if(act==="nclose"){ state.notifOpen=false; renderNotifSheet(); }
+  else if(act==="ncheck"){ markFitnessNotifChecked(b.dataset.id); }
+  else if(act==="nall"){ markAllFitnessNotifsChecked(); }
+  else if(act==="nopen"){ markFitnessNotifChecked(b.dataset.id); state.notifOpen=false; renderNotifSheet(); if(b.dataset.tab&&state.profile) goTab(b.dataset.tab); }
+  else if(act==="ntest"){ sendTestPush(false); }
+});
 applyTheme(lsGet("ubp.theme"),false);
 if(typeof window!=="undefined"&&window.navigator&&"serviceWorker" in window.navigator&&window.location&&/^https?:/.test(window.location.protocol)){
-  window.navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{ checkExistingPushSub(); try{ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") reg.update().catch(()=>{}); }); }catch(e){} }).catch(()=>{});
+  window.navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{ checkExistingPushSub(); updateFitnessAppBadge(); try{ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ reg.update().catch(()=>{}); updateFitnessAppBadge(); } }); }catch(e){} }).catch(()=>{});
   let hadController=!!window.navigator.serviceWorker.controller, swReloading=false;
   window.navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(hadController&&!swReloading){ swReloading=true; if(typeof formOpen==="function"&&formOpen()){ toast("App updated. Reopen to load the new version."); }else{ try{ window.location.reload(); }catch(e){} } } hadController=true; });
-  window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); else if(m.type==="ubp-push"&&m.payload&&m.payload.title){ playGymChime(); toast(m.payload.title+(m.payload.body?": "+String(m.payload.body).slice(0,90):"")); } });
+  window.navigator.serviceWorker.addEventListener("message",e=>{ const m=e&&e.data; if(!m) return; if(m.notifCheckedId) markFitnessNotifChecked(m.notifCheckedId); if(m.type==="ubp-nav"&&m.tab&&state.profile) goTab(m.tab); else if(m.type==="ubp-push"&&m.payload&&m.payload.title){ recordFitnessNotif(m.payload); playGymChime(); toast(m.payload.title+(m.payload.body?": "+String(m.payload.body).slice(0,90):"")); } });
 }
 
 initStore();
