@@ -1,19 +1,19 @@
-/* Fitness PWA service worker, v14.5 (2026-10-21).
+/* Fitness PWA service worker, v14.6 (2026-10-22).
    App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + Home Screen Badging API (navigator.setAppBadge) + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v14.5";
+const CACHE = "ubp-pwa-v14.6";
 const NOTIF_CACHE = "ubp-notif-cache-v1";
 const UNREAD_NOTIFS_URL = "./__ubp_unread_notifs.json";
 const SHELL = [
   "./",
   "./index.html",
-  "./manifest.json?v=14.5",
-  "./icon.svg?v=14.5",
-  "./icon-192.png?v=14.5",
-  "./icon-512.png?v=14.5",
-  "./icon-512-maskable.png?v=14.5",
-  "./icon-180.png?v=14.5"
+  "./manifest.json?v=14.6",
+  "./icon.svg?v=14.6",
+  "./icon-192.png?v=14.6",
+  "./icon-512.png?v=14.6",
+  "./icon-512-maskable.png?v=14.6",
+  "./icon-180.png?v=14.6"
 ];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
@@ -118,17 +118,44 @@ self.addEventListener("fetch", e => {
   );
 });
 
-function buildNotifOptions(d) {
+function buildNotifOptions(d, isRepeat = false) {
   const notifId = String(d.id || d.tag || ("ubp-notif-" + Date.now()));
   return {
     body: d.body || "Tap to open Upper Body Programme.",
     icon: "./icon-192.png",
     badge: "./icon-192.png",
     tag: d.tag || notifId,
-    renotify: true,
-    vibrate: [180, 80, 180, 80, 260],
+    renotify: !isRepeat,
+    silent: Boolean(isRepeat),
+    vibrate: isRepeat ? [] : [180, 80, 180, 80, 260],
     data: { url: d.url || "./", tab: d.tab || "today", notifId }
   };
+}
+
+async function isTagRecentlyDelivered(tag, title = "") {
+  const cleanTag = String(tag || "").trim();
+  const cleanTitle = String(title || "").trim();
+  const now = Date.now();
+  try {
+    if (self.registration && typeof self.registration.getNotifications === "function") {
+      const active = await self.registration.getNotifications(cleanTag ? { tag: cleanTag } : undefined);
+      if (Array.isArray(active) && active.some(n => (cleanTag && n.tag === cleanTag) || (cleanTitle && n.title === cleanTitle))) {
+        return true;
+      }
+    }
+  } catch (e) {}
+  try {
+    const existing = await readUnreadNotifsFromCache();
+    return existing.some(
+      x =>
+        x &&
+        now - Number(x.ts || 0) < 10 * 60 * 1000 &&
+        ((cleanTag && (x.tag === cleanTag || x.id === cleanTag)) ||
+          (cleanTitle && x.title === cleanTitle && now - Number(x.ts || 0) < 90 * 1000))
+    );
+  } catch (e) {
+    return false;
+  }
 }
 
 self.addEventListener("push", e => {
@@ -138,25 +165,28 @@ self.addEventListener("push", e => {
     catch (err) { try { d = { title: "Upper Body Programme", body: e.data.text() }; } catch (x) {} }
   }
   const title = d.title || "Upper Body Programme";
-  const opts = buildNotifOptions(d);
-  const notifEntry = {
-    id: opts.data.notifId,
-    tag: opts.tag,
-    title,
-    body: opts.body,
-    tab: opts.data.tab,
-    url: opts.data.url,
-    ts: Date.now(),
-    checked: false
-  };
   e.waitUntil(
-    Promise.all([
-      upsertSwUnreadNotif(notifEntry),
-      self.registration.showNotification(title, opts),
-      self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
-        list.forEach(c => { try { c.postMessage({ type: "ubp-push", payload: Object.assign({}, d, notifEntry) }); } catch (x) {} });
-      }).catch(() => {})
-    ])
+    (async () => {
+      const isRepeat = await isTagRecentlyDelivered(d.tag, title);
+      const opts = buildNotifOptions(d, isRepeat);
+      const notifEntry = {
+        id: opts.data.notifId,
+        tag: opts.tag,
+        title,
+        body: opts.body,
+        tab: opts.data.tab,
+        url: opts.data.url,
+        ts: Date.now(),
+        checked: false
+      };
+      await Promise.all([
+        upsertSwUnreadNotif(notifEntry),
+        self.registration.showNotification(title, opts),
+        self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
+          list.forEach(c => { try { c.postMessage({ type: "ubp-push", payload: Object.assign({}, d, notifEntry) }); } catch (x) {} });
+        }).catch(() => {})
+      ]);
+    })()
   );
 });
 
@@ -174,12 +204,14 @@ self.addEventListener("message", e => {
   if (m.type !== "show-notification") return;
   const d = m.payload || {};
   const title = d.title || "Upper Body Programme";
-  const opts = buildNotifOptions(d);
   e.waitUntil(
-    Promise.all([
-      upsertSwUnreadNotif({ id: opts.data.notifId, tag: opts.tag, title, body: opts.body, tab: opts.data.tab, ts: Date.now(), checked: false }),
-      self.registration.showNotification(title, opts)
-    ])
+    (async () => {
+      const isRepeat = await isTagRecentlyDelivered(d.tag, title);
+      const opts = buildNotifOptions(d, isRepeat);
+      await upsertSwUnreadNotif({ id: opts.data.notifId, tag: opts.tag, title, body: opts.body, tab: opts.data.tab, ts: Date.now(), checked: false });
+      if (isRepeat) return;
+      await self.registration.showNotification(title, opts);
+    })()
   );
 });
 

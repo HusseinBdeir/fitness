@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.5">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.5">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.5">
+<link rel="manifest" href="manifest.json?v=14.6">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.6">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.6">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -934,9 +934,8 @@ async function sendTestPush(isWelcome){
     url:"./",
     tab:"today"
   };
-  if(notifPerm()==="granted"){ swLocalNotif(msg); }
   if(!state.pushSub||!state.pushSub.endpoint){
-    if(notifPerm()==="granted"){ toast("Local notification sent (enable Push to receive alerts while the app is closed)."); return; }
+    if(notifPerm()==="granted"){ swLocalNotif(msg); toast("Local notification sent (enable Push to receive alerts while the app is closed)."); return; }
     await enablePush(true); return;
   }
   try{
@@ -1043,49 +1042,49 @@ function schedulePushSync(){
   clearTimeout(pushSyncTimer);
   pushSyncTimer=setTimeout(()=>{ syncPushSchedule().catch(()=>{}); },600);
 }
+function getUbpPlatformClass(ua){
+  const s=String(ua||"").toLowerCase();
+  if(!s) return "";
+  if(s.includes("iphone")) return "iphone";
+  if(s.includes("ipad")) return "ipad";
+  if(s.includes("android")) return "android";
+  if(s.includes("macintosh")||s.includes("mac os")) return "mac";
+  if(s.includes("windows")) return "windows";
+  return s.slice(0,32);
+}
 async function syncPushSchedule(){
   if(!state.pushSub||!state.db||!state.db._http||!state.profile) return;
   const nf=state.plan.notif||DEFAULT_NOTIF;
   const devId=getDeviceId();
+  const curUa=String((typeof navigator!=="undefined"&&navigator.userAgent)||"").slice(0,140);
+  const curPlat=getUbpPlatformClass(curUa);
   const snap=await state.db.doc("push_registry").get().catch(()=>({exists:false}));
   const existing=(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().items))?snap.data().items:[];
-  const others=existing.filter(x=>x&&x.id&&x.id!==devId&&x.endpoint!==state.pushSub.endpoint);
+  const others=existing.filter(x=>{
+    if(!x||!x.id) return false;
+    if(x.id===devId||x.endpoint===state.pushSub.endpoint) return false;
+    if(x.pid===state.profile){
+      const xPlat=getUbpPlatformClass(x.ua);
+      if(!xPlat || (curPlat && xPlat===curPlat)) return false;
+    }
+    return true;
+  });
   if(!nf.enabled){
     await state.db.doc("push_registry").set({items:others,updatedAt:new Date().toISOString()});
     return;
   }
   const slots=await buildPushSlots(state.pushSub,14);
-  const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",updatedAt:new Date().toISOString(),slots};
+  const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",ua:curUa,updatedAt:new Date().toISOString(),slots};
   await state.db.doc("push_registry").set({items:others.concat([entry]),updatedAt:new Date().toISOString()});
-  /* Also arm exact-second push_delay cloud timers for today/tomorrow morning & evening reminders so they fire at :00 sharp */
+  /* Note: Do NOT arm duplicate push_am / push_pm push_delay cloud timers — Personal - Fitness Daily Push already dispatches entry.slots hourly! */
   try{
-    const armed=Object.assign({},lsGet("ubp.armed_push")||{});
-    const today=isoToday(), nowMs=Date.now(), pid=state.profile||"default";
-    let changed=false;
-    for(let d=0;d<2;d++){
-      const iso=addDays(today,d), [Y,M,D]=iso.split("-").map(Number);
-      const checks=[
-        {k:"am",dt:new Date(Y,M-1,D,+nf.morningHour||9,0,0)},
-        {k:"pm",dt:new Date(Y,M-1,D,+nf.eveningHour||20,0,0)}
-      ];
-      for(const c of checks){
-        const slotKey=c.dt.toISOString().slice(0,13);
-        const timerKey="push_"+c.k+"/"+pid+"_d"+d;
-        const slotObj=slots[slotKey];
-        const delaySec=Math.round((c.dt.getTime()-nowMs)/1000);
-        const timerId=iso+"_"+c.k+"_"+c.dt.getTime();
-        if(slotObj && delaySec>=30 && delaySec<=36*3600){
-          if(armed[timerKey]!==timerId){
-            armed[timerKey]=timerId; changed=true;
-            callCloudPush({op:"push_delay",timerKey,timerId,delaySec,endpoint:state.pushSub.endpoint,vapid:slotObj.vapid,bodyB64:slotObj.bodyB64}).catch(()=>{});
-          }
-        } else if(!slotObj && armed[timerKey] && delaySec>0){
-          delete armed[timerKey]; changed=true;
-          callCloudPush({op:"patch",patch:{[timerKey]:{id:"cancelled",ts:Date.now()}}}).catch(()=>{});
-        }
-      }
+    const armed=lsGet("ubp.armed_push");
+    if(armed && typeof armed==="object" && Object.keys(armed).length){
+      const patch={};
+      Object.keys(armed).forEach(k=>{ patch[k]={id:"cancelled",ts:Date.now()}; });
+      lsSet("ubp.armed_push",null);
+      callCloudPush({op:"patch",patch}).catch(()=>{});
     }
-    if(changed) lsSet("ubp.armed_push",armed);
   }catch(e){}
 }
 function renderTodayNotifBanner(){
