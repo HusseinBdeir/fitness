@@ -17,6 +17,42 @@ const SHELL = [
 ];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
+const recentDeliveredByKey = new Map();
+const recentCanonicalTagByTitle = new Map();
+let pushHandlingChain = Promise.resolve();
+
+function checkAndMarkInMemoryNotif(tag, title) {
+  const now = Date.now();
+  const cleanTag = String(tag || "").trim();
+  const cleanTitle = String(title || "").trim();
+  for (const [k, ts] of recentDeliveredByKey.entries()) {
+    if (now - ts > 15 * 60 * 1000) recentDeliveredByKey.delete(k);
+  }
+  for (const [k, entry] of recentCanonicalTagByTitle.entries()) {
+    if (now - entry.ts > 2 * 60 * 1000) recentCanonicalTagByTitle.delete(k);
+  }
+  let isRepeat = false;
+  let canonicalTag = cleanTag;
+  if (cleanTag && recentDeliveredByKey.has("tag:" + cleanTag)) {
+    if (now - recentDeliveredByKey.get("tag:" + cleanTag) < 10 * 60 * 1000) {
+      isRepeat = true;
+    }
+  }
+  if (cleanTitle && recentCanonicalTagByTitle.has(cleanTitle)) {
+    const prev = recentCanonicalTagByTitle.get(cleanTitle);
+    if (now - prev.ts < 90 * 1000) {
+      isRepeat = true;
+      if (prev.tag) canonicalTag = prev.tag;
+    }
+  }
+  if (canonicalTag) recentDeliveredByKey.set("tag:" + canonicalTag, now);
+  if (cleanTag) recentDeliveredByKey.set("tag:" + cleanTag, now);
+  if (cleanTitle) {
+    recentCanonicalTagByTitle.set(cleanTitle, { tag: canonicalTag || cleanTag, ts: now });
+  }
+  return { isRepeat, canonicalTag: canonicalTag || cleanTag };
+}
+
 function applySwAppBadge(count) {
   const n = Math.max(0, Number(count) || 0);
   try {
@@ -165,29 +201,34 @@ self.addEventListener("push", e => {
     catch (err) { try { d = { title: "Upper Body Programme", body: e.data.text() }; } catch (x) {} }
   }
   const title = d.title || "Upper Body Programme";
-  e.waitUntil(
-    (async () => {
-      const isRepeat = await isTagRecentlyDelivered(d.tag, title);
-      const opts = buildNotifOptions(d, isRepeat);
-      const notifEntry = {
-        id: opts.data.notifId,
-        tag: opts.tag,
-        title,
-        body: opts.body,
-        tab: opts.data.tab,
-        url: opts.data.url,
-        ts: Date.now(),
-        checked: false
-      };
-      await Promise.all([
+  const memCheck = checkAndMarkInMemoryNotif(d.tag, title);
+  if (memCheck.canonicalTag) d.tag = memCheck.canonicalTag;
+  const runPushTask = async () => {
+    const isRepeat = memCheck.isRepeat || (await isTagRecentlyDelivered(d.tag, title));
+    const opts = buildNotifOptions(d, isRepeat);
+    const notifEntry = {
+      id: opts.data.notifId,
+      tag: opts.tag,
+      title,
+      body: opts.body,
+      tab: opts.data.tab,
+      url: opts.data.url,
+      ts: Date.now(),
+      checked: false
+    };
+    const tasks = [self.registration.showNotification(title, opts)];
+    if (!isRepeat) {
+      tasks.push(
         upsertSwUnreadNotif(notifEntry),
-        self.registration.showNotification(title, opts),
         self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(list => {
           list.forEach(c => { try { c.postMessage({ type: "ubp-push", payload: Object.assign({}, d, notifEntry) }); } catch (x) {} });
         }).catch(() => {})
-      ]);
-    })()
-  );
+      );
+    }
+    await Promise.all(tasks);
+  };
+  pushHandlingChain = pushHandlingChain.then(runPushTask, runPushTask);
+  e.waitUntil(pushHandlingChain);
 });
 
 self.addEventListener("message", e => {
@@ -204,15 +245,19 @@ self.addEventListener("message", e => {
   if (m.type !== "show-notification") return;
   const d = m.payload || {};
   const title = d.title || "Upper Body Programme";
-  e.waitUntil(
-    (async () => {
-      const isRepeat = await isTagRecentlyDelivered(d.tag, title);
-      const opts = buildNotifOptions(d, isRepeat);
+  const memCheck = checkAndMarkInMemoryNotif(d.tag, title);
+  if (memCheck.canonicalTag) d.tag = memCheck.canonicalTag;
+  const runMsgTask = async () => {
+    const isRepeat = memCheck.isRepeat || (await isTagRecentlyDelivered(d.tag, title));
+    const opts = buildNotifOptions(d, isRepeat);
+    if (!isRepeat) {
       await upsertSwUnreadNotif({ id: opts.data.notifId, tag: opts.tag, title, body: opts.body, tab: opts.data.tab, ts: Date.now(), checked: false });
-      if (isRepeat) return;
-      await self.registration.showNotification(title, opts);
-    })()
-  );
+    }
+    if (isRepeat) return;
+    await self.registration.showNotification(title, opts);
+  };
+  pushHandlingChain = pushHandlingChain.then(runMsgTask, runMsgTask);
+  e.waitUntil(pushHandlingChain);
 });
 
 self.addEventListener("notificationclick", e => {
