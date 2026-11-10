@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.6">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.6">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.6">
+<link rel="manifest" href="manifest.json?v=14.7">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.7">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.7">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1117,8 +1117,8 @@ function renderNotifCard(){
     '<div class="row">'+(active?'<button class="btn sm" data-act="pushtest">Send Test Push</button><button class="btn sm sec" data-act="pushreset">'+(state.pushBusy?"Re-pairing...":"Re-Pair Push")+'</button><button class="btn sm sec" data-act="pushsync">Refresh Schedule</button><button class="btn sm ghost" data-act="pushoff">Turn Off</button>':'<button class="btn sm" data-act="pushon">'+(state.pushBusy?"Enabling...":"Enable Push Notifications")+'</button>'+(perm==="granted"?'<button class="btn sm sec" data-act="pushtest">Send Test Push</button>':''))+'</div></div>';
 }
 
-/* ---------- Standalone Website / PWA Cloud Sync (Power Automate HTTP Flow) ---------- */
-const _CLOUD_CFG = { u: "aHR0cHM6Ly84MmU4OTUyMGMyNzRlNDBjYTY4ZjA4NTUxNmMxYmIuNDMuZW52aXJvbm1lbnQuYXBpLnBvd2VycGxhdGZvcm0uY29tOjQ0My9wb3dlcmF1dG9tYXRlL2F1dG9tYXRpb25zL2RpcmVjdC9jdS8yNi93b3JrZmxvd3MvMTM0MWEzODg3MTg2NDNmNTllNWY3YjRkNDM3MDU4MzYvdHJpZ2dlcnMvbWFudWFsL3BhdGhzL2ludm9rZT9hcGktdmVyc2lvbj0xJnNwPSUyRnRyaWdnZXJzJTJGbWFudWFsJTJGcnVuJnN2PTEuMCZzaWc9VFktMTBYX0lLeHhpZk1pZDBCcW1tX2M3YUZxVkhVbFZNN3lRRnNQZmNLNA==", k: "YWZkMjE4YzdjZjk1NWM4OGMyOGIzM2Q3NjNhODEyOWFkYzAzOTJhZGRjOTUxMjA5" };
+/* ---------- Standalone Website / PWA Cloud Sync (THEO Edge relay store, fitness namespace) ---------- */
+const _CLOUD_CFG = { u: "aHR0cHM6Ly90aGVvLWVkZ2UtcmVsYXkuaHVzc2VpbmJkZWlyLndvcmtlcnMuZGV2L3N0b3JlL2ZpdG5lc3M=", k: "YWZkMjE4YzdjZjk1NWM4OGMyOGIzM2Q3NjNhODEyOWFkYzAzOTJhZGRjOTUxMjA5" };
 function mirrorToHttpCloud(patch){
   if(typeof window==="undefined"||typeof window.fetch!=="function"||!patch||!Object.keys(patch).length) return;
   try{
