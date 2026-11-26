@@ -8,9 +8,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.7">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.7">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.7">
+<link rel="manifest" href="manifest.json?v=14.8">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.8">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.8">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -581,7 +581,7 @@ function adoptLegacy(){ if(state.profile!==LEGACY_PID||lsGet(lk("plan"))||lsGet(
   const pend=(pe&&typeof pe==="object")?{plan:!!pe.plan,sessions:pe.sessions||{}}:{plan:false,sessions:{}}; if(p) pend.plan=true; (Array.isArray(s)?s:[]).forEach(x=>{ if(x&&x.id&&!pend.sessions[x.id]) pend.sessions[x.id]="set"; }); lsSet(lk("pending"),pend);
   ["ubp.sessions","ubp.plan","ubp.pending","ubp.draft"].forEach(k=>lsSet(k,null)); }
 function loadLocal(){ adoptLegacy(); const s=lsGet(lk("sessions")); if(Array.isArray(s)) state.sessions=s; const p=lsGet(lk("plan")); if(p) state.plan=migratePlan(p); const pe=lsGet(lk("pending")); if(pe&&typeof pe==="object") state.pending={plan:!!pe.plan,sessions:pe.sessions||{}};
-  const d=lsGet(lk("draft")); if(d&&d.id&&Array.isArray(d.exercises)){ const age=Date.now()-(Date.parse(d.savedAt||d.createdAt||0)||0); if(age<36*3600*1000){ state.form=d; state.tab="log"; state.draftRestored=true; } else lsSet(lk("draft"),null); } }
+  const d=lsGet(lk("draft")); if(d&&typeof d==="object"&&!Array.isArray(d)&&d.id&&(!d.date||/^\d{4}-\d{2}-\d{2}$/.test(d.date))&&Array.isArray(d.exercises)&&d.exercises.every(ex=>ex&&typeof ex==="object"&&!Array.isArray(ex)&&Array.isArray(ex.sets)&&ex.sets.every(st=>st&&typeof st==="object"&&!Array.isArray(st)))){ const age=Date.now()-(Date.parse(d.savedAt||d.createdAt||0)||0); if(age<36*3600*1000){ state.form=d; state.tab="log"; state.draftRestored=true; } else lsSet(lk("draft"),null); } }
 function persistLocal(){ if(!state.profile) return; lsSet(lk("sessions"),state.sessions); lsSet(lk("plan"),state.plan); }
 function persistDraft(){ if(!state.profile) return; if(state.form&&state.tab==="log"){ state.form.savedAt=new Date().toISOString(); lsSet(lk("draft"),state.form); } else if(!state.form) lsSet(lk("draft"),null); }
 function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p); /* never mutate the snapshot object the store hands us */ const base=clone(DEFAULT_PLAN); const out=Object.assign(d,p); out.week=Object.assign(base.week,p.week||{}); out.overrides=Object.assign({},p.overrides||{}); out.sessions={}; Object.keys(base.sessions).forEach(t=>{ out.sessions[t]=Object.assign({},base.sessions[t],(p.sessions||{})[t]||{}); }); Object.keys(p.sessions||{}).forEach(t=>{ if(!out.sessions[t]) out.sessions[t]=p.sessions[t]; });
@@ -590,20 +590,45 @@ function migratePlan(p){ const d=clone(DEFAULT_PLAN); if(!p) return d; p=clone(p
   /* Upper C retired 2026-10-13: drop its lists and turn any C day into rest */
   Object.keys(out.sessions).forEach(t=>{ if(out.sessions[t]&&out.sessions[t].C) delete out.sessions[t].C; });
   DAYS.forEach(dn=>{ if(out.week[dn]==="C") out.week[dn]="rest"; });
-  Object.keys(out.overrides).forEach(ws=>{ DAYS.forEach(dn=>{ if(out.overrides[ws][dn]==="C") out.overrides[ws][dn]="rest"; }); });
+  Object.keys(out.overrides).forEach(ws=>{ if(!out.overrides[ws]||typeof out.overrides[ws]!=="object"||Array.isArray(out.overrides[ws])){ delete out.overrides[ws]; return; } DAYS.forEach(dn=>{ if(out.overrides[ws][dn]==="C") out.overrides[ws][dn]="rest"; }); });
   /* v9: the dumbbell home track is gone; a plan that used it runs calisthenics. Goal / legs / ups get their defaults. */
   delete out.sessions.home; if(!out.sessions[out.track]) out.track="body";
   if(!GOALS[out.goal]) out.goal="gain"; out.legs=!!out.legs; out.ups=+out.ups===3?3:2;
   out.daily=(p.daily&&typeof p.daily==="object")?clone(p.daily):{};
-  out.weightLog=Array.isArray(p.weightLog)?clone(p.weightLog):[];
+  out.weightLog=(Array.isArray(p.weightLog)?clone(p.weightLog):[]).filter(x=>x&&typeof x==="object"&&typeof x.d==="string"&&Number.isFinite(Number(x.w)));
   out.notif=Object.assign(clone(DEFAULT_NOTIF),(p.notif&&typeof p.notif==="object")?p.notif:{});
   out.health=(p.health&&typeof p.health==="object")?clone(p.health):{};
   Object.keys(out.health).forEach(dk=>{
     const hd=out.health[dk];
-    if(!hd) return;
+    if(!hd || typeof hd!=="object" || Array.isArray(hd)){ delete out.health[dk]; return; }
     if(hd.source==="Apple Health & Watch"||+hd.steps===8920){ delete out.health[dk]; return; }
     if(dk!=="2026-10-19"&&+hd.steps===1191&&+hd.activeKcal===89&&hd.source!=="Manual"){ delete out.health[dk]; return; }
     if(hd.source==="Apple Health"||hd.source==="Apple Health Auto"||hd.source==="Estimated"){ delete out.health[dk]; return; }
+    HEALTH_FIELDS.forEach(fk=>{
+      if(hd[fk]!==undefined&&hd[fk]!==null&&hd[fk]!==""){
+        const n=Number(hd[fk]);
+        if(Number.isFinite(n)) hd[fk]=n;
+        else delete hd[fk];
+      }
+    });
+    if(hd.source!=null) hd.source=String(hd.source).slice(0,80);
+  });
+  Object.keys(out.sessions||{}).forEach(trKey=>{
+    const trObj=out.sessions[trKey];
+    if(!trObj || typeof trObj!=="object" || Array.isArray(trObj)){ delete out.sessions[trKey]; return; }
+    ["A","B","L"].forEach(sKey=>{
+      if(!Array.isArray(trObj[sKey])){ trObj[sKey]=clone((DEFAULT_SESSIONS[trKey]&&DEFAULT_SESSIONS[trKey][sKey])||[]); return; }
+      trObj[sKey]=trObj[sKey].filter(it=>it&&typeof it==="object"&&!Array.isArray(it)&&typeof it.ex==="string"&&Object.prototype.hasOwnProperty.call(EX,it.ex)).map(it=>({
+        ex:it.ex,
+        sets:Math.max(1,Math.min(8,Math.round(Number(it.sets)||3))),
+        min:Math.max(1,Math.min(100,Math.round(Number(it.min)||8))),
+        max:Math.max(1,Math.min(100,Math.round(Number(it.max)||12))),
+        inc:Math.max(0,Math.min(50,Number(it.inc)||0)),
+        unit:["kg","bw","reps","s"].includes(it.unit)?it.unit:(EX[it.ex].eq==="body"?"reps":"kg"),
+        side:!!it.side,
+        note:it.note?String(it.note).slice(0,200):""
+      }));
+    });
   });
   out.bio=Object.assign(clone(DEFAULT_BIO),(p.bio&&typeof p.bio==="object")?p.bio:{});
   if(!out.bio._scV2){ out.bio.shortcutReady=true; out.bio._scV2=1; }
@@ -894,6 +919,8 @@ async function enablePush(forceFresh){
     state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{},{enabled:true});
     lsSet("ubp.pushhint",1);
     lsSet("ubp.armed_push",null);
+    const mf=lsGet("ubp.migrated_from");
+    if(mf&&typeof mf==="object"&&mf.needsPushPrompt){ lsSet("ubp.migrated_from",Object.assign({},mf,{needsPushPrompt:false})); }
     savePlan();
     await syncPushSchedule();
     toast("Push notifications enabled! Sending a confirmation banner...");
@@ -915,11 +942,13 @@ async function disablePush(){
     state.plan.notif=Object.assign(clone(DEFAULT_NOTIF),state.plan.notif||{},{enabled:false});
     savePlan();
     if(state.db&&state.db._http){
-      try{
-        const snap=await state.db.doc("push_registry").get();
-        const items=((snap.exists&&snap.data()&&snap.data().items)||[]).filter(x=>x&&x.id!==getDeviceId());
-        await state.db.doc("push_registry").set({items,updatedAt:new Date().toISOString()});
-      }catch(e){}
+      await queueWrite(async ()=>{
+        try{
+          const snap=await state.db.doc("push_registry").get();
+          const items=((snap.exists&&snap.data()&&snap.data().items)||[]).filter(x=>x&&x.id!==getDeviceId());
+          await state.db.doc("push_registry").set({items,updatedAt:new Date().toISOString()});
+        }catch(e){}
+      });
     }
     toast("Push notifications turned off on this device.");
   }finally{
@@ -1052,40 +1081,43 @@ function getUbpPlatformClass(ua){
   if(s.includes("windows")) return "windows";
   return s.slice(0,32);
 }
-async function syncPushSchedule(){
-  if(!state.pushSub||!state.db||!state.db._http||!state.profile) return;
-  const nf=state.plan.notif||DEFAULT_NOTIF;
-  const devId=getDeviceId();
-  const curUa=String((typeof navigator!=="undefined"&&navigator.userAgent)||"").slice(0,140);
-  const curPlat=getUbpPlatformClass(curUa);
-  const snap=await state.db.doc("push_registry").get().catch(()=>({exists:false}));
-  const existing=(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().items))?snap.data().items:[];
-  const others=existing.filter(x=>{
-    if(!x||!x.id) return false;
-    if(x.id===devId||x.endpoint===state.pushSub.endpoint) return false;
-    if(x.pid===state.profile){
-      const xPlat=getUbpPlatformClass(x.ua);
-      if(!xPlat || (curPlat && xPlat===curPlat)) return false;
+function syncPushSchedule(){
+  if(!state.pushSub||!state.db||!state.db._http||!state.profile) return Promise.resolve();
+  return queueWrite(async ()=>{
+    if(!state.pushSub||!state.db||!state.db._http||!state.profile) return;
+    const nf=state.plan.notif||DEFAULT_NOTIF;
+    const devId=getDeviceId();
+    const curUa=String((typeof navigator!=="undefined"&&navigator.userAgent)||"").slice(0,140);
+    const curPlat=getUbpPlatformClass(curUa);
+    const snap=await state.db.doc("push_registry").get();
+    const existing=(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().items))?snap.data().items:[];
+    const others=existing.filter(x=>{
+      if(!x||!x.id) return false;
+      if(x.id===devId||x.endpoint===state.pushSub.endpoint) return false;
+      if(x.pid===state.profile){
+        const xPlat=getUbpPlatformClass(x.ua);
+        if(!xPlat || (curPlat && xPlat===curPlat)) return false;
+      }
+      return true;
+    });
+    if(!nf.enabled){
+      await state.db.doc("push_registry").set({items:others,updatedAt:new Date().toISOString()});
+      return;
     }
-    return true;
+    const slots=await buildPushSlots(state.pushSub,14);
+    const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",ua:curUa,updatedAt:new Date().toISOString(),slots};
+    await state.db.doc("push_registry").set({items:others.concat([entry]),updatedAt:new Date().toISOString()});
+    /* Note: Do NOT arm duplicate push_am / push_pm push_delay cloud timers — Personal - Fitness Daily Push already dispatches entry.slots hourly! */
+    try{
+      const armed=lsGet("ubp.armed_push");
+      if(armed && typeof armed==="object" && Object.keys(armed).length){
+        const patch={};
+        Object.keys(armed).forEach(k=>{ patch[k]={id:"cancelled",ts:Date.now()}; });
+        lsSet("ubp.armed_push",null);
+        callCloudPush({op:"patch",patch}).catch(()=>{});
+      }
+    }catch(e){}
   });
-  if(!nf.enabled){
-    await state.db.doc("push_registry").set({items:others,updatedAt:new Date().toISOString()});
-    return;
-  }
-  const slots=await buildPushSlots(state.pushSub,14);
-  const entry={id:devId,pid:state.profile,endpoint:state.pushSub.endpoint,p256dh:(state.pushSub.keys&&state.pushSub.keys.p256dh)||"",auth:(state.pushSub.keys&&state.pushSub.keys.auth)||"",ua:curUa,updatedAt:new Date().toISOString(),slots};
-  await state.db.doc("push_registry").set({items:others.concat([entry]),updatedAt:new Date().toISOString()});
-  /* Note: Do NOT arm duplicate push_am / push_pm push_delay cloud timers — Personal - Fitness Daily Push already dispatches entry.slots hourly! */
-  try{
-    const armed=lsGet("ubp.armed_push");
-    if(armed && typeof armed==="object" && Object.keys(armed).length){
-      const patch={};
-      Object.keys(armed).forEach(k=>{ patch[k]={id:"cancelled",ts:Date.now()}; });
-      lsSet("ubp.armed_push",null);
-      callCloudPush({op:"patch",patch}).catch(()=>{});
-    }
-  }catch(e){}
 }
 function renderTodayNotifBanner(){
   const nf=state.plan.notif||DEFAULT_NOTIF;
@@ -1215,17 +1247,240 @@ function createHttpDb(){
   };
 }
 
+const CF_FITNESS_ORIGIN = "https://fitness.husseinbdeir.workers.dev";
+const CF_FITNESS_MIGRATE_URL = CF_FITNESS_ORIGIN + "/";
+const UBP_MIGRATE_KEY_RE = /^ubp\.(profile|profiles|theme|[a-z0-9-]{1,40}\.(plan|sessions|pending|draft|hsync|notifs|checked_notifs))$/;
+function isOldGithubOrigin(){
+  try{ return typeof location!=="undefined" && location.hostname==="husseinbdeir.github.io"; }catch(e){ return false; }
+}
+function isValidMigrateKey(k){
+  if(typeof k!=="string" || k==="__proto__" || k==="constructor" || k==="prototype") return false;
+  return UBP_MIGRATE_KEY_RE.test(k);
+}
+function encodeB64uJson(obj){
+  const json=JSON.stringify(obj);
+  const bytes=typeof TextEncoder!=="undefined"?new TextEncoder().encode(json):Uint8Array.from(Array.from(unescape(encodeURIComponent(json))).map(c=>c.charCodeAt(0)));
+  return bytesToB64u(bytes);
+}
+function decodeB64uJson(b64u){
+  const bytes=b64ToBytes(String(b64u||""));
+  const txt=typeof TextDecoder!=="undefined"?new TextDecoder().decode(bytes):decodeURIComponent(escape(String.fromCharCode.apply(null,Array.from(bytes))));
+  return JSON.parse(txt);
+}
+function captureAndApplyHashMigration(){
+  if(typeof window==="undefined" || typeof location==="undefined") return null;
+  const h=String(location.hash||"");
+  if(!h.startsWith("#migrate=")) return null;
+  const rawToken=h.slice(9);
+  try{
+    if(window.history && window.history.replaceState){
+      window.history.replaceState(null,"",location.pathname+location.search);
+    }else{
+      location.hash="";
+    }
+  }catch(e){}
+  if(isOldGithubOrigin()) return null;
+  if(!rawToken || rawToken.length>262144) return {ok:false,reason:"size"};
+  let parsed=null;
+  try{ parsed=decodeB64uJson(rawToken); }catch(e){ return {ok:false,reason:"parse"}; }
+  if(!parsed || typeof parsed!=="object" || Array.isArray(parsed) || parsed.v!==1 || parsed.app!=="fitness" || !parsed.kv || typeof parsed.kv!=="object" || Array.isArray(parsed.kv)){
+    return {ok:false,reason:"schema"};
+  }
+  const PID_RE=/^[a-z0-9-]{1,40}$/;
+  const importedKeys=[];
+  const entries=Object.entries(parsed.kv);
+  for(const [k,v] of entries){
+    if(!isValidMigrateKey(k)) continue;
+    if(v===undefined || v===null) continue;
+    try{
+      if(k==="ubp.profile"){
+        if(typeof v==="string" && PID_RE.test(v) && localStorage.getItem(k)===null){
+          lsSet(k,v);
+          importedKeys.push(k);
+        }
+      }else if(k==="ubp.theme"){
+        if((v==="dark"||v==="light") && localStorage.getItem(k)===null){
+          lsSet(k,v);
+          importedKeys.push(k);
+        }
+      }else if(k==="ubp.profiles"){
+        if(Array.isArray(v)){
+          const safeIncoming=v.filter(p=>p&&typeof p==="object"&&!Array.isArray(p)&&typeof p.id==="string"&&PID_RE.test(p.id)&&typeof p.name==="string");
+          const cur=Array.isArray(lsGet(k))?lsGet(k):[];
+          const byId=new Map(cur.filter(x=>x&&typeof x.id==="string"&&PID_RE.test(x.id)).map(x=>[x.id,x]));
+          safeIncoming.forEach(p=>{ if(!byId.has(p.id)) byId.set(p.id,p); });
+          if(byId.size){ lsSet(k,Array.from(byId.values())); importedKeys.push(k); }
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.plan$/.test(k)){
+        if(v && typeof v==="object" && !Array.isArray(v)){
+          const pidMatch=k.match(/^ubp\.([a-z0-9-]{1,40})\.plan$/)[1];
+          const cur=lsGet(k);
+          if(!cur || typeof cur!=="object" || Array.isArray(cur) || Number(v.rev||0)>Number(cur.rev||0)){
+            const sanitizedPlan=migratePlan(v);
+            sanitizedPlan.rev=Number(v.rev)||Date.now();
+            lsSet(k,sanitizedPlan);
+            importedKeys.push(k);
+            const pk="ubp."+pidMatch+".pending";
+            const pend=lsGet(pk);
+            const nextPend=(pend&&typeof pend==="object"&&!Array.isArray(pend))?{plan:true,sessions:pend.sessions||{}}:{plan:true,sessions:{}};
+            lsSet(pk,nextPend);
+          }
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.sessions$/.test(k)){
+        if(Array.isArray(v)){
+          const pidMatch=k.match(/^ubp\.([a-z0-9-]{1,40})\.sessions$/)[1];
+          const safeSess=v.filter(s=>s&&typeof s==="object"&&!Array.isArray(s)&&typeof s.id==="string"&&s.id.length>0&&s.id.length<=64&&typeof s.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&typeof s.session==="string"&&/^[A-Za-z0-9_-]{1,12}$/.test(s.session)).map(s=>Object.assign({},s,{
+            exercises:Array.isArray(s.exercises)?s.exercises.map(ex=>Object.assign({},ex,{
+              sets:Array.isArray(ex&&ex.sets)?ex.sets.map(st=>({w:(st&&st.w!==""&&st.w!=null&&Number.isFinite(+st.w))?+st.w:"",r:(st&&st.r!==""&&st.r!=null&&Number.isFinite(+st.r))?+st.r:""})):[]
+            })):[]
+          }));
+          const cur=Array.isArray(lsGet(k))?lsGet(k):null;
+          const addedIds=[];
+          if(!cur || !cur.length){
+            lsSet(k,safeSess);
+            safeSess.forEach(s=>addedIds.push(s.id));
+            importedKeys.push(k);
+          }else{
+            const map=new Map(cur.filter(x=>x&&x.id).map(x=>[x.id,x]));
+            safeSess.forEach(s=>{ if(!map.has(s.id)){ map.set(s.id,s); addedIds.push(s.id); } });
+            lsSet(k,Array.from(map.values()));
+            if(addedIds.length) importedKeys.push(k);
+          }
+          if(addedIds.length){
+            const pk="ubp."+pidMatch+".pending";
+            const curP=lsGet(pk);
+            const nextP=(curP&&typeof curP==="object"&&!Array.isArray(curP))?{plan:!!curP.plan,sessions:Object.assign({},curP.sessions||{})}:{plan:false,sessions:{}};
+            addedIds.forEach(id=>{ if(id!=="__proto__"&&id!=="constructor"&&id!=="prototype"&&!Object.prototype.hasOwnProperty.call(nextP.sessions,id)) nextP.sessions[id]="set"; });
+            lsSet(pk,nextP);
+          }
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.pending$/.test(k)){
+        if(v && typeof v==="object" && !Array.isArray(v)){
+          const curP=lsGet(k);
+          const nextP=(curP&&typeof curP==="object"&&!Array.isArray(curP))?{plan:!!(curP.plan||v.plan),sessions:Object.assign({},curP.sessions||{})}:{plan:!!v.plan,sessions:{}};
+          if(v.sessions&&typeof v.sessions==="object"&&!Array.isArray(v.sessions)){
+            Object.entries(v.sessions).forEach(([sid,op])=>{
+              if(typeof sid==="string"&&sid.length>0&&sid.length<=64&&sid!=="__proto__"&&sid!=="constructor"&&sid!=="prototype"&&(op==="set"||op==="del")&&!nextP.sessions[sid]){
+                nextP.sessions[sid]=op;
+              }
+            });
+          }
+          lsSet(k,nextP);
+          importedKeys.push(k);
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.draft$/.test(k)){
+        if(v && typeof v==="object" && !Array.isArray(v) && typeof v.id==="string" && (!v.date||/^\d{4}-\d{2}-\d{2}$/.test(v.date)) && Array.isArray(v.exercises) && v.exercises.every(ex=>ex&&typeof ex==="object"&&!Array.isArray(ex)&&Array.isArray(ex.sets)&&ex.sets.every(st=>st&&typeof st==="object"&&!Array.isArray(st))) && localStorage.getItem(k)===null){
+          lsSet(k,v);
+          importedKeys.push(k);
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.(hsync|checked_notifs)$/.test(k)){
+        if(v && typeof v==="object" && !Array.isArray(v) && localStorage.getItem(k)===null){
+          lsSet(k,v);
+          importedKeys.push(k);
+        }
+      }else if(/^ubp\.([a-z0-9-]{1,40})\.notifs$/.test(k)){
+        if(Array.isArray(v) && localStorage.getItem(k)===null){
+          lsSet(k,v);
+          importedKeys.push(k);
+        }
+      }
+    }catch(e){}
+  }
+  const oldDevId=typeof parsed.oldDevId==="string"?parsed.oldDevId.slice(0,80):"";
+  const newDevId=getDeviceId();
+  if(oldDevId && newDevId===oldDevId){
+    lsSet("ubp.devid","dev_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7));
+  }
+  lsSet("ubp.migrated_from",{
+    oldDevId,
+    pushRetired:!oldDevId,
+    needsPushPrompt:true,
+    importedCount:importedKeys.length,
+    migratedAt:Date.now()
+  });
+  return {ok:true,oldDevId,importedKeys};
+}
+function retireOldPushDevice(db){
+  const mf=lsGet("ubp.migrated_from");
+  if(!db || !db._http || !mf || mf.pushRetired || !mf.oldDevId) return Promise.resolve(false);
+  let didRetire=false;
+  return queueWrite(async ()=>{
+    try{
+      const snap=await db.doc("push_registry").get();
+      const existing=(snap&&snap.exists&&snap.data()&&Array.isArray(snap.data().items))?snap.data().items:[];
+      const filtered=existing.filter(x=>x&&x.id!==mf.oldDevId);
+      if(filtered.length!==existing.length){
+        await db.doc("push_registry").set({items:filtered,updatedAt:new Date().toISOString()});
+      }
+      const latestMf=lsGet("ubp.migrated_from");
+      const baseMf=(latestMf&&typeof latestMf==="object")?latestMf:mf;
+      lsSet("ubp.migrated_from",Object.assign({},baseMf,{pushRetired:true}));
+      didRetire=true;
+    }catch(e){
+      didRetire=false;
+    }
+  }).then(()=>didRetire);
+}
+async function buildFitnessMigrationUrl(){
+  if(state.profile) flushAll();
+  if(state.db && state.profile){ try{ await replayPending(state.db); }catch(e){} }
+  try{ await drainWrites(); }catch(e){}
+  const kv={};
+  const priorityOrder=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(!isValidMigrateKey(k)) continue;
+      const v=lsGet(k);
+      if(v!==null && v!==undefined) priorityOrder.push([k,v]);
+    }
+  }catch(e){}
+  const rankKey=k=>k==="ubp.profile"||k==="ubp.profiles"||k==="ubp.theme"?0:k.endsWith(".pending")||k.endsWith(".hsync")?1:k.endsWith(".plan")?2:3;
+  priorityOrder.sort((a,b)=>rankKey(a[0])-rankKey(b[0]));
+  const oldDevId=lsGet("ubp.devid")||"";
+  let payload={v:1,app:"fitness",oldDevId,ts:Date.now(),kv};
+  for(const [k,v] of priorityOrder){
+    kv[k]=v;
+    const probe=encodeB64uJson(payload);
+    if(probe.length>180000){ delete kv[k]; }
+  }
+  return CF_FITNESS_MIGRATE_URL+"#migrate="+encodeB64uJson(payload);
+}
+function renderMigrationCard(){
+  if(isOldGithubOrigin()){
+    return '<div class="card stack" style="border-color:var(--accent)"><div class="row between"><span class="eyebrow" style="color:var(--accent)">New Cloudflare Address</span><span class="chip sh">Action Needed</span></div>'+
+      '<p class="small muted">Fitness has moved off GitHub Pages to <b>fitness.husseinbdeir.workers.dev</b>. Move your local profile and settings in one tap, then add the new app to your Home Screen.</p>'+
+      '<div class="row"><button class="btn sm" data-act="cfmigrate">Move to Cloudflare App &rarr;</button></div></div>';
+  }
+  const mf=lsGet("ubp.migrated_from");
+  if(mf && typeof mf==="object" && mf.needsPushPrompt){
+    if(!state.profile){
+      return '<div class="card stack" style="border-color:var(--good)"><div class="row between"><span class="eyebrow" style="color:var(--good)">Moved to Cloudflare</span><span class="chip good">Ready</span></div>'+
+        '<p class="small muted">Your data is imported here. Open or unlock your profile below to re-enable Push Notifications and update your Apple Health Shortcut.</p>'+
+        '<div class="row"><button class="btn sm ghost" data-act="migdismiss">Dismiss</button></div></div>';
+    }
+    const pushOn=!!(state.plan&&state.plan.notif&&state.plan.notif.enabled&&state.pushSub&&notifPerm()==="granted");
+    return '<div class="card stack" style="border-color:var(--good)"><div class="row between"><span class="eyebrow" style="color:var(--good)">Moved to Cloudflare</span><span class="chip good">Ready</span></div>'+
+      '<p class="small muted">Your data is ready here'+(mf.oldDevId?' and your old GitHub Pages push alert slot is retired':'')+'.'+(pushOn?' Update your iPhone Health Shortcut so it opens this new address.':' Re-enable Push Notifications on this device and update your iPhone Health Shortcut.')+'</p>'+
+      '<div class="row">'+(!pushOn?'<button class="btn sm" data-act="pushon">Re-enable Push</button>':'')+'<a class="btn sm sec" href="https://theo.husseinbdeir.workers.dev/assets/Sync-Apple-Health.shortcut" target="_blank" rel="noopener external" data-act="hinstallsc">Update Health Shortcut</a><button class="btn sm ghost" data-act="migdismiss">Dismiss</button></div></div>';
+  }
+  return '';
+}
+
 async function initStore(){
+  const migRes=captureAndApplyHashMigration();
   captureUrlHealthParams();
   state.profiles=(lsGet(LS.profiles)||[]).filter(p=>p&&p.id); let open=ssGet(SS.open); const last=lsGet(LS.profile);
-  if(!open&&(lsGet("ubp.pending_hsync")||lsGet("ubp.pending_sc_missing"))){ const defPid=last||"hussein"; const pr=state.profiles.find(x=>x.id===defPid); if(!pr||!pr.pinHash){ open=defPid; ssSet(SS.open,open); } }
+  if(!open&&(migRes&&migRes.ok||lsGet("ubp.pending_hsync")||lsGet("ubp.pending_sc_missing"))){ const defPid=last||"hussein"; const pr=state.profiles.find(x=>x.id===defPid); if(pr ? !pr.pinHash : !state.profiles.length){ open=defPid; ssSet(SS.open,open); } }
   if(open) await enterProfile(open); else { if(last) state.login.pid=last; render(); }
+  if(migRes&&!migRes.ok){ toast("Migration link could not be imported ("+migRes.reason+"). Open Fitness on GitHub Pages and tap Move again."); }
   let db=null,user=null;
   try{ if(window.claude&&window.claude.use){ [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]); } }catch(e){ db=null; user=null; }
   if(user){ try{ state.user.isOwner=!!(await user.isOwner()); state.user.canWrite=await user.can("data.write"); }catch(e){} }
   if(!db && typeof window!=="undefined" && typeof window.fetch==="function"){ db=createHttpDb(); if(db){ state.user.isOwner=false; state.user.canWrite=true; } }
   if(!db){ state.mode="local"; setStatus(); render(); return; }
   state.db=db; state.mode="cloud"; setStatus();
+  await retireOldPushDevice(db);
   /* the people list: cloud copy wins; a profile created on this device whose cloud write has not landed (local:true) stays visible */
   db.collection("profiles").onSnapshot(s=>{ const cloud=s.docs.map(d=>Object.assign({id:d.id},d.data())); const ids=new Set(cloud.map(p=>p.id)); state.profiles.forEach(p=>{ if(!ids.has(p.id)&&p.local) cloud.push(p); }); state.profiles=cloud.sort(byName); lsSet(LS.profiles,state.profiles); if(db._http&&!state.login.pid&&state.profiles.length===1) state.login.pid=state.profiles[0].id; if(!db._http&&cloud.length){ const mp={}; cloud.forEach(p=>{ mp["profiles/"+p.id]={name:p.name,pinHash:p.pinHash||null,created:p.created||new Date().toISOString()}; }); mirrorToHttpCloud(mp); } render(); }, e=>{ cloudReadFailed(db); });
   if(state.profile) await attachCloud();
@@ -1289,7 +1544,7 @@ function goOffline(){ if(state.mode!=="offline"){ state.mode="offline"; toast("N
 function cloudReadFailed(db){ if(db&&db._http){ goOffline(); render(); return; } toast("Cloud read failed, using this device only"); state.mode="local"; state.db=null; setStatus(); render(); }
 function scheduleReconnect(ms){ if(!state.db||!state.db._http) return; clearTimeout(reconnectT); reconnectT=setTimeout(reconnect,ms||20000); }
 async function reconnect(){ const db=state.db; if(!db||!db._http||reconnecting) return; if(typeof navigator!=="undefined"&&navigator.onLine===false){ scheduleReconnect(); return; } reconnecting=true; clearTimeout(reconnectT);
-  try{ const ok=await db.refresh(); if(ok){ const was=state.mode; state.mode="cloud"; setStatus(); if(state.profile) await replayPending(db); if(was==="offline") toast("Back online"+(pendingCount()?"":", everything is in the cloud")); setStatus(); if(!formOpen()) render(); } else { state.mode="offline"; setStatus(); scheduleReconnect(); } } finally{ reconnecting=false; } }
+  try{ const ok=await db.refresh(); if(ok){ const was=state.mode; state.mode="cloud"; setStatus(); await retireOldPushDevice(db).catch(()=>{}); if(state.profile) await replayPending(db); if(was==="offline") toast("Back online"+(pendingCount()?"":", everything is in the cloud")); setStatus(); if(!formOpen()) render(); } else { state.mode="offline"; setStatus(); scheduleReconnect(); } } finally{ reconnecting=false; } }
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("online",()=>reconnect());
 function queueWrite(fn){ return new Promise(res=>{ writeQ.push({fn,res}); pumpWrites(); }); }
 function pumpWrites(){ if(writeBusy||!writeQ.length) return; const {fn,res}=writeQ.shift(); writeBusy=true; let p; try{ p=Promise.resolve(fn()); }catch(e){ p=Promise.reject(e); } p.catch(onWriteError).then(()=>{ writeBusy=false; res(); pumpWrites(); }); }
@@ -2718,7 +2973,7 @@ function computeWellnessIntel(){
   ], insights, mf, st, acwr, rd};
 }
 function buildShortcutSyncUrl(mode){
-  return "shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent("Sync Apple Health")+"&input=text&text=open&x-error="+encodeURIComponent("https://husseinbdeir.github.io/fitness/?health_sc_missing=1");
+  return "shortcuts://x-callback-url/run-shortcut?name="+encodeURIComponent("Sync Apple Health")+"&input=text&text=open&x-error="+encodeURIComponent("https://fitness.husseinbdeir.workers.dev/?health_sc_missing=1");
 }
 function renderSubNav(tab, items){
   const cur=(state.sub&&state.sub[tab])||"all";
@@ -2768,8 +3023,8 @@ function renderTodayHealthStrip(){
         ? '<div class="row" style="gap:4px;margin:2px 0"><input type="number" inputmode="numeric" data-hf="activeKcal" value="'+(+th.activeKcal||mf.activeBurn)+'" style="width:90px;font-weight:700;font-size:16px;padding:3px 6px" placeholder="Active kcal"><span class="th-unit">active kcal</span></div>'
         : '<div class="th-val">'+mf.tdee.toLocaleString()+' <span class="th-unit">kcal</span></div>')+
       '<div class="meter-bar"><i style="width:'+kcalPct+'%;background:#E11D48"></i></div><div class="th-sub"><b>'+mf.activeBurn+'</b> active + <b>'+mf.bmr+'</b> BMR</div></div>'+
-      '<div class="th-card"><div class="th-top"><span>&#128716; Sleep &amp; Stages</span><span>'+slpPct+'%</span></div><div class="th-val">'+th.sleep+' <span class="th-unit">hrs</span></div><div class="meter-bar"><i style="width:'+slpPct+'%;background:#3B82F6"></i></div><div class="th-sub"><b>'+th.deepRem+'h</b> Deep+REM ('+th.deepHrs+'h D &middot; '+th.remHrs+'h R)</div></div>'+
-      '<div class="th-card"><div class="th-top"><span>&#10084;&#65039; Heart &amp; HRV</span><span>CNS '+wi.rd.score+'%</span></div><div class="th-val">'+th.rhr+' <span class="th-unit">bpm</span> &middot; '+th.hrv+' <span class="th-unit">ms</span></div><div class="meter-bar"><i style="width:'+wi.rd.score+'%;background:var(--good)"></i></div><div class="th-sub">Walk '+th.walkingHr+' bpm &middot; VO2 '+th.vo2max+' &middot; SpO2 '+th.spo2+'%</div></div>'+
+      '<div class="th-card"><div class="th-top"><span>&#128716; Sleep &amp; Stages</span><span>'+slpPct+'%</span></div><div class="th-val">'+esc(th.sleep)+' <span class="th-unit">hrs</span></div><div class="meter-bar"><i style="width:'+slpPct+'%;background:#3B82F6"></i></div><div class="th-sub"><b>'+esc(th.deepRem)+'h</b> Deep+REM ('+esc(th.deepHrs)+'h D &middot; '+esc(th.remHrs)+'h R)</div></div>'+
+      '<div class="th-card"><div class="th-top"><span>&#10084;&#65039; Heart &amp; HRV</span><span>CNS '+wi.rd.score+'%</span></div><div class="th-val">'+esc(th.rhr)+' <span class="th-unit">bpm</span> &middot; '+esc(th.hrv)+' <span class="th-unit">ms</span></div><div class="meter-bar"><i style="width:'+wi.rd.score+'%;background:var(--good)"></i></div><div class="th-sub">Walk '+esc(th.walkingHr)+' bpm &middot; VO2 '+esc(th.vo2max)+' &middot; SpO2 '+esc(th.spo2)+'%</div></div>'+
     '</div>'+
     '<div class="row between small muted"><span><b>Live Energy Prescription:</b> '+mf.tdee.toLocaleString()+' kcal burn &rarr; <b>'+mf.targetKcal.toLocaleString()+' kcal target</b> ('+mf.protG+'g P &middot; '+mf.carbG+'g C &middot; '+mf.fatG+'g F)</span><span>'+esc(syncLabel)+'</span></div>'+
   '</div>';
@@ -3089,7 +3344,7 @@ function renderLogin(){
   const sportOpts = selKey => Object.keys(SPORT_CATALOG).filter(k=>k!=="sport").map(k=>'<option value="'+k+'"'+(selKey===k?" selected":"")+'>'+esc(SPORT_CATALOG[k].n)+'</option>').join("");
   const add=L.add?'<div class="card stack"><span class="eyebrow">New person &middot; Digital Personal Trainer Setup</span><div class="grid2"><label class="f">Name<input type="text" id="lname" data-l="name" value="'+esc(L.name||"")+'" maxlength="40" autocomplete="off" autocapitalize="words"></label><label class="f">Bodyweight (kg)<input type="number" inputmode="decimal" id="lbw" data-l="bw" value="'+esc(L.bw||"")+'" placeholder="e.g. 80"></label></div><div class="grid2"><label class="f">Where do you train?<select id="lwhere" data-l="where">'+selOpts(TRACK_NAMES,L.where||"gym")+'</select></label><label class="f">Goal<select id="lgoal" data-l="goal">'+selOpts(GOALS,L.goal||"gain")+'</select></label></div><div class="grid2"><label class="f">Experience level<select id="lexp" data-l="exp"><option value="1"'+(String(L.exp)==="1"?" selected":"")+'>Beginner (guided starter plan)</option><option value="2"'+(String(L.exp||"2")==="2"?" selected":"")+'>Intermediate (standard progression)</option><option value="3"'+(String(L.exp)==="3"?" selected":"")+'>Advanced (high load &amp; skill)</option></select></label><label class="f">Upper sessions a week<select id="lups" data-l="ups"><option value="2"'+(String(L.ups)!=="3"?" selected":"")+'>2 (A and B)</option><option value="3"'+(String(L.ups)==="3"?" selected":"")+'>3 (A, B, A)</option></select></label></div><label class="f inl"><input type="checkbox" id="llegs" data-l="legs"'+(L.legs?" checked":"")+'> Add a dedicated Legs day</label><div class="grid2"><label class="f">Primary sport / cardio type<select id="ls1" data-l="s1">'+sportOpts(L.s1||"football")+'</select></label><label class="f">Secondary sport / activity<select id="ls2" data-l="s2">'+sportOpts(L.s2||"padel")+'</select></label></div><label class="f">Primary sport / Football days, if any (leave blank for Lifting Only)'+dayPick("fb",L.fb)+'</label><label class="f">Secondary sport / Padel or other sport days, if any'+dayPick("sp",L.sp)+'</label><p class="small muted">The lifting days are placed around the sport days, with a day between upper sessions. Calisthenics means bodyweight and a pull-up bar, no dumbbells. Everything can be changed later in Plan.</p><label class="f">PIN, optional (4 to 6 digits)<input type="text" class="pin" inputmode="numeric" pattern="[0-9]*" autocomplete="off" id="lnewpin" data-l="newpin" value="'+esc(L.newpin||"")+'" placeholder="Leave empty for no PIN"></label><p class="small muted">The PIN only stops someone else on this link opening your log by accident. It is not a password.</p><div class="row"><button class="btn" data-act="create">Create and open</button><button class="btn ghost" data-act="addno">Cancel</button></div></div>':'<div class="row"><button class="btn sec" data-act="addyes">+ Add a person</button></div>';
   const note=state.mode==="local"?" This browser is not signed in to the cloud, so everything stays on this device.":(state.mode==="cloud"&&state.user.canWrite===false?" This link lets you view the cloud but not save to it, so your log stays on this device.":"");
-  return '<div class="card hero stack"><span class="eyebrow">Who is training?</span><h2>Pick your name</h2><p class="muted">Each person has their own log, plan and recommendations.'+esc(note)+'</p></div>'+installCard()+'<div class="card stack">'+cards+add+'</div>'+pinBox;
+  return renderMigrationCard()+'<div class="card hero stack"><span class="eyebrow">Who is training?</span><h2>Pick your name</h2><p class="muted">Each person has their own log, plan and recommendations.'+esc(note)+'</p></div>'+installCard()+'<div class="card stack">'+cards+add+'</div>'+pinBox;
 }
 /* Install hint: Chrome / Edge hand us beforeinstallprompt; iPhone Safari gets the Share -> Add to Home Screen line. Hidden once installed or dismissed. */
 let installEvt=null; if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("beforeinstallprompt",e=>{ try{ e.preventDefault(); }catch(x){} installEvt=e; if(!state.profile) render(); });
@@ -3205,10 +3460,10 @@ function renderToday(){
     const note = wk===7?'<span class="chip warn">Deload week: half the sets, 70 percent of the weight</span>':wk>12?'<span class="chip good">Block complete. Swap a few exercises in Plan and start a new block.</span>':wk<=2?'<span class="chip sh">Learning weeks: lighter than you think, film the main lifts</span>':'<span class="chip good">Push: add a rep or 2.5 kg somewhere each week</span>';
     block='<div class="card stack"><div class="row between"><span class="eyebrow">12-week block, week '+wk+'</span><button class="btn ghost sm" data-act="newblock">Start a new block today</button></div><div class="timeline">'+tl.join("")+'</div>'+note+summaryTiles+'</div>'; }
   let lastCard='';
-  if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+last.session+'">'+sessionTitle(last.session)+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
+  if(last){ const vol=sessionVolume(last); lastCard='<div class="card stack"><span class="eyebrow">Last session</span><div class="row between"><div><span class="chip '+esc(last.session)+'">'+esc(sessionTitle(last.session))+'</span> <b>'+fmtDate(last.date)+'</b></div><span class="muted small">'+(last.exercises||[]).length+' exercises'+(vol?', '+Math.round(vol).toLocaleString()+' kg moved':'')+'</span></div>'+(last.notes?'<p class="small">'+esc(last.notes)+'</p>':'')+'</div>'; }
   const sub=(state.sub&&state.sub.today)||"all";
   const subBar=renderSubNav("today",[{k:"all",n:"All Today"},{k:"week",n:"Workout & Week"},{k:"checkin",n:"Health & Check-In"},{k:"recovery",n:"Muscles & Mobility"}]);
-  const secWeek = hero + renderAICoachCard() + renderTrainerBlueprint() + renderTodayNotifBanner() + renderWeekCard() + lastCard;
+  const secWeek = renderMigrationCard() + hero + renderAICoachCard() + renderTrainerBlueprint() + renderTodayNotifBanner() + renderWeekCard() + lastCard;
   const secCheckin = (sub==="all"?secHdr("Daily Check-In, Fuel & Apple Health"):"") + renderDailyHub();
   const secRec = (sub==="all"?secHdr("Mobility, Muscle Recovery & 12-Week Block"):"") + renderMobilityCard() + renderBodyMapCard() + block;
   if(sub==="week") return subBar + secWeek;
@@ -3377,7 +3632,7 @@ function renderHealth(){
     '<div class="sc-setup"'+(state.healthSetupOpen?'':' hidden')+'>'+
       '<span class="small muted">Update or reinstall the <b>Sync Apple Health</b> shortcut in iOS Shortcuts (opens with a Cancel/Done bar), or import an Apple Health export file:</span>'+
       '<div class="row" style="gap:8px">'+
-        '<a class="btn sm sec" href="https://raw.githubusercontent.com/HusseinBdeir/fitness/main/Sync-Apple-Health.shortcut" target="_blank" rel="noopener external" data-act="hinstallsc">Update / Install Shortcut</a>'+
+        '<a class="btn sm sec" href="https://theo.husseinbdeir.workers.dev/assets/Sync-Apple-Health.shortcut" target="_blank" rel="noopener external" data-act="hinstallsc">Update / Install Shortcut</a>'+
         '<button class="btn sm ghost" data-act="hfileopen">Import XML / ZIP</button>'+
         '<button class="btn sm ghost" data-act="hsetuptog">Cancel</button>'+
       '</div>'+
@@ -3419,7 +3674,7 @@ function renderHealth(){
     vTile("Heart Rate Variability", th.hrv, "ms", (hrvDiff>=0?"+"+hrvDiff:hrvDiff)+" ms vs 7d baseline ("+hrvB.mean+" ms) &middot; Autonomic CNS", hrvDiff>=-3?"d1":hrvDiff>=-10?"d2":"d3")+
     vTile("Resting & Walking HR", th.rhr, "bpm", "Walking avg: <b>"+th.walkingHr+" bpm</b> &middot; "+(rhrDiff>0?"+"+rhrDiff:rhrDiff)+" vs 7d avg ("+rhrB.mean+" bpm)", rhrDiff<=2?"d1":rhrDiff<=5?"d2":"d3")+
     vTile("Cardio Fitness (VO2)", th.vo2max, "mL/kg", (+th.vo2max>=48?"Superior":+th.vo2max>=44?"Excellent":"Good")+" aerobic ceiling for age "+mf.age, +th.vo2max>=44?"d1":"d2")+
-    vTile("SpO2 & Respiration", th.spo2+"%", "· "+th.respRate+"/m", "Blood oxygen "+th.spo2+"% &middot; Sleeping resp "+th.respRate+" br/min", +th.spo2<95?"d3":"d1")+
+    vTile("SpO2 & Respiration", esc(th.spo2)+"%", "· "+esc(th.respRate)+"/m", "Blood oxygen "+esc(th.spo2)+"% &middot; Sleeping resp "+esc(th.respRate)+" br/min", +th.spo2<95?"d3":"d1")+
     vTile("Body Comp & FFMI", state.plan.bodyweight||85, "kg", "Lean mass: <b>"+mf.leanMassKg+" kg</b> &middot; FFMI: <b>"+mf.ffmi+"</b>"+(mf.bf!=null?" ("+mf.bf+"% BF)":""), "d1")+
   '</div>';
 
@@ -3568,7 +3823,7 @@ function renderLog(){
   const start='<div class="card stack"><span class="eyebrow">Log a session</span><div class="row">'+keys.map(k=>'<button class="btn" data-act="start" data-s="'+k+'"'+(k==="B"?' style="background:var(--pull)"':k==="L"?' style="background:var(--accent)"':'')+'>'+sessionTitle(k)+'</button>').join("")+keys.map(k=>'<button class="btn sec" data-act="start" data-s="'+k+'" data-t="'+alt+'">'+(k==="L"?"Legs":k)+' '+altName+'</button>').join("")+'</div><p class="small muted">A and B are the two upper sessions'+(state.plan.legs?", Legs the third":"")+'. Each opens with a recommended weight and rep count worked out from your last log, the block week, sleep and how the sets feel as you go.</p></div>';
   const prog=renderProgress();
   const hist = list.length? '<div class="hist">'+list.map(s=>{ const vol=sessionVolume(s); const del=state.confirmDel===s.id;
-    return '<details class="hcard"'+(state.openHist[s.id]?" open":"")+' data-hid="'+esc(s.id)+'"><summary><span class="chip '+s.session+'">'+sessionTitle(s.session)+'</span><span class="date">'+fmtDate(s.date)+'</span><span class="muted small">'+(s.exercises||[]).length+' ex'+(vol?' &middot; '+Math.round(vol).toLocaleString()+' kg':'')+(s.sleep?' &middot; '+esc(s.sleep)+' h sleep':'')+((s.hold||s.football)?' &middot; held the weight':'')+(s.track&&s.track!=="gym"?' &middot; '+(s.track==="body"?"calisthenics":"at home"):'')+'</span></summary><div class="tscroll"><table><tr><th>Exercise</th><th>Sets</th><th>Next time</th></tr>'+(s.exercises||[]).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+(e.sets||[]).filter(x=>x.r!==""&&x.r!=null).map(x=>(e.unit==="reps"||e.unit==="s"?"":(x.w===""||x.w==null?"":x.w+"x"))+x.r).join("&nbsp; ")+'</td><td class="muted">'+esc(e.next)+'</td></tr>').join("")+'</table></div>'+(s.notes?'<p class="small" style="margin-top:8px">'+esc(s.notes)+'</p>':'')+'<div class="row between" style="margin-top:10px"><button class="btn sm sec" data-act="edit" data-id="'+esc(s.id)+'">Edit</button>'+(del?'<span class="confirm">Delete this session? <button class="btn sm danger" data-act="delyes" data-id="'+esc(s.id)+'">Yes, delete</button><button class="btn sm ghost" data-act="delno">Keep</button></span>':'<button class="btn sm ghost" data-act="del" data-id="'+esc(s.id)+'">Delete</button>')+'</div></details>'; }).join("")+'</div>'
+    return '<details class="hcard"'+(state.openHist[s.id]?" open":"")+' data-hid="'+esc(s.id)+'"><summary><span class="chip '+esc(s.session)+'">'+esc(sessionTitle(s.session))+'</span><span class="date">'+fmtDate(s.date)+'</span><span class="muted small">'+(s.exercises||[]).length+' ex'+(vol?' &middot; '+Math.round(vol).toLocaleString()+' kg':'')+(s.sleep?' &middot; '+esc(s.sleep)+' h sleep':'')+((s.hold||s.football)?' &middot; held the weight':'')+(s.track&&s.track!=="gym"?' &middot; '+(s.track==="body"?"calisthenics":"at home"):'')+'</span></summary><div class="tscroll"><table><tr><th>Exercise</th><th>Sets</th><th>Next time</th></tr>'+(s.exercises||[]).map(e=>'<tr><td>'+esc(e.name)+'</td><td>'+(e.sets||[]).filter(x=>x.r!==""&&x.r!=null).map(x=>(e.unit==="reps"||e.unit==="s"?"":(x.w===""||x.w==null?"":esc(x.w)+"x"))+esc(x.r)).join("&nbsp; ")+'</td><td class="muted">'+esc(e.next)+'</td></tr>').join("")+'</table></div>'+(s.notes?'<p class="small" style="margin-top:8px">'+esc(s.notes)+'</p>':'')+'<div class="row between" style="margin-top:10px"><button class="btn sm sec" data-act="edit" data-id="'+esc(s.id)+'">Edit</button>'+(del?'<span class="confirm">Delete this session? <button class="btn sm danger" data-act="delyes" data-id="'+esc(s.id)+'">Yes, delete</button><button class="btn sm ghost" data-act="delno">Keep</button></span>':'<button class="btn sm ghost" data-act="del" data-id="'+esc(s.id)+'">Delete</button>')+'</div></details>'; }).join("")+'</div>'
     : '<div class="empty">No sessions yet. Your first logged session starts the 12-week block.</div>';
   const sub=(state.sub&&state.sub.log)||"all";
   const subBar=renderSubNav("log",[{k:"all",n:"All Log"},{k:"hist",n:"Start & History"},{k:"prog",n:"Progress & Streak"},{k:"trophy",n:"Trophy & 1RM"}]);
@@ -3634,10 +3889,10 @@ function renderPlan(){
             renderPSwapCat("&#128260; Equipment / Station Swap",sw.equip)+
           '</div></div>':'';
         return '<div class="plan-ex"><div class="row between"><select data-pi="'+i+'" data-ps="'+k+'" data-pf="ex" id="pex'+k+i+'" style="flex:1" aria-label="Exercise">'+options.map(o=>'<option value="'+o+'"'+(o===item.ex?" selected":"")+'>'+esc(EX[o].g+": "+EX[o].n+" ("+levelName(o)+")")+'</option>').join("")+'</select>'+levelChip(item.ex)+'</div>'+
-          '<div class="nums"><label class="f">Sets<input type="number" min="1" max="8" data-pi="'+i+'" data-ps="'+k+'" data-pf="sets" id="pst'+k+i+'" value="'+item.sets+'"></label><label class="f">Reps from<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="min" id="pmn'+k+i+'" value="'+item.min+'"></label><label class="f">Reps to<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="max" id="pmx'+k+i+'" value="'+item.max+'"></label><label class="f">Add (kg)<input type="number" step="0.5" data-pi="'+i+'" data-ps="'+k+'" data-pf="inc" id="pin'+k+i+'" value="'+item.inc+'"></label></div>'+
+          '<div class="nums"><label class="f">Sets<input type="number" min="1" max="8" data-pi="'+i+'" data-ps="'+k+'" data-pf="sets" id="pst'+k+i+'" value="'+esc(item.sets)+'"></label><label class="f">Reps from<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="min" id="pmn'+k+i+'" value="'+esc(item.min)+'"></label><label class="f">Reps to<input type="number" min="1" data-pi="'+i+'" data-ps="'+k+'" data-pf="max" id="pmx'+k+i+'" value="'+esc(item.max)+'"></label><label class="f">Add (kg)<input type="number" step="0.5" data-pi="'+i+'" data-ps="'+k+'" data-pf="inc" id="pin'+k+i+'" value="'+esc(item.inc)+'"></label></div>'+
           '<div class="row" style="gap:8px"><label class="f" style="flex:1">Load type<select data-pi="'+i+'" data-ps="'+k+'" data-pf="unit" id="pun'+k+i+'"><option value="kg"'+(item.unit==="kg"?" selected":"")+'>Weight in kg</option><option value="bw"'+(item.unit==="bw"?" selected":"")+'>Bodyweight + kg</option><option value="reps"'+(item.unit==="reps"?" selected":"")+'>Reps only</option><option value="s"'+(item.unit==="s"?" selected":"")+'>Seconds (hold)</option></select></label><label class="f inl" style="padding-top:16px"><input type="checkbox" data-pi="'+i+'" data-ps="'+k+'" data-pf="side" id="psd'+k+i+'"'+(item.side?" checked":"")+'> each side</label></div>'+
           '<label class="f">Coaching note<input type="text" data-pi="'+i+'" data-ps="'+k+'" data-pf="note" id="pno'+k+i+'" value="'+esc(item.note||"")+'"></label>'+
-          '<div class="tools"><button class="icon-btn" data-act="ptogswap" data-s="'+k+'" data-i="'+i+'">'+(pSwapOpen?"Hide AI Swaps":"&#128161; AI Swap / Progress")+'</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt(EX[item.ex].q)+'" target="_blank" rel="noopener">Video</a></div>'+
+          '<div class="tools"><button class="icon-btn" data-act="ptogswap" data-s="'+k+'" data-i="'+i+'">'+(pSwapOpen?"Hide AI Swaps":"&#128161; AI Swap / Progress")+'</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="-1" aria-label="Move up">&#8593;</button><button class="icon-btn" data-act="mv" data-s="'+k+'" data-i="'+i+'" data-d="1" aria-label="Move down">&#8595;</button><button class="icon-btn" data-act="rm" data-s="'+k+'" data-i="'+i+'">Remove</button><a class="icon-btn" style="text-decoration:none" href="'+yt((EX[item.ex]&&EX[item.ex].q)||item.ex)+'" target="_blank" rel="noopener">Video</a></div>'+
           pSwapDrawer+'</div>';
       }).join("")+'</div><button class="btn sm sec" data-act="addplan" data-s="'+k+'">+ Add exercise</button></div>'; }).join("");
   const whereCard='<div class="card stack"><div class="row between"><span class="eyebrow">Where you train</span><span class="chip good">Active Default: '+esc(TRACK_NAMES[p.track])+'</span></div><div class="filters">'+Object.keys(TRACK_NAMES).map(k=>'<button data-act="track" data-t="'+k+'" class="'+(tr===k?"on":"")+'">'+esc(TRACK_NAMES[k])+'</button>').join("")+'</div><p class="small muted">'+(tr===p.track?"This is your default place. Start session uses it; any day can still be done the other way with the Where box on the log, or the second button on Today. Calisthenics means bodyweight and a pull-up bar, no dumbbells.":"Viewing "+esc(TRACK_NAMES[tr])+" templates. Tap below to make "+esc(TRACK_NAMES[tr])+" your default training track.")+'</p>'+(tr!==p.track?'<div><button class="btn sm" data-act="settrack" data-t="'+tr+'">Make '+esc(TRACK_NAMES[tr])+' active</button></div>':'')+'</div>';
@@ -3770,6 +4025,8 @@ function goTab(tab){ if(state.notifOpen){ state.notifOpen=false; renderNotifShee
 if(typeof window!=="undefined"&&window.addEventListener) window.addEventListener("popstate",e=>{ if(!state.profile) return; const t=e.state&&e.state.tab; state.tab=TABS.includes(t)?t:"today"; render(); window.scrollTo(0,0); });
 document.querySelector("nav.tabs").addEventListener("click",e=>{ const b=e.target.closest("button"); if(!b) return; goTab(b.dataset.tab); if(state.form && state.tab!=="log") toast("Your open session is kept under Log"); });
 view.addEventListener("click",async e=>{ const b=e.target.closest("[data-act]"); if(!b) return; const a=b.dataset.act; const f=state.form; const tr=state.planTrack||state.plan.track;
+  if(a==="cfmigrate"){ try{ const targetUrl=await buildFitnessMigrationUrl(); window.location.href=targetUrl; }catch(err){ toast("Could not prepare migration: "+(err&&err.message||err)); } return; }
+  if(a==="migdismiss"){ const mf=lsGet("ubp.migrated_from"); if(mf&&typeof mf==="object"){ lsSet("ubp.migrated_from",Object.assign({},mf,{needsPushPrompt:false})); } render(); return; }
   if(!state.profile){
     if(a==="pick"){ const p=state.profiles.find(x=>x.id===b.dataset.id); if(!p) return; state.login.pid=p.id; state.login.pin=""; state.login.add=false; if(!p.pinHash||state.user.isOwner) await doOpen(); else { render(); const el=document.getElementById("lpin"); if(el) el.focus(); } }
     else if(a==="pickno"){ state.login.pid=null; state.login.pin=""; render(); }
