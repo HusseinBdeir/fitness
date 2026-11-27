@@ -288,6 +288,11 @@ vm.runInContext(scriptBody, ctx);
   assert.equal(rSc.headers.get('content-disposition'), 'attachment; filename="Sync-Apple-Health.shortcut"');
   assert.equal(rSc.headers.get('cache-control'), 'no-cache');
 
+  // iOS 26/27 standalone top-edge blur mitigation & non-iOS CSS isolation
+  assert.ok(html.includes('class="pwa-status-bar-surface"'), 'fitness index.html must include .pwa-status-bar-surface');
+  assert.ok(html.includes('.pwa-status-bar-surface{display:none}') || html.includes('.pwa-status-bar-surface { display: none; }') || /\.pwa-status-bar-surface\s*\{\s*display\s*:\s*none/.test(html), 'fitness .pwa-status-bar-surface must default to display: none');
+  assert.ok(html.includes('--ios-pwa-top-clear') && html.includes('@supports (-webkit-touch-callout: none)'), 'fitness CSS must gate --ios-pwa-top-clear under @supports (-webkit-touch-callout: none)');
+
   console.log('verify_fitness_migration: ALL PASS');
 })().catch((e) => {
   console.error(e);
