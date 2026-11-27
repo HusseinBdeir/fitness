@@ -46,7 +46,9 @@ if (IS_DRY) {
   process.exit(0);
 }
 
-execFileSync('npx', ['--no-install', 'wrangler', 'deploy'], {
+const localWrangler = path.join(REPO_ROOT, 'node_modules', '.bin', process.platform === 'win32' ? 'wrangler.cmd' : 'wrangler');
+const wranglerBin = fs.existsSync(localWrangler) ? localWrangler : 'wrangler';
+execFileSync(wranglerBin, ['deploy'], {
   cwd: REPO_ROOT,
   stdio: 'inherit',
   shell: process.platform === 'win32',

@@ -8,15 +8,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fitness">
-<link rel="manifest" href="manifest.json?v=14.8">
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.8">
-<link rel="apple-touch-icon" href="icon-180.png?v=14.8">
+<link rel="manifest" href="manifest.json?v=14.9">
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=14.9">
+<link rel="apple-touch-icon" href="icon-180.png?v=14.9">
 <title>Upper Body Programme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" media="print" onload="this.media='all'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap"></noscript>
-<script id="pre">(function(){try{var t=JSON.parse(localStorage.getItem("ubp.theme")||"null");if(t==="dark"||t==="light"){document.documentElement.setAttribute("data-theme",t);}}catch(e){}})();</script>
+<script id="pre">(function(){try{var d=document.documentElement;var t=JSON.parse(localStorage.getItem("ubp.theme")||"null");if(t==="dark"||t==="light"){d.setAttribute("data-theme",t);}if((window.navigator&&window.navigator.standalone)||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)){d.classList.add("ios-standalone");}}catch(e){}})();</script>
 <style>
 /* Layout: phone-first single column, bottom tab bar; widens to a 720px column on desktop with the tab bar moving to the top. */
 :root{
@@ -369,9 +369,22 @@ body.hasrest .toast{bottom:calc(156px + env(safe-area-inset-bottom,0px))}
 .notif-list{display:flex;flex-direction:column;gap:8px;flex:1 1 auto;min-height:0;max-height:min(44dvh,310px);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y;padding-right:2px}
 .notif-item{flex-shrink:0;background:var(--sunk);border:1px solid var(--line);border-left:3px solid #FF3B30;border-radius:9px;padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
 .notif-item.checked{border-left-color:var(--line);opacity:.62}
+.pwa-status-bar-surface{display:none}
+@supports (-webkit-touch-callout: none) and (background-clip: text){
+  @media (display-mode: standalone){
+    .pwa-status-bar-surface{display:block;position:fixed;inset:0 0 auto 0;width:100%;height:12px;z-index:2147483647;pointer-events:none;background-color:var(--bg);-webkit-background-clip:text;background-clip:text}
+  }
+}
+@supports (-webkit-touch-callout: none){
+  html.ios-standalone{--ios-pwa-top-clear:calc(max(env(safe-area-inset-top,0px),52px) + 28px)}
+  @media (min-width:744px){html.ios-standalone{--ios-pwa-top-clear:calc(max(env(safe-area-inset-top,0px),24px) + 20px)}}
+  @media (orientation:landscape) and (max-height:499px){html.ios-standalone{--ios-pwa-top-clear:calc(env(safe-area-inset-top,0px) + 8px)}}
+  html.ios-standalone header.top{padding-top:var(--ios-pwa-top-clear);background:var(--bg);backdrop-filter:none;-webkit-backdrop-filter:none}
+}
 </style>
 </head>
 <body>
+<div class="pwa-status-bar-surface" aria-hidden="true"></div>
 <header class="top"><div class="in">
   <div class="brand"><small id="brandline">Two sessions a week, every week</small><h1 class="ttl">Upper Body Programme</h1></div>
   <div class="row" style="gap:8px;flex-wrap:nowrap"><div class="status" id="status"><i></i><span>Connecting</span></div><button class="btn sm ghost notif-btn" id="notifbtn" title="Notifications &amp; Action Reminders" aria-label="Notifications"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="push-count-badge" id="notifbadge" hidden>0</span></button><button class="btn sm ghost" id="themetog" title="Light / dark" aria-label="Toggle light or dark theme">&#9790;</button><button class="btn sm ghost" id="who" hidden title="Switch person">Switch</button></div>

@@ -11,10 +11,10 @@ const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.json'), 'u
 
 // 1. Version parity & <script id="pre">
 assert.ok(html.includes('<script id="pre">'), 'missing <script id="pre">');
-assert.ok(html.includes('manifest.json?v=14.8'), 'index.html missing v=14.8 manifest');
-assert.ok(sw.includes('const CACHE = "ubp-pwa-v14.8"'), 'sw.js missing v=14.8 CACHE');
+assert.ok(html.includes('manifest.json?v=14.9'), 'index.html missing v=14.9 manifest');
+assert.ok(sw.includes('const CACHE = "ubp-pwa-v14.9"'), 'sw.js missing v=14.9 CACHE');
 for (const icon of manifest.icons) {
-  assert.ok(icon.src.includes('?v=14.8'), `manifest icon not bumped to v=14.8: ${icon.src}`);
+  assert.ok(icon.src.includes('?v=14.9'), `manifest icon not bumped to v=14.9: ${icon.src}`);
 }
 
 // 2. Shortcut URLs & signed binary

@@ -1,19 +1,19 @@
-/* Fitness PWA service worker, v14.8 (2026-11-26).
+/* Fitness PWA service worker, v14.9 (2026-11-27).
    App shell: network first (no-cache for navigations), cache fallback on offline or non-OK response.
    Google Fonts: cache first (the typography survives offline).
    Web Push: RFC 8291 aes128gcm push listener + Home Screen Badging API (navigator.setAppBadge) + notificationclick focus/open + local SW notification fallback. */
-const CACHE = "ubp-pwa-v14.8";
+const CACHE = "ubp-pwa-v14.9";
 const NOTIF_CACHE = "ubp-notif-cache-v1";
 const UNREAD_NOTIFS_URL = "./__ubp_unread_notifs.json";
 const SHELL = [
   "./",
   "./index.html",
-  "./manifest.json?v=14.8",
-  "./icon.svg?v=14.8",
-  "./icon-192.png?v=14.8",
-  "./icon-512.png?v=14.8",
-  "./icon-512-maskable.png?v=14.8",
-  "./icon-180.png?v=14.8"
+  "./manifest.json?v=14.9",
+  "./icon.svg?v=14.9",
+  "./icon-192.png?v=14.9",
+  "./icon-512.png?v=14.9",
+  "./icon-512-maskable.png?v=14.9",
+  "./icon-180.png?v=14.9"
 ];
 const FONT_HOSTS = ["fonts.googleapis.com", "fonts.gstatic.com"];
 
